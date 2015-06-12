@@ -9,31 +9,33 @@ from AlgoliaSearch.models import AlgoliaIndex
 from algoliasearch import algoliasearch
 
 
-class SearchEngineError(Exception):
-    '''Something went wrong with the search engine.'''
+class AlgoliaEngineError(Exception):
+    '''Something went wrong with Algolia engine.'''
 
-class RegistrationError(SearchEngineError):
+class RegistrationError(AlgoliaEngineError):
     '''Something went wrong when registering a model with the search sengine.'''
 
-class SearchEngine(object):
+class AlgoliaEngine(object):
     def __init__(self):
-        '''Initializes the search engine.'''
+        '''Initializes Algolia engine.'''
         self._registered_models = {}
+        self.client = algoliasearch.Client(settings.ALGOLIA_APPLICATION_ID,
+                                           settings.ALGOLIA_API_KEY)
 
     def is_registered(self, model):
-        '''Checks whether the given models is registered with the search engine.'''
+        '''Checks whether the given models is registered with Algolia engine.'''
         return model in self._registered_model
 
     def register(self, model, index_cls=AlgoliaIndex):
         '''
-        Registers the given model with the search engine.
+        Registers the given model with Algolia engine.
 
-        If the given model is already registered with the search engine, a
+        If the given model is already registered with Algolia engine, a
         RegistrationError will be raised.
         '''
         # Check for existing registration
         if self.is_registered(model):
-            raise RegistrationError('{} is already registered with the search engine'.format(
+            raise RegistrationError('{} is already registered with Algolia engine'.format(
                 model
             ))
         # Perform the registration.
@@ -45,13 +47,13 @@ class SearchEngine(object):
 
     def unregister(self, model):
         '''
-        Unregisters the given model with the search engine.
+        Unregisters the given model with Algolia engine.
 
-        If the given model is not registered with the search engine, a
+        If the given model is not registered with Algolia engine, a
         RegistrationError will be raised.
         '''
         if not self.is_registered(model):
-            raise RegistrationError('{} is not registered with the search engine'.format(
+            raise RegistrationError('{} is not registered with Algolia engine'.format(
                 model
             ))
         # Perform the unregistration.
@@ -61,14 +63,14 @@ class SearchEngine(object):
         pre_delete.disconnect(self._pre_delete_receiver, model)
 
     def get_registered_model(self):
-        '''Returns a sequence of models that have been registered with the search engine.'''
+        '''Returns a sequence of models that have been registered with Algolia engine.'''
         return list(self._registered_models.keys())
 
     def get_adapter(self, model):
         '''Returns the adapter associated with the given model.'''
         if self.is_registered(model):
             return self._registered_models[model]
-        raise RegistrationError('{} is not registered with the search engine'.format(
+        raise RegistrationError('{} is not registered with Algolia engine'.format(
             model
         ))
 
@@ -91,5 +93,5 @@ class SearchEngine(object):
         delete_obj_index(instance)
 
 
-# The search engine
-search_engine = SearchEngine()
+# Algolia engine
+search_engine = AlgoliaEngine()
