@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save, pre_delete
 
 from AlgoliaSearch.models import AlgoliaIndex
@@ -39,7 +40,7 @@ class AlgoliaEngine(object):
                 model
             ))
         # Perform the registration.
-        index_obj = index_cls(model)
+        index_obj = index_cls(model, self.client)
         self._registered_models[model] = index_obj
         # Connect to the signalling framework.
         post_save.connect(self._post_save_receiver, model)
@@ -74,13 +75,17 @@ class AlgoliaEngine(object):
             model
         ))
 
+    def get_adapter_from_instance(self, instance):
+        model = obj.__class__
+        return self.get_adapter(model)
+
     def update_obj_index(self, obj):
-        # TODO: update instance
-        pass
+        adapter = self.get_adapter_from_instance(obj)
+        adapter.update_obj_index(obj)
 
     def delete_obj_index(self, obj):
-        # TODO: delete instance
-        pass
+        adapter = self.get_adapter_from_instance(obj)
+        adapter.delete_obj_index(obj)
 
     # Signalling hooks.
 
@@ -94,4 +99,4 @@ class AlgoliaEngine(object):
 
 
 # Algolia engine
-search_engine = AlgoliaEngine()
+algolia_engine = AlgoliaEngine()

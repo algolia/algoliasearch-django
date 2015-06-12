@@ -23,13 +23,29 @@ class AlgoliaIndex(objet):
     # Instance of the index from algoliasearch client
     _index = None
 
-    def __init__(self, model):
+    def __init__(self, model, client):
         '''Initializes the index.'''
         self.model = model
+        self._set_index(client)
+        #TODO: checks or make fields
 
-    def set_index(self, client):
+    def _set_index(self, client):
+        '''Get an instance of Algolia Index'''
         if not self.index_name:
             self.index_name = self.model.__name__
         if settings.ALGOLIA_INDEX_PREFIX:
             self.index_name += settings.ALGOLIA_INDEX_PREFIX
         self._index = client.init_index(self.index_name)
+
+    def _build_object(self, instance):
+        return {
+            'objectID': instance.pk
+            #TODO: add others fields
+        }
+
+    def update_obj_index(self, instance):
+        obj = self._build_object(instance)
+        self._index.save_object(obj)
+
+    def delete_obj_index(self, instance):
+        self._index.delete_object(instance.pk)
