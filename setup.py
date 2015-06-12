@@ -5,8 +5,15 @@ from distutils.core import setup
 setup(
     name = 'algoliasearch-django',
     version = '1.0.0',
-    description = '',
+    description = 'AlgoliaSearch integration for Django',
     long_description = open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     author = 'Algolia',
+    author_email = 'hey@algolia.com',
     url = 'https://github.com/algolia/algoliasearch-django',
+    packages = [
+        'AlgoliaSearch',
+    ],
+    packages_dir = {
+        '': 'src'
+    }
 )

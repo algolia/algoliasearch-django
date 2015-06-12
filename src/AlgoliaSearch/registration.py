@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.db import models
-from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save, pre_delete
 
 from AlgoliaSearch.models import AlgoliaIndex
@@ -63,7 +62,7 @@ class AlgoliaEngine(object):
         post_save.disconnect(self._post_save_receiver, model)
         pre_delete.disconnect(self._pre_delete_receiver, model)
 
-    def get_registered_model(self):
+    def get_registered_models(self):
         '''Returns a sequence of models that have been registered with Algolia engine.'''
         return list(self._registered_models.keys())
 
