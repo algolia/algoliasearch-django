@@ -24,7 +24,7 @@ class AlgoliaEngine(object):
 
     def is_registered(self, model):
         '''Checks whether the given models is registered with Algolia engine.'''
-        return model in self._registered_model
+        return model in self._registered_models
 
     def register(self, model, index_cls=AlgoliaIndex):
         '''
@@ -75,7 +75,7 @@ class AlgoliaEngine(object):
         ))
 
     def get_adapter_from_instance(self, instance):
-        model = obj.__class__
+        model = instance.__class__
         return self.get_adapter(model)
 
     def update_obj_index(self, obj):
@@ -94,7 +94,7 @@ class AlgoliaEngine(object):
 
     def _pre_delete_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been deleted.'''
-        delete_obj_index(instance)
+        self.delete_obj_index(instance)
 
 
 # Algolia engine
