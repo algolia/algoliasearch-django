@@ -18,11 +18,12 @@ class RegistrationError(AlgoliaEngineError):
 
 
 class AlgoliaEngine(object):
-    def __init__(self):
+    def __init__(self,
+                 app_id=settings.ALGOLIA_APPLICATION_ID,
+                 api_key=settings.ALGOLIA_API_KEY):
         '''Initializes Algolia engine.'''
         self.__registered_models = {}
-        self.client = algoliasearch.Client(settings.ALGOLIA_APPLICATION_ID,
-                                           settings.ALGOLIA_API_KEY)
+        self.client = algoliasearch.Client(app_id, api_key)
 
     def is_registered(self, model):
         '''Checks whether the given models is registered with Algolia engine.'''
