@@ -13,7 +13,7 @@ setup(
     version = '1.0.0',
     license = 'MIT License',
     packages = ['AlgoliaSearch'],
-    install_requires = ['algoliasearch'],
+    install_requires = ['django', 'algoliasearch'],
     description = 'AlgoliaSearch integration for Django',
     long_description = README,
     author = 'Algolia Team',

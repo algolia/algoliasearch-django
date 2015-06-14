@@ -6,7 +6,7 @@ from django.db import models
 from algoliasearch import algoliasearch
 
 
-class AlgoliaIndex(objet):
+class AlgoliaIndex(object):
     '''An index in the Algolia backend.'''
 
     # Use to specify the fields that should be included in the index.
@@ -35,7 +35,9 @@ class AlgoliaIndex(objet):
         if not self.index_name:
             self.index_name = self.model.__name__
         if settings.ALGOLIA_INDEX_PREFIX:
-            self.index_name += settings.ALGOLIA_INDEX_PREFIX
+            self.index_name = settings.ALGOLIA_INDEX_PREFIX + '_' + self.index_name
+        if settings.ALGOLIA_INDEX_SUFFIX:
+            self.index_name += '_' + settings.ALGOLIA_INDEX_SUFFIX
         self._index = client.init_index(self.index_name)
 
     def _build_object(self, instance):
