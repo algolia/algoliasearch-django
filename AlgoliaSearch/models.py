@@ -9,6 +9,7 @@ from algoliasearch import algoliasearch
 class AlgoliaIndexError(Exception):
     '''Something went wrong with an Algolia Index.'''
 
+
 class AlgoliaIndex(object):
     '''An index in the Algolia backend.'''
 
@@ -37,23 +38,23 @@ class AlgoliaIndex(object):
 
         # Avoid error when there is only one field to index
         if isinstance(self.fields, str):
-            self.fields = (self.fields,)
+            self.fields = (self.fields, )
 
-        # Check the fields
+        # Create an instance of the model to check the fields
+        instance = model()
         for field in self.fields:
-            tmp = model()
-            if callable(getattr(tmp, field)):
+            if callable(getattr(instance, field)):
                 pass
             elif field not in all_fields:
-                raise AlgoliaIndexError('{} is not a field of {}'.format(
-                    field, model
-                ))
+                raise AlgoliaIndexError(
+                    '{} is not a field of {}'.format(field, model))
 
         # Check the geo_field
         if self.geo_field:
             attr = getattr(model, self.geo_field)
             if not (isinstance(attr, tuple) or callable(attr)):
-                raise AlgoliaIndexError('`geo_field` should be a tuple or a callable that returns a tuple.')
+                raise AlgoliaIndexError(
+                    '`geo_field` should be a tuple or a callable that returns a tuple.')
 
         # If no fields are specified, index all the fields of the model
         if not self.fields:
@@ -72,7 +73,7 @@ class AlgoliaIndex(object):
 
     def __build_object(self, instance):
         '''Build the JSON object.'''
-        tmp = { 'objectID': instance.pk }
+        tmp = {'objectID': instance.pk}
         for field in self.fields:
             attr = getattr(instance, field)
             if callable(attr):
@@ -82,7 +83,7 @@ class AlgoliaIndex(object):
             attr = getattr(instance, self.geo_field)
             if callable(attr):
                 attr = attr()
-            tmp['_geoloc'] = { 'lat': attr[0], 'lng': attr[1] }
+            tmp['_geoloc'] = {'lat': attr[0], 'lng': attr[1]}
         return tmp
 
     def apply_settings(self):

@@ -12,8 +12,10 @@ from algoliasearch import algoliasearch
 class AlgoliaEngineError(Exception):
     '''Something went wrong with Algolia engine.'''
 
+
 class RegistrationError(AlgoliaEngineError):
     '''Something went wrong when registering a model with the search sengine.'''
+
 
 class AlgoliaEngine(object):
     def __init__(self):
@@ -35,9 +37,8 @@ class AlgoliaEngine(object):
         '''
         # Check for existing registration
         if self.is_registered(model):
-            raise RegistrationError('{} is already registered with Algolia engine'.format(
-                model
-            ))
+            raise RegistrationError(
+                '{} is already registered with Algolia engine'.format(model))
         # Perform the registration.
         index_obj = index_cls(model, self.client)
         self.__registered_models[model] = index_obj
@@ -53,9 +54,8 @@ class AlgoliaEngine(object):
         RegistrationError will be raised.
         '''
         if not self.is_registered(model):
-            raise RegistrationError('{} is not registered with Algolia engine'.format(
-                model
-            ))
+            raise RegistrationError(
+                '{} is not registered with Algolia engine'.format(model))
         # Perform the unregistration.
         del self.__registered_models[model]
         # Disconnect fron the signalling framework.
@@ -70,9 +70,8 @@ class AlgoliaEngine(object):
         '''Returns the adapter associated with the given model.'''
         if self.is_registered(model):
             return self.__registered_models[model]
-        raise RegistrationError('{} is not registered with Algolia engine'.format(
-            model
-        ))
+        raise RegistrationError(
+            '{} is not registered with Algolia engine'.format(model))
 
     def get_adapter_from_instance(self, instance):
         model = instance.__class__
@@ -95,7 +94,6 @@ class AlgoliaEngine(object):
     def __pre_delete_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been deleted.'''
         self.delete_obj_index(instance)
-
 
 # Algolia engine
 algolia_engine = AlgoliaEngine()

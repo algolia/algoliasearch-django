@@ -5,7 +5,7 @@
 * Install via pip: `pip install algoliasearch-django`
 * In your `setting.py`, add `AlgoliaSearch` to the `INTALLED_APPS`
 * In the same file, adds to variable `ALGOLIA_APPLICATION_ID` and `ALGOLIA_API_KEY`
-* Register your model
+* Register your model in your AppConfig
 * Run the command to index the models: `python manage.py algolia_buildindex`
 
 ## Settings
