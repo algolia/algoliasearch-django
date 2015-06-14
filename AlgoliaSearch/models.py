@@ -35,9 +35,14 @@ class AlgoliaIndex(object):
 
         all_fields = model._meta.get_all_field_names()
 
+        # Avoid error when there is only one field to index
+        if isinstance(self.fields, str):
+            self.fields = (self.fields,)
+
         # Check the fields
         for field in self.fields:
-            if callable(getattr(model, field)):
+            tmp = model()
+            if callable(getattr(tmp, field)):
                 pass
             elif field not in all_fields:
                 raise AlgoliaIndexError('{} is not a field of {}'.format(
