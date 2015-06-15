@@ -14,3 +14,8 @@
 * `ALGOLIA_INDEX_SUFFIX`: a suffix for all the index (useful for dev/prod/test)
 * `ALGOLIA_APPLICATION_ID`: your application ID
 * `ALGOLIA_API_KEY`: your API key (need write access)
+
+## Commands
+
+* `./manage.py algolia_buildindex`: hard index all the models
+* `./manage.py algolia_reindex`: solf reindex all the models (create another index, send data, wait the indexing task and then rename the index)

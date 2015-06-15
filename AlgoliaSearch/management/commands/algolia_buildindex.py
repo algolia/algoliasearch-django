@@ -1,13 +1,20 @@
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 import AlgoliaSearch
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = 'Send all index to Algolia.'
 
-    def handle_noargs(self, **options):
+    def add_arguments(self, parser):
+        parser.add_argument('--batchsize', nargs='?', default=1000, type=int)
+        parser.add_argument('--index', nargs='+', type=str)
+
+    def handle(self, *args, **options):
         '''Run the management command.'''
-        self.stdout.write('The following models will be send to Algolia:')
+        self.stdout.write('The following models were indexed:')
         for model in AlgoliaSearch.get_registered_model():
-            self.stdout.write('\t* {}\n'.format(model.__name__))
             adapter = AlgoliaSearch.get_adapter(model)
-            adapter.index_all()
+            if not (options['index'] and (adapter.__class__.__name__ in options['index'])):
+                continue
+
+            counts = adapter.reindex_all(batch_size=options['batchsize'])
+            self.stdout.write('\t* {} --> {}'.format(model.__name__, counts))

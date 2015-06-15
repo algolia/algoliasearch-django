@@ -105,34 +105,39 @@ class AlgoliaIndex(object):
     def clear_index(self):
         self.__index.clear_index()
 
-    def index_all(self):
+    def index_all(self, batch_size=1000):
         self.set_settings()
         self.clear_index()
 
+        counts = 0
         batch = []
         for instance in self.model.objects.all():
             batch.append(self.__build_object(instance))
-            if len(batch) >= 1000:
+            if len(batch) >= batch_size:
                 self.__index.save_objects(batch)
                 batch = []
+            counts += 1
         if len(batch) > 0:
             self.__index.save_objects(batch)
+        return counts
 
-    def reindex_all(self):
+    def reindex_all(self, batch_size=1000):
         if self.settings:
             self.__tmp_index.set_settings(self.settings)
         self.__tmp_index.clear_index()
 
         result = None
+        counts = 0
         batch = []
         for instance in self.model.objects.all():
             batch.append(self.__build_object(instance))
-            if len(batch) >= 1000:
+            if len(batch) >= batch_size:
                 result = self.__tmp_index.save_objects(batch)
                 batch = []
+            counts += 1
         if len(batch) > 0:
             result = self.__tmp_index.save_objects(batch)
-
         if result:
             self.__tmp_index.wait_task(result['taskID'])
             self.__client.move_index(self.index_name + '_tmp', self.index_name)
+        return counts
