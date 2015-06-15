@@ -32,6 +32,7 @@ class AlgoliaIndex(object):
     def __init__(self, model, client):
         '''Initializes the index.'''
         self.model = model
+        self.__client = client
         self.__set_index(client)
 
         all_fields = model._meta.get_all_field_names()
@@ -70,6 +71,7 @@ class AlgoliaIndex(object):
         if settings.ALGOLIA_INDEX_SUFFIX:
             self.index_name += '_' + settings.ALGOLIA_INDEX_SUFFIX
         self.__index = client.init_index(self.index_name)
+        self.__tmp_index = client.init_index(self.index_name + '_tmp')
 
     def __build_object(self, instance):
         '''Build the JSON object.'''
@@ -86,11 +88,6 @@ class AlgoliaIndex(object):
             tmp['_geoloc'] = {'lat': attr[0], 'lng': attr[1]}
         return tmp
 
-    def apply_settings(self):
-        '''Apply the settings to the index.'''
-        if self.settings:
-            self.__index.set_settings(self.settings)
-
     def update_obj_index(self, instance):
         '''Update the object.'''
         obj = self.__build_object(instance)
@@ -99,3 +96,43 @@ class AlgoliaIndex(object):
     def delete_obj_index(self, instance):
         '''Delete the object.'''
         self.__index.delete_object(instance.pk)
+
+    def set_settings(self):
+        '''Apply the settings to the index.'''
+        if self.settings:
+            self.__index.set_settings(self.settings)
+
+    def clear_index(self):
+        self.__index.clear_index()
+
+    def index_all(self):
+        self.set_settings()
+        self.clear_index()
+
+        batch = []
+        for instance in self.model.objects.all():
+            batch.append(self.__build_object(instance))
+            if len(batch) >= 1000:
+                self.__index.save_objects(batch)
+                batch = []
+        if len(batch) > 0:
+            self.__index.save_objects(batch)
+
+    def reindex_all(self):
+        if self.settings:
+            self.__tmp_index.set_settings(self.settings)
+        self.__tmp_index.clear_index()
+
+        result = None
+        batch = []
+        for instance in self.model.objects.all():
+            batch.append(self.__build_object(instance))
+            if len(batch) >= 1000:
+                result = self.__tmp_index.save_objects(batch)
+                batch = []
+        if len(batch) > 0:
+            result = self.__tmp_index.save_objects(batch)
+
+        if result:
+            self.__tmp_index.wait_task(result['taskID'])
+            self.__client.move_index(self.index_name + '_tmp', self.index_name)
