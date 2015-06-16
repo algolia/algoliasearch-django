@@ -45,7 +45,7 @@ class AlgoliaIndex(object):
         instance = model()
         for field in self.fields:
             if callable(getattr(instance, field)):
-                pass
+                continue
             elif field not in all_fields:
                 raise AlgoliaIndexError(
                     '{} is not a field of {}'.format(field, model))
@@ -76,11 +76,19 @@ class AlgoliaIndex(object):
     def __build_object(self, instance):
         '''Build the JSON object.'''
         tmp = {'objectID': instance.pk}
-        for field in self.fields:
-            attr = getattr(instance, field)
-            if callable(attr):
-                attr = attr()
-            tmp[field] = attr
+        if isinstance(self.fields, dict):
+            for key, value in self.fields.items():
+                attr = getattr(instance, key)
+                if callable(attr):
+                    attr = attr()
+                tmp[value] = attr
+        else:
+            for field in self.fields:
+                attr = getattr(instance, field)
+                if callable(attr):
+                    attr = attr()
+                tmp[field] = attr
+
         if self.geo_field:
             attr = getattr(instance, self.geo_field)
             if callable(attr):
