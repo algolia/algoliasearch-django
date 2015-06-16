@@ -66,9 +66,9 @@ class AlgoliaIndex(object):
         '''Get an instance of Algolia Index'''
         if not self.index_name:
             self.index_name = self.model.__name__
-        if settings.ALGOLIA_INDEX_PREFIX:
+        if hasattr(settings, 'ALGOLIA_INDEX_PREFIX'):
             self.index_name = settings.ALGOLIA_INDEX_PREFIX + '_' + self.index_name
-        if settings.ALGOLIA_INDEX_SUFFIX:
+        if hasattr(settings, 'ALGOLIA_INDEX_SUFFIX'):
             self.index_name += '_' + settings.ALGOLIA_INDEX_SUFFIX
         self.__index = client.init_index(self.index_name)
         self.__tmp_index = client.init_index(self.index_name + '_tmp')
