@@ -13,6 +13,10 @@ class AlgoliaIndexError(Exception):
 class AlgoliaIndex(object):
     '''An index in the Algolia backend.'''
 
+    # Use to specify a custom field that will be used for the objectID.
+    # This field should be unique.
+    custom_objectID = None
+
     # Use to specify the fields that should be included in the index.
     fields = ()
 
@@ -41,26 +45,39 @@ class AlgoliaIndex(object):
         if isinstance(self.fields, str):
             self.fields = (self.fields, )
 
-        # Create an instance of the model to check the fields
-        instance = model()
+        # Check fields
         for field in self.fields:
-            if callable(getattr(instance, field)):
-                continue
-            elif field not in all_fields:
+            if not (hasattr(model, field) or (field in all_fields)):
                 raise AlgoliaIndexError(
-                    '{} is not a field of {}'.format(field, model))
-
-        # Check the geo_field
-        if self.geo_field:
-            attr = getattr(model, self.geo_field)
-            if not (isinstance(attr, tuple) or callable(attr)):
-                raise AlgoliaIndexError(
-                    '`geo_field` should be a tuple or a callable that returns a tuple.')
+                        '{} is not a attributes of {}.'.format(field, model))
 
         # If no fields are specified, index all the fields of the model
         if not self.fields:
             self.fields = all_fields
             self.fields.remove('id')
+
+        # Check geo_field
+        if self.geo_field:
+            if hasattr(model, self.geo_field):
+                attr = getattr(model, self.geo_field)
+                if not (isinstance(attr, tuple) or callable(attr)):
+                    raise AlgoliaIndexError(
+                            '`geo_field` should be a tuple or a callable that returns a tuple.')
+            else:
+                raise AlgoliaIndexError(
+                        '{} is not an attributes of {}.'.format(self.geo_field, model))
+
+        # Check custom_objectID
+        if self.custom_objectID:
+            if hasattr(model, self.custom_objectID):
+                attr = getattr(model, elf.custom_objectID)
+                if not isinstance(attr, str):
+                    raise AlgoliaIndexError(
+                            '`custom_objectID` should be a string.')
+            else:
+                raise AlgoliaIndex(
+                        '`{}` is not an attribute of {}.'.format(self.custom_objectID, model))
+
 
     def __set_index(self, client):
         '''Get an instance of Algolia Index'''
@@ -73,9 +90,16 @@ class AlgoliaIndex(object):
         self.__index = client.init_index(self.index_name)
         self.__tmp_index = client.init_index(self.index_name + '_tmp')
 
+    def __get_objectID(self, instance):
+        '''Return the objectID of an instance.'''
+        if self.custom_objectID:
+            return getattr(instance, custom_objectID)
+        else:
+            return instance.pk
+
     def __build_object(self, instance):
         '''Build the JSON object.'''
-        tmp = {'objectID': instance.pk}
+        tmp = {'objectID': self.__get_objectID(instance)}
         if isinstance(self.fields, dict):
             for key, value in self.fields.items():
                 attr = getattr(instance, key)
@@ -111,9 +135,15 @@ class AlgoliaIndex(object):
             self.__index.set_settings(self.settings)
 
     def clear_index(self):
+        '''Clear the index.'''
         self.__index.clear_index()
 
     def index_all(self, batch_size=1000):
+        '''
+        Index all records.
+        This methods first resend the settings, then clear index and finally
+        send all the records.
+        '''
         self.set_settings()
         self.clear_index()
 
@@ -130,6 +160,12 @@ class AlgoliaIndex(object):
         return counts
 
     def reindex_all(self, batch_size=1000):
+        '''
+        Reindex all records.
+        This methods do the same as `index_all` but in a temporary index. Then
+        the indexing task is finish, it moves the temporary index to the normal
+        index.
+        '''
         if self.settings:
             self.__tmp_index.set_settings(self.settings)
         self.__tmp_index.clear_index()
