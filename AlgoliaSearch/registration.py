@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models.signals import post_save, pre_delete
 
 from AlgoliaSearch.models import AlgoliaIndex
+from AlgoliaSearch.version import VERSION
 
 from algoliasearch import algoliasearch
 
@@ -24,6 +25,7 @@ class AlgoliaEngine(object):
         '''Initializes Algolia engine.'''
         self.__registered_models = {}
         self.client = algoliasearch.Client(app_id, api_key)
+        self.client.set_extra_header('User-Agent', 'Algolia for Django {}'.format(VERSION))
 
     def is_registered(self, model):
         '''Checks whether the given models is registered with Algolia engine.'''

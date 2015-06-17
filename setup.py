@@ -1,16 +1,30 @@
+#!/usr/bin/env python
+
 import os
-from setuptools import setup
+import sys
 
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
-    README = readme.read()
 
 # Allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
+    README = readme.read()
+
+path_version = os.path.join(os.path.dirname(__file__), 'AlgoliaSearch/version.py')
+if sys.version_info[0] == 3:
+    execfile(path_version)
+else:
+    exec(open(path_version).read())
+
+
 setup(
     name = 'algoliasearch-django',
-    version = '1.0.0',
+    version = VERSION,
     license = 'MIT License',
     packages = ['AlgoliaSearch'],
     install_requires = ['django', 'algoliasearch'],

@@ -49,7 +49,7 @@ class AlgoliaIndex(object):
         for field in self.fields:
             if not (hasattr(model, field) or (field in all_fields)):
                 raise AlgoliaIndexError(
-                        '{} is not a attributes of {}.'.format(field, model))
+                    '{} is not an attribute of {}.'.format(field, model))
 
         # If no fields are specified, index all the fields of the model
         if not self.fields:
@@ -62,10 +62,10 @@ class AlgoliaIndex(object):
                 attr = getattr(model, self.geo_field)
                 if not (isinstance(attr, tuple) or callable(attr)):
                     raise AlgoliaIndexError(
-                            '`geo_field` should be a tuple or a callable that returns a tuple.')
+                        '`geo_field` should be a tuple or a callable that returns a tuple.')
             else:
-                raise AlgoliaIndexError(
-                        '{} is not an attributes of {}.'.format(self.geo_field, model))
+                raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
+                    self.geo_field, model))
 
         # Check custom_objectID
         if self.custom_objectID:
@@ -73,11 +73,10 @@ class AlgoliaIndex(object):
                 attr = getattr(model, elf.custom_objectID)
                 if not isinstance(attr, str):
                     raise AlgoliaIndexError(
-                            '`custom_objectID` should be a string.')
+                        '`custom_objectID` should be a string.')
             else:
-                raise AlgoliaIndex(
-                        '`{}` is not an attribute of {}.'.format(self.custom_objectID, model))
-
+                raise AlgoliaIndex('`{}` is not an attribute of {}.'.format(
+                    self.custom_objectID, model))
 
     def __set_index(self, client):
         '''Get an instance of Algolia Index'''
