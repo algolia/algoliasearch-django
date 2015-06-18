@@ -45,7 +45,5 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Internet :: WWW/HTTP',
-        'Topic :: Interne :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Developement :: Libraries :: Python Modules'
     ]
 )
