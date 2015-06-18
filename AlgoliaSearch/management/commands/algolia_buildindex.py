@@ -17,5 +17,5 @@ class Command(BaseCommand):
             if options['model'] and not (model.__name__ in options['model']):
                 continue
 
-            counts = adapter.reindex_all(batch_size=options['batchsize'])
+            counts = adapter.index_all(batch_size=options['batchsize'])
             self.stdout.write('\t* {} --> {}'.format(model.__name__, counts))

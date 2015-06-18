@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save, pre_delete
@@ -8,6 +10,8 @@ from AlgoliaSearch.models import AlgoliaIndex
 from AlgoliaSearch.version import VERSION
 
 from algoliasearch import algoliasearch
+
+logger = logging.getLogger(__name__)
 
 
 class AlgoliaEngineError(Exception):
@@ -25,7 +29,8 @@ class AlgoliaEngine(object):
         '''Initializes Algolia engine.'''
         self.__registered_models = {}
         self.client = algoliasearch.Client(app_id, api_key)
-        self.client.set_extra_header('User-Agent', 'Algolia for Django {}'.format(VERSION))
+        self.client.set_extra_header('User-Agent',
+                                     'Algolia for Django {}'.format(VERSION))
 
     def is_registered(self, model):
         '''Checks whether the given models is registered with Algolia engine.'''
@@ -48,6 +53,7 @@ class AlgoliaEngine(object):
         # Connect to the signalling framework.
         post_save.connect(self.__post_save_receiver, model)
         pre_delete.connect(self.__pre_delete_receiver, model)
+        logger.info('REGISTER %s', model)
 
     def unregister(self, model):
         '''
@@ -64,6 +70,7 @@ class AlgoliaEngine(object):
         # Disconnect fron the signalling framework.
         post_save.disconnect(self.__post_save_receiver, model)
         pre_delete.disconnect(self.__pre_delete_receiver, model)
+        logger.info('UNREGISTER %s', model)
 
     def get_registered_models(self):
         '''Returns a sequence of models that have been registered with Algolia engine.'''
@@ -92,10 +99,12 @@ class AlgoliaEngine(object):
 
     def __post_save_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been saved.'''
+        logger.debug('RECEIVE post_save FOR %s', instance.__class__)
         self.update_obj_index(instance)
 
     def __pre_delete_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been deleted.'''
+        logger.debug('RECEIVE pre_delete FOR %s', instance.__class__)
         self.delete_obj_index(instance)
 
 # Algolia engine

@@ -1,9 +1,14 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.conf import settings
 from django.db import models
 
 from algoliasearch import algoliasearch
+
+
+logger = logging.getLogger(__name__)
 
 
 class AlgoliaIndexError(Exception):
@@ -117,25 +122,31 @@ class AlgoliaIndex(object):
             if callable(attr):
                 attr = attr()
             tmp['_geoloc'] = {'lat': attr[0], 'lng': attr[1]}
+        logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp
 
     def update_obj_index(self, instance):
         '''Update the object.'''
         obj = self.__build_object(instance)
         self.__index.save_object(obj)
+        logger.debug('UPDATE %s FROM %s', obj['objectID'], self.model)
 
     def delete_obj_index(self, instance):
         '''Delete the object.'''
-        self.__index.delete_object(instance.pk)
+        objectID = self.__get_objectID(instance)
+        self.__index.delete_object(objectID)
+        logger.debug('DELETE %s FROM %s', objectID, self.model)
 
     def set_settings(self):
         '''Apply the settings to the index.'''
         if self.settings:
             self.__index.set_settings(self.settings)
+            logger.debug('APPLY SETTINGS ON %s', self.index_name)
 
     def clear_index(self):
         '''Clear the index.'''
         self.__index.clear_index()
+        logger.debug('CLEAR INDEX %s', self.index_name)
 
     def index_all(self, batch_size=1000):
         '''
@@ -152,10 +163,12 @@ class AlgoliaIndex(object):
             batch.append(self.__build_object(instance))
             if len(batch) >= batch_size:
                 self.__index.save_objects(batch)
+                logger.info('SAVE %d OBJECTS TO %s', len(batch), self.index_name)
                 batch = []
             counts += 1
         if len(batch) > 0:
             self.__index.save_objects(batch)
+            logger.info('SAVE %d OBJECTS TO %s', len(batch), self.index_name)
         return counts
 
     def reindex_all(self, batch_size=1000):
@@ -167,7 +180,9 @@ class AlgoliaIndex(object):
         '''
         if self.settings:
             self.__tmp_index.set_settings(self.settings)
+            logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
         self.__tmp_index.clear_index()
+        logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
         result = None
         counts = 0
@@ -176,11 +191,14 @@ class AlgoliaIndex(object):
             batch.append(self.__build_object(instance))
             if len(batch) >= batch_size:
                 result = self.__tmp_index.save_objects(batch)
+                logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch), self.index_name)
                 batch = []
             counts += 1
         if len(batch) > 0:
             result = self.__tmp_index.save_objects(batch)
+            logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch), self.index_name)
         if result:
             self.__tmp_index.wait_task(result['taskID'])
             self.__client.move_index(self.index_name + '_tmp', self.index_name)
+            logger.info('MOVE INDEX %s_tmp TO %s', self.index_name, self.index_name)
         return counts
