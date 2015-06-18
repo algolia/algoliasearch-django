@@ -28,7 +28,7 @@ setup(
     license = 'MIT License',
     packages = ['AlgoliaSearch'],
     install_requires = ['django', 'algoliasearch'],
-    description = 'AlgoliaSearch integration for Django',
+    description = 'Algolia Search integration for Django',
     long_description = README,
     author = 'Algolia Team',
     author_email = 'hey@algolia.com',
