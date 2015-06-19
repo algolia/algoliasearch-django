@@ -6,8 +6,8 @@ from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save, pre_delete
 
-from AlgoliaSearch.models import AlgoliaIndex
-from AlgoliaSearch.version import VERSION
+from django.contrib.algoliasearch.models import AlgoliaIndex
+from django.contrib.algoliasearch.version import VERSION
 
 from algoliasearch import algoliasearch
 
