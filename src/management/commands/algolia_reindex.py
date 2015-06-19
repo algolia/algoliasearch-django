@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-import django.contrib.algoliasearch
+from django.contrib import algoliasearch
 
 
 class Command(BaseCommand):
@@ -12,8 +12,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         '''Run the management command.'''
         self.stdout.write('The following models were reindexed:')
-        for model in AlgoliaSearch.get_registered_model():
-            adapter = AlgoliaSearch.get_adapter(model)
+        for model in algoliasearch.get_registered_model():
+            adapter = algoliasearch.get_adapter(model)
             if options['model'] and not (model.__name__ in options['model']):
                 continue
 

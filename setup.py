@@ -20,7 +20,7 @@ except (IOError, ImportError):
     with open(path_readme) as readme:
         README = readme.read()
 
-path_version = os.path.join(os.path.dirname(__file__), 'algoliasearch-django/version.py')
+path_version = os.path.join(os.path.dirname(__file__), 'src/version.py')
 if sys.version_info[0] == 3:
     exec(open(path_version).read())
 else:
@@ -31,13 +31,21 @@ setup(
     name = 'algoliasearch-django',
     version = VERSION,
     license = 'MIT License',
-    packages = ['django.contrib.algoliasearch'],
-    package_dir = {'django.contrib.algoliasearch': 'algoliasearch-django'},
+    packages = [
+        'django.contrib.algoliasearch',
+        'django.contrib.algoliasearch.management',
+        'django.contrib.algoliasearch.management.commands'
+    ],
+    package_dir = {
+        'django.contrib.algoliasearch': 'src',
+        'django.contrib.algoliasearch.management': 'src/management',
+        'django.contrib.algoliasearch.management.commands': 'src/management/commands'
+    },
     install_requires = ['django', 'algoliasearch'],
     description = 'Algolia Search integration for Django',
     long_description = README,
     author = 'Algolia Team',
-    author_email = 'hey@algolia.com',
+    author_email = 'support@algolia.com',
     url = 'https://github.com/algolia/algoliasearch-django',
     keywords = ['algolia', 'pyalgolia', 'search', 'backend', 'hosted', 'cloud',
         'full-text search', 'faceted search', 'django'],

@@ -30,7 +30,7 @@ pip install algoliasearch-django
 Setup
 -------------
 
-In your Django settings, add `AlgoliaSearch` to `INSTALLED_APPS` and add two settings:
+In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add two settings:
 
 ```python
 ALGOLIA_APPLICATION_ID = 'MyAppID'
@@ -50,14 +50,14 @@ Simply call `AlgoliaSearch.register()` for each of the models you want to index.
 
 ```python
 from django.apps import AppConfig
-import AlgoliaSearch
+from django.contrib import algoliasearch
 
 class YourAppConfig(AppConfig):
     name = 'your_app'
 
     def ready(self):
         YourModel = self.get_model('your_model')
-        AlgoliaSearch.register(YourModel)
+        algoliasearch.register(YourModel)
 ```
 
 And then, don't forget the line below in the `__init__.py` file of your Django application.
@@ -69,7 +69,7 @@ default_app_config = 'your_django_app.apps.YourAppConfig'
 By default, all the fields of your model will be used. You can configure the index by creating a subclass of `AlgoliaIndex`. A good place to do this is in a separeted file, like `index.py`.
 
 ```python
-from AlgoliaSearch import AlgoliaIndex
+from django.contrib.algoliasearch import AlgoliaIndex
 
 class YourModelIndex(AlgoliaIndex):
     fields = ('name', 'date')
@@ -78,7 +78,7 @@ class YourModelIndex(AlgoliaIndex):
     index_name = 'my_index'
 ```
 
-And then replace `AlgoliaSearch.register(YourModel)` with `AlgoliaSearch.register(YourModel, YourModelIndex)`.
+And then replace `algoliasearch.register(YourModel)` with `algoliasearch.register(YourModel, YourModelIndex)`.
 
 ## Commands
 
@@ -110,7 +110,7 @@ class ContactIndex(AlgoliaIndex):
     geo_field = 'location'
 
 
-AlgoliaSearch.register(Contact, ContactIndex)
+algoliasearch.register(Contact, ContactIndex)
 ```
 
 # Options
