@@ -82,8 +82,7 @@ And then replace `algoliasearch.register(YourModel)` with `algoliasearch.registe
 
 ## Commands
 
-* `python manage.py algolia_buildindex`: index all the registered models. This one should be use the first time. Be careful, if the index already exist on Algolia, it will clear it first.
-* `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it when the build operation is completed. **We highly recommand this command in production environement.**
+* `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
 * `python manage.py algolia_applysettings`: (re)apply the index settings.
 * `python manage.py algolia_clearindex`: clear the index
 
@@ -100,7 +99,7 @@ class Contact(models.Model):
     name = models.CharField()
     lat = models.FloatField()
     lng = models.FloatField()
-    
+
     def location(self):
         return (self.lat, self.lng)
 

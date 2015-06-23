@@ -148,36 +148,8 @@ class AlgoliaIndex(object):
         self.__index.clear_index()
         logger.debug('CLEAR INDEX %s', self.index_name)
 
-    def index_all(self, batch_size=1000):
-        '''
-        Index all records.
-        This methods first resend the settings, then clear index and finally
-        send all the records.
-        '''
-        self.set_settings()
-        self.clear_index()
-
-        counts = 0
-        batch = []
-        for instance in self.model.objects.all():
-            batch.append(self.__build_object(instance))
-            if len(batch) >= batch_size:
-                self.__index.save_objects(batch)
-                logger.info('SAVE %d OBJECTS TO %s', len(batch), self.index_name)
-                batch = []
-            counts += 1
-        if len(batch) > 0:
-            self.__index.save_objects(batch)
-            logger.info('SAVE %d OBJECTS TO %s', len(batch), self.index_name)
-        return counts
-
     def reindex_all(self, batch_size=1000):
-        '''
-        Reindex all records.
-        This methods do the same as `index_all` but in a temporary index. Then
-        the indexing task is finish, it moves the temporary index to the normal
-        index.
-        '''
+        '''Reindex all records.'''
         if self.settings:
             self.__tmp_index.set_settings(self.settings)
             logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
@@ -198,7 +170,6 @@ class AlgoliaIndex(object):
             result = self.__tmp_index.save_objects(batch)
             logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch), self.index_name)
         if result:
-            self.__tmp_index.wait_task(result['taskID'])
             self.__client.move_index(self.index_name + '_tmp', self.index_name)
             logger.info('MOVE INDEX %s_tmp TO %s', self.index_name, self.index_name)
         return counts
