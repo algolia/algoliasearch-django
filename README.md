@@ -34,8 +34,8 @@ In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` 
 
 ```python
 ALGOLIA = {
-    APPLICATION_ID = 'MyAppID',
-    API_KEY = 'MyApiKey'
+    APPLICATION_ID: 'MyAppID',
+    API_KEY: 'MyApiKey'
 }
 ```
 
