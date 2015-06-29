@@ -91,9 +91,9 @@ class AlgoliaIndex(object):
             self.index_name = self.model.__name__
 
         if params:
-            if params.has_key('INDEX_PREFIX'):
+            if 'INDEX_PREFIX' in params:
                 self.index_name = params['INDEX_PREFIX'] + '_' + self.index_name
-            if params.has_key('INDEX_SUFFIX'):
+            if 'INDEX_SUFFIX' in params:
                 self.index_name += '_' + params['INDEX_SUFFIX']
         else:
             # @Deprecated: 1.1.0
