@@ -76,9 +76,9 @@ class AlgoliaIndex(object):
         if self.custom_objectID:
             if hasattr(model, self.custom_objectID):
                 attr = getattr(model, elf.custom_objectID)
-                if not isinstance(attr, str):
+                if not (isinstance(attr, str) or isinstance(attr, int)):
                     raise AlgoliaIndexError(
-                        '`custom_objectID` should be a string.')
+                        '`custom_objectID` should be a string or an integer.')
             else:
                 raise AlgoliaIndex('`{}` is not an attribute of {}.'.format(
                     self.custom_objectID, model))
