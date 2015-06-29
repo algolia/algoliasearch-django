@@ -5,7 +5,9 @@ This package let you easily integrate the Algolia Search API to your favorite OR
 
 You might be interested in the sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
 
-[![PyPI version](https://badge.fury.io/py/algoliasearch-django.svg)](http://badge.fury.io/py/algoliasearch-django)
+[![Build Status](https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master)](https://travis-ci.org/algolia/algoliasearch-django)
+[![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master)](https://coveralls.io/r/algolia/algoliasearch-django)
+[![PyPI version](https://badge.fury.io/py/algoliasearch-django.svg?branch=master)](http://badge.fury.io/py/algoliasearch-django)
 
 Table of Content
 -------------
