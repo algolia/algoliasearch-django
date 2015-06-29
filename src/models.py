@@ -85,12 +85,23 @@ class AlgoliaIndex(object):
 
     def __set_index(self, client):
         '''Get an instance of Algolia Index'''
+        params = getattr(settings, 'ALGOLIA', None)
+
         if not self.index_name:
             self.index_name = self.model.__name__
-        if hasattr(settings, 'ALGOLIA_INDEX_PREFIX'):
-            self.index_name = settings.ALGOLIA_INDEX_PREFIX + '_' + self.index_name
-        if hasattr(settings, 'ALGOLIA_INDEX_SUFFIX'):
-            self.index_name += '_' + settings.ALGOLIA_INDEX_SUFFIX
+
+        if params:
+            if params.has_key('INDEX_PREFIX'):
+                self.index_name = params['INDEX_PREFIX'] + '_' + self.index_name
+            if params.has_key('INDEX_SUFFIX'):
+                self.index_name += '_' + params['INDEX_SUFFIX']
+        else:
+            # @Deprecated: 1.1.0
+            if hasattr(settings, 'ALGOLIA_INDEX_PREFIX'):
+                self.index_name = settings.ALGOLIA_INDEX_PREFIX + '_' + self.index_name
+            if hasattr(settings, 'ALGOLIA_INDEX_SUFFIX'):
+                self.index_name += '_' + settings.ALGOLIA_INDEX_SUFFIX
+
         self.__index = client.init_index(self.index_name)
         self.__tmp_index = client.init_index(self.index_name + '_tmp')
 

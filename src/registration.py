@@ -23,10 +23,18 @@ class RegistrationError(AlgoliaEngineError):
 
 
 class AlgoliaEngine(object):
-    def __init__(self,
-                 app_id=settings.ALGOLIA_APPLICATION_ID,
-                 api_key=settings.ALGOLIA_API_KEY):
+    def __init__(self, app_id=None, api_key=None):
         '''Initializes Algolia engine.'''
+        if not (app_id and api_key):
+            params = getattr(settings, 'ALGOLIA', None)
+            if params:
+                app_id = params['APPLICATION_ID']
+                api_key = params['API_KEY']
+            else:
+                # @Deprecated: 1.1.0
+                app_id = settings.ALGOLIA_APPLICATION_ID
+                api_key = setting.ALGOLIA_API_KEY
+
         self.__registered_models = {}
         self.client = algoliasearch.Client(app_id, api_key)
         self.client.set_extra_header('User-Agent',

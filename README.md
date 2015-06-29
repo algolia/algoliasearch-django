@@ -33,14 +33,16 @@ Setup
 In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add two settings:
 
 ```python
-ALGOLIA_APPLICATION_ID = 'MyAppID'
-ALGOLIA_API_KEY = 'MyApiKey'
+ALGOLIA = {
+    APPLICATION_ID = 'MyAppID',
+    API_KEY = 'MyApiKey'
+}
 ```
 
 There is also two optionals settings that take a string:
 
-* `ALGOLIA_INDEX_PREFIX`: prefix all index. You can use it to seperate different application, like `site1_Products` and `site2_Products`.
-* `ALGOLIA_INDEX_SUFFIX`: suffix all index. You can use it to differenciate development and production environement, like `Location_dev` and `Location_prod`.
+* `INDEX_PREFIX`: prefix all index. You can use it to seperate different application, like `site1_Products` and `site2_Products`.
+* `INDEX_SUFFIX`: suffix all index. You can use it to differenciate development and production environement, like `Location_dev` and `Location_prod`.
 
 
 Quick Start
