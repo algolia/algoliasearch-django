@@ -7,7 +7,6 @@ from django.db import models
 
 from algoliasearch import algoliasearch
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -69,7 +68,8 @@ class AlgoliaIndex(object):
 
         # Check custom_objectID
         if self.custom_objectID:
-            if not (hasattr(model, self.custom_objectID) or (self.custom_objectID in all_fields)):
+            if not (hasattr(model, self.custom_objectID) or
+                    (self.custom_objectID in all_fields)):
                 raise AlgoliaIndex('{} is not an attribute of {}.'.format(
                     self.custom_objectID, model))
 
@@ -164,13 +164,16 @@ class AlgoliaIndex(object):
             batch.append(self.__build_object(instance))
             if len(batch) >= batch_size:
                 result = self.__tmp_index.save_objects(batch)
-                logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch), self.index_name)
+                logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
+                            self.index_name)
                 batch = []
             counts += 1
         if len(batch) > 0:
             result = self.__tmp_index.save_objects(batch)
-            logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch), self.index_name)
+            logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
+                        self.index_name)
         if result:
             self.__client.move_index(self.index_name + '_tmp', self.index_name)
-            logger.info('MOVE INDEX %s_tmp TO %s', self.index_name, self.index_name)
+            logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
+                        self.index_name)
         return counts

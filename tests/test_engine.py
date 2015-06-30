@@ -20,13 +20,14 @@ class EngineTestCase(TestCase):
     def test_get_adapater(self):
         self.engine.register(Example)
         self.assertEquals(AlgoliaIndex,
-                self.engine.get_adapter(Example).__class__)
+                          self.engine.get_adapter(Example).__class__)
 
     def test_get_adapater_from_instance(self):
         self.engine.register(Example)
         instance = Example()
-        self.assertEquals(AlgoliaIndex,
-                self.engine.get_adapter_from_instance(instance).__class__)
+        self.assertEquals(
+            AlgoliaIndex,
+            self.engine.get_adapter_from_instance(instance).__class__)
 
     def test_register(self):
         self.engine.register(Example)
@@ -38,7 +39,7 @@ class EngineTestCase(TestCase):
 
         self.engine.register(Example, ExampleIndex)
         self.assertEqual(ExampleIndex.__name__,
-                self.engine.get_adapter(Example).__class__.__name__)
+                         self.engine.get_adapter(Example).__class__.__name__)
 
     def test_register_fail(self):
         self.engine.register(Example)

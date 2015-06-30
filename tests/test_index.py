@@ -11,8 +11,11 @@ from .models import Example
 class IndexTestCase(TestCase):
     def setUp(self):
         self.client = algolia_engine.client
-        self.instance = Example(uid=4, name='SuperK', address='Finland',
-                lat=63.3, lng=-32.0)
+        self.instance = Example(uid=4,
+                                name='SuperK',
+                                address='Finland',
+                                lat=63.3,
+                                lng=-32.0)
 
     def test_default_index_name(self):
         index = AlgoliaIndex(Example, self.client)
@@ -31,7 +34,7 @@ class IndexTestCase(TestCase):
 
         index = ExampleIndex(Example, self.client)
         obj = index._AlgoliaIndex__build_object(self.instance)
-        self.assertEqual(obj['_geoloc'], {'lat':63.3, 'lng':-32.0})
+        self.assertEqual(obj['_geoloc'], {'lat': 63.3, 'lng': -32.0})
 
     def test_custom_objectID(self):
         class ExampleIndex(AlgoliaIndex):
