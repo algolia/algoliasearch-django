@@ -1,9 +1,11 @@
 Algolia Search for Django
 ==================
 
-This package let you easily integrate the Algolia Search API to your favorite ORM. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package. Both Python 2.x and 3.x are supported.
+This package let you easily integrate the Algolia Search API to your favorite ORM. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
 
 You might be interested in the sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
+
+Compatible with **Python 2.7**, **Python 3.2+** and **Django 1.7+**
 
 [![Build Status](https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master)](https://travis-ci.org/algolia/algoliasearch-django)
 [![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master)](https://coveralls.io/r/algolia/algoliasearch-django)

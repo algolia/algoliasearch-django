@@ -41,7 +41,7 @@ setup(
         'django.contrib.algoliasearch.management': 'src/management',
         'django.contrib.algoliasearch.management.commands': 'src/management/commands'
     },
-    install_requires = ['django', 'algoliasearch'],
+    install_requires = ['django>=1.7', 'algoliasearch'],
     description = 'Algolia Search integration for Django',
     long_description = README,
     author = 'Algolia Team',

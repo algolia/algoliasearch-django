@@ -63,24 +63,14 @@ class AlgoliaIndex(object):
 
         # Check geo_field
         if self.geo_field:
-            if hasattr(model, self.geo_field):
-                attr = getattr(model, self.geo_field)
-                if not (isinstance(attr, tuple) or callable(attr)):
-                    raise AlgoliaIndexError(
-                        '`geo_field` should be a tuple or a callable that returns a tuple.')
-            else:
+            if not hasattr(model, self.geo_field):
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.geo_field, model))
 
         # Check custom_objectID
         if self.custom_objectID:
-            if hasattr(model, self.custom_objectID):
-                attr = getattr(model, elf.custom_objectID)
-                if not (isinstance(attr, str) or isinstance(attr, int)):
-                    raise AlgoliaIndexError(
-                        '`custom_objectID` should be a string or an integer.')
-            else:
-                raise AlgoliaIndex('`{}` is not an attribute of {}.'.format(
+            if not (hasattr(model, self.custom_objectID) or (self.custom_objectID in all_fields)):
+                raise AlgoliaIndex('{} is not an attribute of {}.'.format(
                     self.custom_objectID, model))
 
     def __set_index(self, client):
@@ -108,7 +98,7 @@ class AlgoliaIndex(object):
     def __get_objectID(self, instance):
         '''Return the objectID of an instance.'''
         if self.custom_objectID:
-            return getattr(instance, custom_objectID)
+            return getattr(instance, self.custom_objectID)
         else:
             return instance.pk
 

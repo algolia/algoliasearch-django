@@ -61,6 +61,6 @@ USE_TZ = True
 ALGOLIA = {
     'APPLICATION_ID': os.getenv('ALGOLIA_APPLICATION_ID'),
     'API_KEY': os.getenv('ALGOLIA_API_KEY'),
-    'INDEX_PREFIX': 'django',
+    'INDEX_PREFIX': 'django' + os.getenv('TRAVIS_JOB_NUMBER', ''),
     'INDEX_SUFFIX': 'test'
 }
