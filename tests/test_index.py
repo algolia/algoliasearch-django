@@ -19,14 +19,22 @@ class IndexTestCase(TestCase):
 
     def test_default_index_name(self):
         index = AlgoliaIndex(Example, self.client)
-        self.assertEqual(index.index_name, 'django_Example_test')
+        regex = r'django(\d+.\d+)?_Example_test'
+        try:
+            self.assertRegex(index.index_name, regex)
+        except:
+            self.assertRegexpMatches(index.index_name, regex)
 
     def test_custom_index_name(self):
         class ExampleIndex(AlgoliaIndex):
             index_name = 'customName'
 
         index = ExampleIndex(Example, self.client)
-        self.assertEqual(index.index_name, 'django_customName_test')
+        regex = r'django(\d+.\d+)?_customName_test'
+        try:
+            self.assertRegex(index.index_name, regex)
+        except:
+            self.assertRegexpMatches(index.index_name, regex)
 
     def test_geo_fields(self):
         class ExampleIndex(AlgoliaIndex):
