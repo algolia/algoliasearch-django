@@ -25,8 +25,11 @@ class AlgoliaIndex(object):
     fields = ()
 
     # Use to specify the geo-fields that should be used for location search.
-    # The field should be a tuple or a callable that returns a tuple.
+    # The field should be a callable that returns a tuple.
     geo_field = None
+
+    # Use to specify the field that should be used for filtering by tag.
+    tags = None
 
     # Use to specify the index to target on Algolia.
     index_name = None
@@ -60,18 +63,29 @@ class AlgoliaIndex(object):
             self.fields = all_fields
             self.fields.remove('id')
 
-        # Check geo_field
-        if self.geo_field:
-            if not hasattr(model, self.geo_field):
-                raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
-                    self.geo_field, model))
-
         # Check custom_objectID
         if self.custom_objectID:
             if not (hasattr(model, self.custom_objectID) or
                     (self.custom_objectID in all_fields)):
                 raise AlgoliaIndex('{} is not an attribute of {}.'.format(
                     self.custom_objectID, model))
+
+        # Check tags
+        if self.tags:
+            if not (hasattr(model, self.tags) or (self.tags in all_fields)):
+                raise AlgoliaIndex('{} is not an attribute of {}'.format(
+                    self.tags, model))
+
+        # Check geo_field
+        if self.geo_field:
+            if hasattr(model, self.geo_field):
+                attr = getattr(model, self.geo_field)
+                if not callable(attr):
+                    raise AlgoliaIndexError('{} should be a callable.'.format(
+                        self.geo_field))
+            else:
+                raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
+                    self.geo_field, model))
 
     def __set_index(self, client):
         '''Get an instance of Algolia Index'''
@@ -98,11 +112,14 @@ class AlgoliaIndex(object):
     def __get_objectID(self, instance):
         '''Return the objectID of an instance.'''
         if self.custom_objectID:
-            return getattr(instance, self.custom_objectID)
+            attr = getattr(instance, self.custom_objectID)
+            if callable(attr):
+                attr = attr()
+            return attr
         else:
             return instance.pk
 
-    def __build_object(self, instance):
+    def _build_object(self, instance):
         '''Build the JSON object.'''
         tmp = {'objectID': self.__get_objectID(instance)}
         if isinstance(self.fields, dict):
@@ -123,12 +140,21 @@ class AlgoliaIndex(object):
             if callable(attr):
                 attr = attr()
             tmp['_geoloc'] = {'lat': attr[0], 'lng': attr[1]}
+
+        if self.tags:
+            attr = getattr(instance, self.tags)
+            if callable(attr):
+                attr = attr()
+            if not isinstance(attr, list):
+                attr = list(attr)
+            tmp['_tags'] = attr
+
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp
 
     def update_obj_index(self, instance):
         '''Update the object.'''
-        obj = self.__build_object(instance)
+        obj = self._build_object(instance)
         self.__index.save_object(obj)
         logger.debug('UPDATE %s FROM %s', obj['objectID'], self.model)
 
@@ -161,7 +187,7 @@ class AlgoliaIndex(object):
         counts = 0
         batch = []
         for instance in self.model.objects.all():
-            batch.append(self.__build_object(instance))
+            batch.append(self._build_object(instance))
             if len(batch) >= batch_size:
                 result = self.__tmp_index.save_objects(batch)
                 logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),

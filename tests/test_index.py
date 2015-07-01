@@ -41,7 +41,7 @@ class IndexTestCase(TestCase):
             geo_field = 'location'
 
         index = ExampleIndex(Example, self.client)
-        obj = index._AlgoliaIndex__build_object(self.instance)
+        obj = index._build_object(self.instance)
         self.assertEqual(obj['_geoloc'], {'lat': 63.3, 'lng': -32.0})
 
     def test_custom_objectID(self):
@@ -49,7 +49,7 @@ class IndexTestCase(TestCase):
             custom_objectID = 'uid'
 
         index = ExampleIndex(Example, self.client)
-        obj = index._AlgoliaIndex__build_object(self.instance)
+        obj = index._build_object(self.instance)
         self.assertEqual(obj['objectID'], 4)
 
     def test_one_field(self):
@@ -57,7 +57,7 @@ class IndexTestCase(TestCase):
             fields = 'name'
 
         index = ExampleIndex(Example, self.client)
-        obj = index._AlgoliaIndex__build_object(self.instance)
+        obj = index._build_object(self.instance)
         self.assertNotIn('uid', obj)
         self.assertIn('name', obj)
         self.assertNotIn('address', obj)
@@ -71,7 +71,7 @@ class IndexTestCase(TestCase):
             fields = ('name', 'address')
 
         index = ExampleIndex(Example, self.client)
-        obj = index._AlgoliaIndex__build_object(self.instance)
+        obj = index._build_object(self.instance)
         self.assertNotIn('uid', obj)
         self.assertIn('name', obj)
         self.assertIn('address', obj)

@@ -98,44 +98,55 @@ We recommend the usage of our [JavaScript API Client](https://github.com/algolia
 
 ## Geo-Search
 
-Use the `geo_field` attribute to localize your record. `geo_field` can be a tuple or a callable that return a tuple (latitude, longitude).
+Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
 
 ```python
-class Contact(models.Model):
-    name = models.CharField()
-    lat = models.FloatField()
-    lng = models.FloatField()
+class contact(models.model):
+    name = models.charfield()
+    lat = models.floatfield()
+    lng = models.floatfield()
 
     def location(self):
         return (self.lat, self.lng)
 
 
-class ContactIndex(AlgoliaIndex):
+class contactindex(algoliaindex):
     fields = 'name'
     geo_field = 'location'
 
 
-algoliasearch.register(Contact, ContactIndex)
+algoliasearch.register(contact, contactindex)
 ```
 
-# Options
+# Tags
 
-## Custom `objectID`
-
-You can choose which field will be used as the `objectID`. The field should be unique and can be a string or integer. By default, we use the `pk` field of the model.
+Use the `tags` attributes to add tags to your record. It can be a field or a callable.
 
 ```python
 class ArticleIndex(AlgoliaIndex):
-    custom_objectID = 'post_id'
+    tags = 'category'
 ```
 
-## Custom index name
+At query time, specify `{ tagFilters: 'tagvalue' }` or `{ tagFilters: ['tagvalue1', 'tagvalue2'] }` as search parameters to restrict the result set to specific tags.
 
-You can customize the inde name. By default, the index name will be the name of the model class.
+# options
+
+## custom `objectid`
+
+you can choose which field will be used as the `objectid`. the field should be unique and can be a string or integer. by default, we use the `pk` field of the model.
 
 ```python
-class ContactIndex(AlgoliaIndex):
-    index_name = 'Entreprise'
+class articleindex(algoliaindex):
+    custom_objectid = 'post_id'
+```
+
+## custom index name
+
+You can customize the index name. By default, the index name will be the name of the model class.
+
+```python
+class contactindex(algoliaindex):
+    index_name = 'entreprise'
 ```
 
 ## Index settings
