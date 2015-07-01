@@ -7,6 +7,7 @@ class Example(models.Model):
     address = models.CharField(max_length=200)
     lat = models.FloatField()
     lng = models.FloatField()
+    category = []
 
     def location(self):
         return (self.lat, self.lng)

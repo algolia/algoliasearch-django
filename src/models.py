@@ -67,13 +67,13 @@ class AlgoliaIndex(object):
         if self.custom_objectID:
             if not (hasattr(model, self.custom_objectID) or
                     (self.custom_objectID in all_fields)):
-                raise AlgoliaIndex('{} is not an attribute of {}.'.format(
+                raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.custom_objectID, model))
 
         # Check tags
         if self.tags:
             if not (hasattr(model, self.tags) or (self.tags in all_fields)):
-                raise AlgoliaIndex('{} is not an attribute of {}'.format(
+                raise AlgoliaIndexError('{} is not an attribute of {}'.format(
                     self.tags, model))
 
         # Check geo_field

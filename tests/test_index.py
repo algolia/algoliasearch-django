@@ -16,6 +16,7 @@ class IndexTestCase(TestCase):
                                 address='Finland',
                                 lat=63.3,
                                 lng=-32.0)
+        self.instance.category = ['Shop', 'Grocery']
 
     def test_default_index_name(self):
         index = AlgoliaIndex(Example, self.client)
@@ -36,6 +37,21 @@ class IndexTestCase(TestCase):
         except:
             self.assertRegexpMatches(index.index_name, regex)
 
+    def test_custom_objectID(self):
+        class ExampleIndex(AlgoliaIndex):
+            custom_objectID = 'uid'
+
+        index = ExampleIndex(Example, self.client)
+        obj = index._build_object(self.instance)
+        self.assertEqual(obj['objectID'], 4)
+
+    def test_invalid_custom_objectID(self):
+        class ExampleIndex(AlgoliaIndex):
+            custom_objectID = 'uuid'
+
+        with self.assertRaises(AlgoliaIndexError):
+            index = ExampleIndex(Example, self.client)
+
     def test_geo_fields(self):
         class ExampleIndex(AlgoliaIndex):
             geo_field = 'location'
@@ -44,13 +60,27 @@ class IndexTestCase(TestCase):
         obj = index._build_object(self.instance)
         self.assertEqual(obj['_geoloc'], {'lat': 63.3, 'lng': -32.0})
 
-    def test_custom_objectID(self):
+    def test_invalid_geo_fields(self):
         class ExampleIndex(AlgoliaIndex):
-            custom_objectID = 'uid'
+            geo_field = 'position'
+
+        with self.assertRaises(AlgoliaIndexError):
+            index = ExampleIndex(Example, self.client)
+
+    def test_tags(self):
+        class ExampleIndex(AlgoliaIndex):
+            tags = 'category'
 
         index = ExampleIndex(Example, self.client)
         obj = index._build_object(self.instance)
-        self.assertEqual(obj['objectID'], 4)
+        self.assertListEqual(obj['_tags'], self.instance.category)
+
+    def test_invalid_tags(self):
+        class ExampleIndex(AlgoliaIndex):
+            tags = 'categories'
+
+        with self.assertRaises(AlgoliaIndexError):
+            index = ExampleIndex(Example, self.client)
 
     def test_one_field(self):
         class ExampleIndex(AlgoliaIndex):
@@ -64,6 +94,7 @@ class IndexTestCase(TestCase):
         self.assertNotIn('lat', obj)
         self.assertNotIn('lng', obj)
         self.assertNotIn('location', obj)
+        self.assertNotIn('category', obj)
         self.assertEqual(len(obj), 2)
 
     def test_multiple_fields(self):
@@ -78,6 +109,7 @@ class IndexTestCase(TestCase):
         self.assertNotIn('lat', obj)
         self.assertNotIn('lng', obj)
         self.assertNotIn('location', obj)
+        self.assertNotIn('category', obj)
         self.assertEqual(len(obj), 3)
 
     def test_invalid_fields(self):
