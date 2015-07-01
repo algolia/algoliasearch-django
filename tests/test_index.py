@@ -112,6 +112,22 @@ class IndexTestCase(TestCase):
         self.assertNotIn('category', obj)
         self.assertEqual(len(obj), 3)
 
+    def test_fields_with_custom_name(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = {
+                'name': 'shopName',
+                'address': 'shopAddress'
+            }
+
+        index = ExampleIndex(Example, self.client)
+        obj = index._build_object(self.instance)
+        self.assertDictContainsSubset({
+            'shopName': self.instance.name,
+            'shopAddress': self.instance.address
+        }, obj)
+        self.assertNotIn('name', obj)
+        self.assertNotIn('address', obj)
+
     def test_invalid_fields(self):
         class ExampleIndex(AlgoliaIndex):
             fields = ('name', 'color')
