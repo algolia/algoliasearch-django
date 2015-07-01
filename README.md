@@ -136,8 +136,8 @@ At query time, specify `{ tagFilters: 'tagvalue' }` or `{ tagFilters: ['tagvalue
 You can choose which field will be used as the `objectID `. The field should be unique and can be a string or integer. By default, we use the `pk` field of the model.
 
 ```python
-class articleindex(algoliaindex):
-    custom_objectid = 'post_id'
+class ArticleIndex(AlgoliaIndex):
+    custom_objectID = 'post_id'
 ```
 
 ## Custom index name
