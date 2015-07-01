@@ -101,21 +101,21 @@ We recommend the usage of our [JavaScript API Client](https://github.com/algolia
 Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
 
 ```python
-class contact(models.model):
-    name = models.charfield()
-    lat = models.floatfield()
-    lng = models.floatfield()
+class Contact(models.model):
+    name = models.CharField()
+    lat = models.FloatField()
+    lng = models.FloatField()
 
     def location(self):
         return (self.lat, self.lng)
 
 
-class contactindex(algoliaindex):
+class ContactIndex(AlgoliaIndex):
     fields = 'name'
     geo_field = 'location'
 
 
-algoliasearch.register(contact, contactindex)
+algoliasearch.register(Contact, ContactIndex)
 ```
 
 # Tags
@@ -129,24 +129,24 @@ class ArticleIndex(AlgoliaIndex):
 
 At query time, specify `{ tagFilters: 'tagvalue' }` or `{ tagFilters: ['tagvalue1', 'tagvalue2'] }` as search parameters to restrict the result set to specific tags.
 
-# options
+# Options
 
-## custom `objectid`
+## Custom `objectID`
 
-you can choose which field will be used as the `objectid`. the field should be unique and can be a string or integer. by default, we use the `pk` field of the model.
+You can choose which field will be used as the `objectID `. The field should be unique and can be a string or integer. By default, we use the `pk` field of the model.
 
 ```python
 class articleindex(algoliaindex):
     custom_objectid = 'post_id'
 ```
 
-## custom index name
+## Custom index name
 
 You can customize the index name. By default, the index name will be the name of the model class.
 
 ```python
-class contactindex(algoliaindex):
-    index_name = 'entreprise'
+class ContactIndex(algoliaindex):
+    index_name = 'Entreprise'
 ```
 
 ## Index settings
