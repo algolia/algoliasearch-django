@@ -64,5 +64,3 @@ ALGOLIA = {
     'INDEX_PREFIX': 'django' + os.getenv('TRAVIS_JOB_NUMBER', ''),
     'INDEX_SUFFIX': 'test'
 }
-
-TEST_RUNNER='redgreenunittest.django.runner.RedGreenDiscoverRunner'

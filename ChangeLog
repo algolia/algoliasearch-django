@@ -1,8 +1,6 @@
 CHANGELOG
 
-2015-07-XX X.X.X
+2015-06-23
      * Remove algolia_buildindex command. Use algolia_reindex instead.
 	 * Change settings format. Last format is still supported.
 	 * Add unit test.
-	 * Support tags.
-	 * Various bug fix.
