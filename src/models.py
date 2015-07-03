@@ -25,7 +25,7 @@ class AlgoliaIndex(object):
     fields = ()
 
     # Use to specify the geo-fields that should be used for location search.
-    # The field should be a callable that returns a tuple.
+    # The attribute should be a callable that returns a tuple.
     geo_field = None
 
     # Use to specify the field that should be used for filtering by tag.
@@ -36,6 +36,10 @@ class AlgoliaIndex(object):
 
     # Use to specify the settings of the index.
     settings = {}
+
+    # Use to specify a callable that say if the instance should be indexed.
+    # The attribute should be a callable that returns a booleen.
+    should_index = None
 
     # Instance of the index from algoliasearch client
     __index = None
@@ -86,6 +90,16 @@ class AlgoliaIndex(object):
             else:
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.geo_field, model))
+
+        if self.should_index:
+            if hasattr(model, self.should_index):
+                attr = getattr(model, self.should_index)
+                if not callable(attr):
+                    raise AlgoliaIndexError('{} should be a callable.'.format(
+                        self.should_index))
+            else:
+                raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
+                    self.should_index, model))
 
     def __set_index(self, client):
         '''Get an instance of Algolia Index'''
@@ -154,6 +168,15 @@ class AlgoliaIndex(object):
 
     def update_obj_index(self, instance):
         '''Update the object.'''
+        if self.should_index:
+            attr = getattr(instance, self.should_index)
+            if not attr():
+                # Should not index, but since we don't now the state of the
+                # instance, we need to send a DELETE request to ensure that if
+                # the instance was previously indexed, it will be removed.
+                self.delete_obj_index(self, instance)
+                return
+
         obj = self._build_object(instance)
         self.__index.save_object(obj)
         logger.debug('UPDATE %s FROM %s', obj['objectID'], self.model)
@@ -187,6 +210,11 @@ class AlgoliaIndex(object):
         counts = 0
         batch = []
         for instance in self.model.objects.all():
+            if self.should_index:
+                attr = getattr(instance, self.should_index)
+                if not attr():
+                    continue # should not index
+
             batch.append(self._build_object(instance))
             if len(batch) >= batch_size:
                 result = self.__tmp_index.save_objects(batch)

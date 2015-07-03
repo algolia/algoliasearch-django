@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.db import models
 
 from django.contrib.algoliasearch import AlgoliaIndex
 from django.contrib.algoliasearch.registration import AlgoliaEngine
@@ -11,6 +10,12 @@ from .models import Example
 class EngineTestCase(TestCase):
     def setUp(self):
         self.engine = AlgoliaEngine()
+
+    def tearDown(self):
+        try:
+            self.engine.unregister(Example)
+        except RegistrationError:
+            pass
 
     def test_is_register(self):
         self.assertFalse(self.engine.is_registered(Example))
