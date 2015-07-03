@@ -1,8 +1,11 @@
 CHANGELOG
 
-2015-06-23
-     * Remove algolia_buildindex command. Use algolia_reindex instead.
-	 * Change settings format. Last format is still supported.
-	 * Add unit test.
-	 * Add tag capacity
-	 * Add Conditional indexing
+2015-07-XX X.X.X
+  * [REMOVE] algolia_buildindex command. Use algolia_reindex instead.
+  * [CHANGE] Settings format. Last format is still supported.
+  * [ADD] Unit test.
+  * [ADD] Tag capacity
+  * [ADD] Conditional indexing
+  * [ADD] Search capacity on backend
+  * [FIX] Invalid custom_objectID attribute
+  * [FIX] Exception throw by the command when using Django 1.7

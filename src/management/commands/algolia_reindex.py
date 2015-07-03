@@ -14,8 +14,8 @@ class Command(BaseCommand):
         self.stdout.write('The following models were reindexed:')
         for model in algoliasearch.get_registered_model():
             adapter = algoliasearch.get_adapter(model)
-            if options['model'] and not (model.__name__ in options['model']):
+            if options.get('model', None) and not (model.__name__ in options['model']):
                 continue
 
-            counts = adapter.reindex_all(batch_size=options['batchsize'])
+            counts = adapter.reindex_all(batch_size=options.get('batchsize', None))
             self.stdout.write('\t* {} --> {}'.format(model.__name__, counts))
