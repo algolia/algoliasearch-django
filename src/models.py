@@ -187,6 +187,9 @@ class AlgoliaIndex(object):
         self.__index.delete_object(objectID)
         logger.debug('DELETE %s FROM %s', objectID, self.model)
 
+    def search(self, query='', params={}):
+        return self.__index.search(query, params)
+
     def set_settings(self):
         '''Apply the settings to the index.'''
         if self.settings:
