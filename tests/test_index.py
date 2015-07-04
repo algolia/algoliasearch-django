@@ -23,7 +23,7 @@ class IndexTestCase(TestCase):
         regex = r'django(\d+.\d+)?_Example_test'
         try:
             self.assertRegex(index.index_name, regex)
-        except:
+        except AttributeError:
             self.assertRegexpMatches(index.index_name, regex)
 
     def test_custom_index_name(self):
@@ -34,7 +34,7 @@ class IndexTestCase(TestCase):
         regex = r'django(\d+.\d+)?_customName_test'
         try:
             self.assertRegex(index.index_name, regex)
-        except:
+        except AttributeError:
             self.assertRegexpMatches(index.index_name, regex)
 
     def test_custom_objectID(self):
