@@ -1,9 +1,9 @@
 Algolia Search for Django
 ==================
 
-This package let you easily integrate the Algolia Search API to your favorite ORM. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
+This package lets you easily integrate the Algolia Search API to your [Django](https://www.djangoproject.com/) project. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
 
-You might be interested in the sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
+You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
 
 Compatible with **Python 2.7**, **Python 3.2+** and **Django 1.7+**
 
@@ -35,7 +35,7 @@ pip install algoliasearch-django
 Setup
 -------------
 
-In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add two settings:
+In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add these two settings:
 
 ```python
 ALGOLIA = {
@@ -44,16 +44,16 @@ ALGOLIA = {
 }
 ```
 
-There is also two optionals settings that take a string:
+There are two optional settings:
 
-* `INDEX_PREFIX`: prefix all index. You can use it to seperate different application, like `site1_Products` and `site2_Products`.
-* `INDEX_SUFFIX`: suffix all index. You can use it to differenciate development and production environement, like `Location_dev` and `Location_prod`.
+* `INDEX_PREFIX`: prefix all indexes. Use it to separate different applications, like `site1_Products` and `site2_Products`.
+* `INDEX_SUFFIX`: suffix all indexes. Use it to differenciate development and production environment, like `Location_dev` and `Location_prod`.
 
 
 Quick Start
 -------------
 
-Simply call `AlgoliaSearch.register()` for each of the models you want to index. A good place to do this is in your application's AppConfig (generally named `apps.py`).
+Simply call `AlgoliaSearch.register()` for each of the models you want to index. A good place to do this is in your application's AppConfig (generally named `apps.py`). More info in the [documentation](https://docs.djangoproject.com/en/1.8/ref/applications/)
 
 ```python
 from django.apps import AppConfig
@@ -73,7 +73,7 @@ And then, don't forget the line below in the `__init__.py` file of your Django a
 default_app_config = 'your_django_app.apps.YourAppConfig'
 ```
 
-By default, all the fields of your model will be used. You can configure the index by creating a subclass of `AlgoliaIndex`. A good place to do this is in a separeted file, like `index.py`.
+By default, all the fields of your model will be used. You can configure the index by creating a subclass of `AlgoliaIndex`. A good place to do this is in a separate file, like `index.py`.
 
 ```python
 from django.contrib.algoliasearch import AlgoliaIndex
@@ -161,7 +161,7 @@ class ContactIndex(algoliaindex):
 
 ## Index settings
 
-We provide many ways to configure your index allowing you to tune your overall index relevancy. All the configuration are explained on [our website](https://www.algolia.com/doc/python#Settings).
+We provide many ways to configure your index allowing you to tune your overall index relevancy. All the configuration is explained on [our website](https://www.algolia.com/doc/python#Settings).
 
 ```python
 class ArticleIndex(AlgoliaIndex):
