@@ -103,9 +103,9 @@ class AlgoliaEngine(object):
         adapter = self.get_adapter_from_instance(obj)
         adapter.delete_obj_index(obj)
 
-    def search(self, model, query='', params={}):
+    def raw_search(self, model, query='', params={}):
         adapter = self.get_adapter(model)
-        return adapater.search(query, params)
+        return adapater.raw_search(query, params)
 
     # Signalling hooks.
 

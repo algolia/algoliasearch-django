@@ -38,7 +38,7 @@ class AlgoliaIndex(object):
     settings = {}
 
     # Use to specify a callable that say if the instance should be indexed.
-    # The attribute should be a callable that returns a booleen.
+    # The attribute should be a callable that returns a boolean.
     should_index = None
 
     # Instance of the index from algoliasearch client
@@ -187,7 +187,7 @@ class AlgoliaIndex(object):
         self.__index.delete_object(objectID)
         logger.debug('DELETE %s FROM %s', objectID, self.model)
 
-    def search(self, query='', params={}):
+    def raw_search(self, query='', params={}):
         return self.__index.search(query, params)
 
     def set_settings(self):

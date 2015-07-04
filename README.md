@@ -21,6 +21,7 @@ Table of Content
 1. [Commands](#commands)
 1. [Search](#search)
 1. [Geo-search](#geo-search)
+1. [Tags](#tags)
 1. [Options](#options)
 
 
@@ -96,13 +97,22 @@ And then replace `algoliasearch.register(YourModel)` with `algoliasearch.registe
 
 We recommend the usage of our [JavaScript API Client](https://github.com/algolia/algoliasearch-client-js) to perform queries directly from the end-user browser without going through your server.
 
+However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', params)` method. It retrieves the raw JSON answer from the API.
+
+```python
+from django.contrib.algoliasearch import raw_search
+
+params = { "hitsPerPage": 5 }
+raw_search(Contact, "jim", params)
+```
+
 ## Geo-Search
 
 Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
 
 ```python
 class Contact(models.model):
-    name = models.CharField()
+    name = models.CharField(max_lenght=20)
     lat = models.FloatField()
     lng = models.FloatField()
 
@@ -159,4 +169,20 @@ class ArticleIndex(AlgoliaIndex):
         'attributesToIndex': ['name', 'description', 'url'],
         'customRanking': ['desc(vote_count)', 'asc(name)']
     }
+```
+
+## Restrict indexing to a subset of your data
+
+You can add constraints controlling if a record must be indexed or not. `should_index` should be a callable that returns a boolean.
+
+```python
+class Contact(models.model):
+    name = models.CharField(max_lenght=20)
+    age = models.IntegerField()
+
+    def is_adult(self):
+        return (self.age >= 18)
+
+class ContactIndex(AlgoliaIndex):
+    should_index = 'is_adult'
 ```
