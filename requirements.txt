@@ -1,3 +1,5 @@
 django>=1.7
 algoliasearch
 tox
+wheel
+pypandoc
