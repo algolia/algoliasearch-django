@@ -215,7 +215,13 @@ class AlgoliaIndex(object):
         result = None
         counts = 0
         batch = []
-        for instance in self.model.objects.all():
+
+        if getattr(self, 'get_queryset', None):
+            qs = self.get_queryset()
+        else:
+            qs = self.model.objects.all()
+
+        for instance in qs:
             if self.should_index:
                 if not self.should_index(instance):
                     continue # should not index
