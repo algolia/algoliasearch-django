@@ -80,21 +80,26 @@ class AlgoliaIndex(object):
                 raise AlgoliaIndexError('{} is not an attribute of {}'.format(
                     self.tags, model))
 
-        # Check geo_field
+        # Check geo_field + get the callable
         if self.geo_field:
             if hasattr(model, self.geo_field):
                 attr = getattr(model, self.geo_field)
-                if not callable(attr):
+                if callable(attr):
+                    self.geo_field = attr
+                else:
                     raise AlgoliaIndexError('{} should be a callable.'.format(
                         self.geo_field))
             else:
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.geo_field, model))
 
+        # Check should_index + get the callable
         if self.should_index:
             if hasattr(model, self.should_index):
                 attr = getattr(model, self.should_index)
-                if not callable(attr):
+                if callable(attr):
+                    self.should_index = attr
+                else:
                     raise AlgoliaIndexError('{} should be a callable.'.format(
                         self.should_index))
             else:
@@ -150,10 +155,8 @@ class AlgoliaIndex(object):
                 tmp[field] = attr
 
         if self.geo_field:
-            attr = getattr(instance, self.geo_field)
-            if callable(attr):
-                attr = attr()
-            tmp['_geoloc'] = {'lat': attr[0], 'lng': attr[1]}
+            loc = self.geo_field(instance)
+            tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
 
         if self.tags:
             attr = getattr(instance, self.tags)
@@ -169,8 +172,7 @@ class AlgoliaIndex(object):
     def update_obj_index(self, instance):
         '''Update the object.'''
         if self.should_index:
-            attr = getattr(instance, self.should_index)
-            if not attr():
+            if not self.should_index(instance):
                 # Should not index, but since we don't now the state of the
                 # instance, we need to send a DELETE request to ensure that if
                 # the instance was previously indexed, it will be removed.
@@ -188,6 +190,7 @@ class AlgoliaIndex(object):
         logger.debug('DELETE %s FROM %s', objectID, self.model)
 
     def raw_search(self, query='', params={}):
+        '''Return the raw JSON.'''
         return self.__index.search(query, params)
 
     def set_settings(self):
@@ -214,8 +217,7 @@ class AlgoliaIndex(object):
         batch = []
         for instance in self.model.objects.all():
             if self.should_index:
-                attr = getattr(instance, self.should_index)
-                if not attr():
+                if not self.should_index(instance):
                     continue # should not index
 
             batch.append(self._build_object(instance))
