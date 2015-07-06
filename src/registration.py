@@ -25,8 +25,9 @@ class RegistrationError(AlgoliaEngineError):
 class AlgoliaEngine(object):
     def __init__(self, app_id=None, api_key=None):
         '''Initializes Algolia engine.'''
+        params = getattr(settings, 'ALGOLIA', None)
+
         if not (app_id and api_key):
-            params = getattr(settings, 'ALGOLIA', None)
             if params:
                 app_id = params['APPLICATION_ID']
                 api_key = params['API_KEY']
@@ -34,6 +35,9 @@ class AlgoliaEngine(object):
                 # @Deprecated: 1.1.0
                 app_id = settings.ALGOLIA_APPLICATION_ID
                 api_key = setting.ALGOLIA_API_KEY
+
+        if params:
+            self.auto_indexing = params.get('AUTO_INDEXING', True)
 
         self.__registered_models = {}
         self.client = algoliasearch.Client(app_id, api_key)
@@ -58,10 +62,12 @@ class AlgoliaEngine(object):
         # Perform the registration.
         index_obj = index_cls(model, self.client)
         self.__registered_models[model] = index_obj
-        # Connect to the signalling framework.
-        post_save.connect(self.__post_save_receiver, model)
-        pre_delete.connect(self.__pre_delete_receiver, model)
-        logger.info('REGISTER %s', model)
+
+        if self.auto_indexing:
+            # Connect to the signalling framework.
+            post_save.connect(self.__post_save_receiver, model)
+            pre_delete.connect(self.__pre_delete_receiver, model)
+            logger.info('REGISTER %s', model)
 
     def unregister(self, model):
         '''
@@ -75,10 +81,12 @@ class AlgoliaEngine(object):
                 '{} is not registered with Algolia engine'.format(model))
         # Perform the unregistration.
         del self.__registered_models[model]
-        # Disconnect fron the signalling framework.
-        post_save.disconnect(self.__post_save_receiver, model)
-        pre_delete.disconnect(self.__pre_delete_receiver, model)
-        logger.info('UNREGISTER %s', model)
+
+        if self.auto_indexing:
+            # Disconnect fron the signalling framework.
+            post_save.disconnect(self.__post_save_receiver, model)
+            pre_delete.disconnect(self.__pre_delete_receiver, model)
+            logger.info('UNREGISTER %s', model)
 
     def get_registered_models(self):
         '''Returns a sequence of models that have been registered with Algolia engine.'''
@@ -104,6 +112,7 @@ class AlgoliaEngine(object):
         adapter.delete_obj_index(obj)
 
     def raw_search(self, model, query='', params={}):
+        '''Return the raw JSON.'''
         adapter = self.get_adapter(model)
         return adapater.raw_search(query, params)
 
