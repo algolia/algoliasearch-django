@@ -216,7 +216,7 @@ class AlgoliaIndex(object):
         counts = 0
         batch = []
 
-        if getattr(self, 'get_queryset', None):
+        if hasattr(self, 'get_queryset'):
             qs = self.get_queryset()
         else:
             qs = self.model.objects.all()
