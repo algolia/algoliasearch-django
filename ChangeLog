@@ -2,6 +2,7 @@ CHANGELOG
 
 2015-07-XX X.X.X
   * [ADD] `get_queryset` for grain indexing possibility
+  * [ADD] Option to deactivate auto-indexing
 
 2015-07-04 1.2.0
   * [REMOVE] algolia_buildindex command. Use algolia_reindex instead.
