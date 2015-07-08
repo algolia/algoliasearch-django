@@ -174,7 +174,7 @@ class AlgoliaIndex(object):
                 # Should not index, but since we don't now the state of the
                 # instance, we need to send a DELETE request to ensure that if
                 # the instance was previously indexed, it will be removed.
-                self.delete_obj_index(self, instance)
+                self.delete_obj_index(instance)
                 return
 
         obj = self._build_object(instance)
