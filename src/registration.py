@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import logging
 
 from django.conf import settings
-from django.db import models
 from django.db.models.signals import post_save, pre_delete
 
 from django.contrib.algoliasearch.models import AlgoliaIndex
@@ -34,7 +33,7 @@ class AlgoliaEngine(object):
             else:
                 # @Deprecated: 1.1.0
                 app_id = settings.ALGOLIA_APPLICATION_ID
-                api_key = setting.ALGOLIA_API_KEY
+                api_key = settings.ALGOLIA_API_KEY
 
         if params:
             self.auto_indexing = params.get('AUTO_INDEXING', True)
@@ -89,7 +88,10 @@ class AlgoliaEngine(object):
             logger.info('UNREGISTER %s', model)
 
     def get_registered_models(self):
-        '''Returns a sequence of models that have been registered with Algolia engine.'''
+        '''
+        Returns a sequence of models that have been registered with Algolia
+        engine.
+        '''
         return list(self.__registered_models.keys())
 
     def get_adapter(self, model):
@@ -114,7 +116,7 @@ class AlgoliaEngine(object):
     def raw_search(self, model, query='', params={}):
         '''Return the raw JSON.'''
         adapter = self.get_adapter(model)
-        return adapater.raw_search(query, params)
+        return adapter.raw_search(query, params)
 
     # Signalling hooks.
 

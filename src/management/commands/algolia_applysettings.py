@@ -13,7 +13,8 @@ class Command(BaseCommand):
         self.stdout.write('Apply settings to index:')
         for model in algoliasearch.get_registered_model():
             adapter = algoliasearch.get_adapter(model)
-            if options.get('model', None) and not (model.__name__ in options['model']):
+            if options.get('model', None) and not (model.__name__ in
+                                                   options['model']):
                 continue
 
             adapter.set_settings()

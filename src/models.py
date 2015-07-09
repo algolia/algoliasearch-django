@@ -1,11 +1,6 @@
 from __future__ import unicode_literals
-
-import logging
-
 from django.conf import settings
-from django.db import models
-
-from algoliasearch import algoliasearch
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +219,7 @@ class AlgoliaIndex(object):
         for instance in qs:
             if self.should_index:
                 if not self.should_index(instance):
-                    continue # should not index
+                    continue  # should not index
 
             batch.append(self._build_object(instance))
             if len(batch) >= batch_size:
