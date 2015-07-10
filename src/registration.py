@@ -9,7 +9,6 @@ from .models import AlgoliaIndex
 from .settings import SETTINGS
 from .version import VERSION
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -100,11 +99,11 @@ class AlgoliaEngine(object):
 
     def save_record(self, obj):
         adapter = self.get_adapter_from_instance(obj)
-        adapter.save(obj)
+        adapter.save_record(obj)
 
     def delete_record(self, obj):
         adapter = self.get_adapter_from_instance(obj)
-        adapter.delete(obj)
+        adapter.delete_record(obj)
 
     def raw_search(self, model, query='', params={}):
         '''Return the raw JSON.'''
