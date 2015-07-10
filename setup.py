@@ -28,28 +28,28 @@ else:
 
 
 setup(
-    name = 'algoliasearch-django',
-    version = VERSION,
-    license = 'MIT License',
-    packages = [
+    name='algoliasearch-django',
+    version=VERSION,
+    license='MIT License',
+    packages=[
         'django.contrib.algoliasearch',
         'django.contrib.algoliasearch.management',
         'django.contrib.algoliasearch.management.commands'
     ],
-    package_dir = {
+    package_dir={
         'django.contrib.algoliasearch': 'src',
         'django.contrib.algoliasearch.management': 'src/management',
         'django.contrib.algoliasearch.management.commands': 'src/management/commands'
     },
-    install_requires = ['django>=1.7', 'algoliasearch'],
-    description = 'Algolia Search integration for Django',
-    long_description = README,
-    author = 'Algolia Team',
-    author_email = 'support@algolia.com',
-    url = 'https://github.com/algolia/algoliasearch-django',
-    keywords = ['algolia', 'pyalgolia', 'search', 'backend', 'hosted', 'cloud',
-        'full-text search', 'faceted search', 'django'],
-    classifiers = [
+    install_requires=['django>=1.7', 'algoliasearch'],
+    description='Algolia Search integration for Django',
+    long_description=README,
+    author='Algolia Team',
+    author_email='support@algolia.com',
+    url='https://github.com/algolia/algoliasearch-django',
+    keywords=['algolia', 'pyalgolia', 'search', 'backend', 'hosted', 'cloud',
+              'full-text search', 'faceted search', 'django'],
+    classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
