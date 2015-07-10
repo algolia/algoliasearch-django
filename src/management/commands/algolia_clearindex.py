@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
-
-from . import algoliasearch
+from django.contrib import algoliasearch
 
 
 class Command(BaseCommand):
