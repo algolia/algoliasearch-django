@@ -1,8 +1,7 @@
 from django.test import TestCase
 
-from django.contrib.algoliasearch import AlgoliaIndex
-from django.contrib.algoliasearch.registration import AlgoliaEngine
-from django.contrib.algoliasearch.registration import RegistrationError
+from algoliasearch_django import AlgoliaIndex, AlgoliaEngine
+from algoliasearch_django.registration import RegistrationError
 
 from .models import Example
 

@@ -7,10 +7,10 @@ from __future__ import unicode_literals
 
 from . import models
 from . import registration
-from . import version
 from . import settings
+from . import version
 
-ALGOLIA_VERSION = version.VERSION
+__version__ = version.VERSION
 ALGOLIA_SETTINGS = settings.SETTINGS
 
 AlgoliaIndex = models.AlgoliaIndex

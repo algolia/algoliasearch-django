@@ -1,9 +1,8 @@
 from django.test import TestCase
 from django.db import models
 
-from django.contrib.algoliasearch import AlgoliaIndex
-from django.contrib.algoliasearch import algolia_engine
-from django.contrib.algoliasearch.models import AlgoliaIndexError
+from algoliasearch_django import AlgoliaIndex, algolia_engine
+from algoliasearch_django.models import AlgoliaIndexError
 
 from .models import Example
 
