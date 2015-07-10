@@ -97,9 +97,9 @@ class AlgoliaEngine(object):
         model = instance.__class__
         return self.get_adapter(model)
 
-    def save_record(self, obj):
+    def save_record(self, obj, **kwargs):
         adapter = self.get_adapter_from_instance(obj)
-        adapter.save_record(obj)
+        adapter.save_record(obj, **kwargs)
 
     def delete_record(self, obj):
         adapter = self.get_adapter_from_instance(obj)
@@ -115,7 +115,7 @@ class AlgoliaEngine(object):
     def __post_save_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been saved.'''
         logger.debug('RECEIVE post_save FOR %s', instance.__class__)
-        self.save_record(instance)
+        self.save_record(instance, **kwargs)
 
     def __pre_delete_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been deleted.'''

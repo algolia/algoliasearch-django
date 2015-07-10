@@ -79,7 +79,7 @@ class AlgoliaIndex(object):
             if isinstance(field, str):
                 attr = field
                 name = field
-            elif isinstance(field, (list, tuple, set)) and len(field) == 2:
+            elif isinstance(field, (list, tuple)) and len(field) == 2:
                 attr = field[0]
                 name = field[1]
             else:
@@ -108,7 +108,7 @@ class AlgoliaIndex(object):
         if self.custom_objectID in chain(['pk'], all_model_fields):
             self.objectID = get_model_attr(self.custom_objectID)
         else:
-            raise AlgoliaIndexError('{} it not a model field of {}'.format(
+            raise AlgoliaIndexError('{} is not a model field of {}'.format(
                 self.custom_objectID, model))
 
         # Check tags
@@ -164,7 +164,9 @@ class AlgoliaIndex(object):
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp
 
-    def save_record(self, instance, created=False, update_fields=None):
+    def save_record(self, instance,
+                    created=False,
+                    update_fields=None, **kwargs):
         '''Save the object.'''
         if self.should_index:
             if not self.should_index(instance):

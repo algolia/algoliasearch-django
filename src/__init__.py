@@ -10,14 +10,12 @@ from . import registration
 from . import version
 from . import settings
 
-
 ALGOLIA_VERSION = version.VERSION
 ALGOLIA_SETTINGS = settings.SETTINGS
 
 AlgoliaIndex = models.AlgoliaIndex
 AlgoliaEngine = registration.AlgoliaEngine
 algolia_engine = registration.algolia_engine
-
 
 # Algolia Engine functions
 
