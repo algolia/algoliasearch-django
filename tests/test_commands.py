@@ -1,9 +1,7 @@
 from django.test import TestCase
 from django.core.management import call_command
 
-from django.contrib.algoliasearch import AlgoliaIndex
-from django.contrib.algoliasearch import register
-from django.contrib.algoliasearch import unregister
+from algoliasearch_django import AlgoliaIndex, register, unregister
 
 try:
     from StringIO import StringIO

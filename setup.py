@@ -3,10 +3,8 @@
 import os
 import sys
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
+from setuptools import find_packages
 
 
 # Allow setup.py to be run from any path
@@ -20,7 +18,8 @@ except (IOError, ImportError):
     with open(path_readme) as readme:
         README = readme.read()
 
-path_version = os.path.join(os.path.dirname(__file__), 'src/version.py')
+path_version = os.path.join(os.path.dirname(__file__),
+                            'algoliasearch_django/version.py')
 if sys.version_info[0] == 3:
     exec(open(path_version).read())
 else:
@@ -28,28 +27,19 @@ else:
 
 
 setup(
-    name = 'algoliasearch-django',
-    version = VERSION,
-    license = 'MIT License',
-    packages = [
-        'django.contrib.algoliasearch',
-        'django.contrib.algoliasearch.management',
-        'django.contrib.algoliasearch.management.commands'
-    ],
-    package_dir = {
-        'django.contrib.algoliasearch': 'src',
-        'django.contrib.algoliasearch.management': 'src/management',
-        'django.contrib.algoliasearch.management.commands': 'src/management/commands'
-    },
-    install_requires = ['django>=1.7', 'algoliasearch'],
-    description = 'Algolia Search integration for Django',
-    long_description = README,
-    author = 'Algolia Team',
-    author_email = 'support@algolia.com',
-    url = 'https://github.com/algolia/algoliasearch-django',
-    keywords = ['algolia', 'pyalgolia', 'search', 'backend', 'hosted', 'cloud',
-        'full-text search', 'faceted search', 'django'],
-    classifiers = [
+    name='algoliasearch-django',
+    version=VERSION,
+    license='MIT License',
+    packages=find_packages(exclude=['tests']),
+    install_requires=['django>=1.7', 'algoliasearch'],
+    description='Algolia Search integration for Django',
+    long_description=README,
+    author='Algolia Team',
+    author_email='support@algolia.com',
+    url='https://github.com/algolia/algoliasearch-django',
+    keywords=['algolia', 'pyalgolia', 'search', 'backend', 'hosted', 'cloud',
+              'full-text search', 'faceted search', 'django'],
+    classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',

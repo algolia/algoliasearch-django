@@ -1,42 +1,34 @@
 from __future__ import unicode_literals
-
 import logging
 
-from django.conf import settings
-from django.db.models.signals import post_save, pre_delete
-
-from django.contrib.algoliasearch.models import AlgoliaIndex
-from django.contrib.algoliasearch.version import VERSION
-
+from django.db.models.signals import post_save
+from django.db.models.signals import pre_delete
 from algoliasearch import algoliasearch
+
+from .models import AlgoliaIndex
+from .settings import SETTINGS
+from .version import VERSION
 
 logger = logging.getLogger(__name__)
 
 
 class AlgoliaEngineError(Exception):
-    '''Something went wrong with Algolia engine.'''
+    '''Something went wrong with Algolia Engine.'''
 
 
 class RegistrationError(AlgoliaEngineError):
-    '''Something went wrong when registering a model with the search sengine.'''
+    '''Something went wrong when registering a model.'''
 
 
 class AlgoliaEngine(object):
     def __init__(self, app_id=None, api_key=None):
         '''Initializes Algolia engine.'''
-        params = getattr(settings, 'ALGOLIA', None)
 
         if not (app_id and api_key):
-            if params:
-                app_id = params['APPLICATION_ID']
-                api_key = params['API_KEY']
-            else:
-                # @Deprecated: 1.1.0
-                app_id = settings.ALGOLIA_APPLICATION_ID
-                api_key = settings.ALGOLIA_API_KEY
+            app_id = SETTINGS['APPLICATION_ID']
+            api_key = SETTINGS['API_KEY']
 
-        if params:
-            self.auto_indexing = params.get('AUTO_INDEXING', True)
+        self.auto_indexing = SETTINGS.get('AUTO_INDEXING', True)
 
         self.__registered_models = {}
         self.client = algoliasearch.Client(app_id, api_key)
@@ -105,13 +97,13 @@ class AlgoliaEngine(object):
         model = instance.__class__
         return self.get_adapter(model)
 
-    def update_obj_index(self, obj):
+    def save_record(self, obj, **kwargs):
         adapter = self.get_adapter_from_instance(obj)
-        adapter.update_obj_index(obj)
+        adapter.save_record(obj, **kwargs)
 
-    def delete_obj_index(self, obj):
+    def delete_record(self, obj):
         adapter = self.get_adapter_from_instance(obj)
-        adapter.delete_obj_index(obj)
+        adapter.delete_record(obj)
 
     def raw_search(self, model, query='', params={}):
         '''Return the raw JSON.'''
@@ -123,12 +115,12 @@ class AlgoliaEngine(object):
     def __post_save_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been saved.'''
         logger.debug('RECEIVE post_save FOR %s', instance.__class__)
-        self.update_obj_index(instance)
+        self.save_record(instance, **kwargs)
 
     def __pre_delete_receiver(self, instance, **kwargs):
         '''Signal handler for when a registered model has been deleted.'''
         logger.debug('RECEIVE pre_delete FOR %s', instance.__class__)
-        self.delete_obj_index(instance)
+        self.delete_record(instance)
 
 # Algolia engine
 algolia_engine = AlgoliaEngine()

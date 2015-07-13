@@ -1,9 +1,8 @@
 from django.test import TestCase
 from django.db import models
 
-from django.contrib.algoliasearch import AlgoliaIndex
-from django.contrib.algoliasearch import algolia_engine
-from django.contrib.algoliasearch.models import AlgoliaIndexError
+from algoliasearch_django import AlgoliaIndex, algolia_engine
+from algoliasearch_django.models import AlgoliaIndexError
 
 from .models import Example
 
@@ -42,7 +41,7 @@ class IndexTestCase(TestCase):
             custom_objectID = 'uid'
 
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
+        obj = index.get_raw_record(self.instance)
         self.assertEqual(obj['objectID'], 4)
 
     def test_invalid_custom_objectID(self):
@@ -57,7 +56,7 @@ class IndexTestCase(TestCase):
             geo_field = 'location'
 
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
+        obj = index.get_raw_record(self.instance)
         self.assertEqual(obj['_geoloc'], {'lat': 63.3, 'lng': -32.0})
 
     def test_invalid_geo_fields(self):
@@ -72,7 +71,7 @@ class IndexTestCase(TestCase):
             tags = 'category'
 
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
+        obj = index.get_raw_record(self.instance)
         self.assertListEqual(obj['_tags'], self.instance.category)
 
     def test_invalid_tags(self):
@@ -87,7 +86,7 @@ class IndexTestCase(TestCase):
             fields = 'name'
 
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
+        obj = index.get_raw_record(self.instance)
         self.assertNotIn('uid', obj)
         self.assertIn('name', obj)
         self.assertNotIn('address', obj)
@@ -102,7 +101,7 @@ class IndexTestCase(TestCase):
             fields = ('name', 'address')
 
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
+        obj = index.get_raw_record(self.instance)
         self.assertNotIn('uid', obj)
         self.assertIn('name', obj)
         self.assertIn('address', obj)
@@ -114,13 +113,13 @@ class IndexTestCase(TestCase):
 
     def test_fields_with_custom_name(self):
         class ExampleIndex(AlgoliaIndex):
-            fields = {
-                'name': 'shopName',
-                'address': 'shopAddress'
-            }
+            fields = (
+                ('name', 'shopName'),
+                ('address', 'shopAddress')
+            )
 
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
+        obj = index.get_raw_record(self.instance)
         self.assertDictContainsSubset({
             'shopName': self.instance.name,
             'shopAddress': self.instance.address
