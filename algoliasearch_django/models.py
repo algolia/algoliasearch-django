@@ -154,19 +154,17 @@ class AlgoliaIndex(object):
             for key, value in self.__named_fields.items():
                 tmp[key] = value(instance)
 
-        if self.geo_field:
-            loc = self.geo_field(instance)
-            tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
+            if self.geo_field:
+                loc = self.geo_field(instance)
+                tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
 
-        if self.tags:
-            tmp['_tags'] = self.tags(instance)
+            if self.tags:
+                tmp['_tags'] = self.tags(instance)
 
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp
 
-    def save_record(self, instance,
-                    created=False,
-                    update_fields=None, **kwargs):
+    def save_record(self, instance, update_fields=None, **kwargs):
         '''Save the object.'''
         if self.should_index:
             if not self.should_index(instance):
@@ -176,12 +174,13 @@ class AlgoliaIndex(object):
                 self.delete_obj(instance)
                 return
 
-        if created:
-            obj = self.get_raw_record(instance)
-        else:
+        if update_fields:
             obj = self.get_raw_record(instance, update_fields=update_fields)
+            self.__index.partial_update_object(obj)
+        else:
+            obj = self.get_raw_record(instance)
+            self.__index.save_object(obj)
 
-        self.__index.save_object(obj)
         logger.debug('SAVE %s FROM %s', obj['objectID'], self.model)
 
     def delete_record(self, instance):
