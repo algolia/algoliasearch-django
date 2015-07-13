@@ -88,10 +88,11 @@ class AlgoliaEngine(object):
 
     def get_adapter(self, model):
         '''Returns the adapter associated with the given model.'''
-        if self.is_registered(model):
-            return self.__registered_models[model]
-        raise RegistrationError(
-            '{} is not registered with Algolia engine'.format(model))
+        if not self.is_registered(model):
+            raise RegistrationError(
+                '{} is not registered with Algolia engine'.format(model))
+
+        return self.__registered_models[model]
 
     def get_adapter_from_instance(self, instance):
         model = instance.__class__

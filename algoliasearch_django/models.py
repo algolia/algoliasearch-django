@@ -3,7 +3,10 @@ from functools import partial
 from itertools import chain
 import logging
 
+from algoliasearch.algoliasearch import AlgoliaException
+
 from .settings import SETTINGS
+from .settings import DEBUG
 
 logger = logging.getLogger(__name__)
 _getattr = lambda object, name: getattr(object, name)
@@ -174,71 +177,112 @@ class AlgoliaIndex(object):
                 self.delete_obj(instance)
                 return
 
-        if update_fields:
-            obj = self.get_raw_record(instance, update_fields=update_fields)
-            self.__index.partial_update_object(obj)
-        else:
-            obj = self.get_raw_record(instance)
-            self.__index.save_object(obj)
-
-        logger.debug('SAVE %s FROM %s', obj['objectID'], self.model)
+        try:
+            if update_fields:
+                obj = self.get_raw_record(instance,
+                                          update_fields=update_fields)
+                self.__index.partial_update_object(obj)
+            else:
+                obj = self.get_raw_record(instance)
+                self.__index.save_object(obj)
+            logger.info('SAVE %s FROM %s', obj['objectID'], self.model)
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('%s FROM %s NOT SAVED: %s', obj['objectID'],
+                               self.model, e.message)
 
     def delete_record(self, instance):
         '''Delete the object.'''
         objectID = self.objectID(instance)
-        self.__index.delete_object(objectID)
-        logger.debug('DELETE %s FROM %s', objectID, self.model)
+        try:
+            self.__index.delete_object(objectID)
+            logger.info('DELETE %s FROM %s', objectID, self.model)
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('%s FROM %s NOT DELETED: %s', objectID,
+                               self.model, e.message)
 
     def raw_search(self, query='', params={}):
         '''Return the raw JSON.'''
-        return self.__index.search(query, params)
+        try:
+            return self.__index.search(query, params)
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('ERROR DURING SEARCH: %s', e.message)
 
     def set_settings(self):
         '''Apply the settings to the index.'''
         if self.settings:
-            self.__index.set_settings(self.settings)
-            logger.debug('APPLY SETTINGS ON %s', self.index_name)
+            try:
+                self.__index.set_settings(self.settings)
+                logger.info('APPLY SETTINGS ON %s', self.index_name)
+            except AlgoliaException as e:
+                if DEBUG:
+                    raise e
+                else:
+                    logger.warning('SETTINGS NOT APPLYED ON %s: %s',
+                                   self.model, e.message)
 
     def clear_index(self):
         '''Clear the index.'''
-        self.__index.clear_index()
-        logger.debug('CLEAR INDEX %s', self.index_name)
+        try:
+            self.__index.clear_index()
+            logger.info('CLEAR INDEX %s', self.index_name)
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('%s NOT CLEARED: %s', self.model, e.message)
 
     def reindex_all(self, batch_size=1000):
         '''Reindex all records.'''
-        if self.settings:
-            self.__tmp_index.set_settings(self.settings)
-            logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
-        self.__tmp_index.clear_index()
-        logger.debug('CLEAR INDEX %s_tmp', self.index_name)
+        try:
+            if self.settings:
+                self.__tmp_index.set_settings(self.settings)
+                logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
+            self.__tmp_index.clear_index()
+            logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
-        result = None
-        counts = 0
-        batch = []
+            result = None
+            counts = 0
+            batch = []
 
-        if hasattr(self, 'get_queryset'):
-            qs = self.get_queryset()
-        else:
-            qs = self.model.objects.all()
+            if hasattr(self, 'get_queryset'):
+                qs = self.get_queryset()
+            else:
+                qs = self.model.objects.all()
 
-        for instance in qs:
-            if self.should_index:
-                if not self.should_index(instance):
-                    continue  # should not index
+            for instance in qs:
+                if self.should_index:
+                    if not self.should_index(instance):
+                        continue  # should not index
 
-            batch.append(self.get_raw_record(instance))
-            if len(batch) >= batch_size:
+                batch.append(self.get_raw_record(instance))
+                if len(batch) >= batch_size:
+                    result = self.__tmp_index.save_objects(batch)
+                    logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
+                                self.index_name)
+                    batch = []
+                counts += 1
+            if len(batch) > 0:
                 result = self.__tmp_index.save_objects(batch)
                 logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
                             self.index_name)
-                batch = []
-            counts += 1
-        if len(batch) > 0:
-            result = self.__tmp_index.save_objects(batch)
-            logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
-                        self.index_name)
-        if result:
-            self.__client.move_index(self.index_name + '_tmp', self.index_name)
-            logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
-                        self.index_name)
-        return counts
+            if result:
+                self.__client.move_index(self.index_name + '_tmp',
+                                         self.index_name)
+                logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
+                            self.index_name)
+            return counts
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('ERROR DURING REINDEXING %s: %s', self.model,
+                               e.message)
