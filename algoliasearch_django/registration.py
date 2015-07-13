@@ -36,10 +36,10 @@ class AlgoliaEngine(object):
                                      'Algolia for Django {}'.format(VERSION))
 
     def is_registered(self, model):
-        '''Checks whether the given models is registered with Algolia engine.'''
+        '''Checks whether the given models is registered with Algolia engine'''
         return model in self.__registered_models
 
-    def register(self, model, index_cls=AlgoliaIndex):
+    def register(self, model, index_cls=AlgoliaIndex, auto_indexing=None):
         '''
         Registers the given model with Algolia engine.
 
@@ -54,7 +54,8 @@ class AlgoliaEngine(object):
         index_obj = index_cls(model, self.client)
         self.__registered_models[model] = index_obj
 
-        if self.auto_indexing:
+        if (isinstance(auto_indexing, bool) and
+                auto_indexing) or self.auto_indexing:
             # Connect to the signalling framework.
             post_save.connect(self.__post_save_receiver, model)
             pre_delete.connect(self.__pre_delete_receiver, model)
@@ -73,11 +74,10 @@ class AlgoliaEngine(object):
         # Perform the unregistration.
         del self.__registered_models[model]
 
-        if self.auto_indexing:
-            # Disconnect fron the signalling framework.
-            post_save.disconnect(self.__post_save_receiver, model)
-            pre_delete.disconnect(self.__pre_delete_receiver, model)
-            logger.info('UNREGISTER %s', model)
+        # Disconnect fron the signalling framework.
+        post_save.disconnect(self.__post_save_receiver, model)
+        pre_delete.disconnect(self.__pre_delete_receiver, model)
+        logger.info('UNREGISTER %s', model)
 
     def get_registered_models(self):
         '''
