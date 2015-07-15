@@ -5,7 +5,6 @@ import logging
 
 from algoliasearch.algoliasearch import AlgoliaException
 
-from .settings import SETTINGS
 from .settings import DEBUG
 
 logger = logging.getLogger(__name__)
@@ -62,10 +61,11 @@ class AlgoliaIndex(object):
     # Instance of the index from algoliasearch client
     __index = None
 
-    def __init__(self, model, client):
+    def __init__(self, model, client, settings):
         '''Initializes the index.'''
         self.model = model
         self.__client = client
+        self.__settings = settings
         self.__set_index(client)
 
         self.__named_fields = {}
@@ -137,10 +137,11 @@ class AlgoliaIndex(object):
         if not self.index_name:
             self.index_name = self.model.__name__
 
-        if 'INDEX_PREFIX' in SETTINGS:
-            self.index_name = SETTINGS['INDEX_PREFIX'] + '_' + self.index_name
-        if 'INDEX_SUFFIX' in SETTINGS:
-            self.index_name += '_' + SETTINGS['INDEX_SUFFIX']
+        if 'INDEX_PREFIX' in self.__settings:
+            self.index_name = (self.__settings['INDEX_PREFIX'] + '_' +
+                               self.index_name)
+        if 'INDEX_SUFFIX' in self.__settings:
+            self.index_name += '_' + self.__settings['INDEX_SUFFIX']
 
         self.__index = client.init_index(self.index_name)
         self.__tmp_index = client.init_index(self.index_name + '_tmp')

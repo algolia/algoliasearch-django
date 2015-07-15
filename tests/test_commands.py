@@ -1,13 +1,9 @@
 from django.test import TestCase
+from django.utils.six import StringIO
 from django.core.management import call_command
 
 from algoliasearch_django import register
 from algoliasearch_django import unregister
-
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
 
 from .models import Website, User
 
@@ -16,16 +12,15 @@ class CommandsTestCase(TestCase):
     def setUp(self):
         register(Website)
         register(User)
-        self.output = StringIO()
+        self.out = StringIO()
 
     def tearDown(self):
         unregister(Website)
         unregister(User)
 
     def test_reindex(self):
-        call_command('algolia_reindex', stdout=self.output)
-        self.output.seek(0)
-        result = ' '.join(self.output.readlines())
+        call_command('algolia_reindex', stdout=self.out)
+        result = self.out.getvalue()
 
         regex = r'Website --> \d+'
         try:
@@ -40,9 +35,8 @@ class CommandsTestCase(TestCase):
             self.assertRegexpMatches(result, regex)
 
     def test_reindex_with_args(self):
-        call_command('algolia_reindex', stdout=self.output, model=['Website'])
-        self.output.seek(0)
-        result = ' '.join(self.output.readlines())
+        call_command('algolia_reindex', stdout=self.out, model=['Website'])
+        result = self.out.getvalue()
 
         regex = r'Website --> \d+'
         try:
@@ -57,9 +51,8 @@ class CommandsTestCase(TestCase):
             self.assertNotRegexpMatches(result, regex)
 
     def test_clearindex(self):
-        call_command('algolia_clearindex', stdout=self.output)
-        self.output.seek(0)
-        result = ' '.join(self.output.readlines())
+        call_command('algolia_clearindex', stdout=self.out)
+        result = self.out.getvalue()
 
         regex = r'Website'
         try:
@@ -74,10 +67,9 @@ class CommandsTestCase(TestCase):
             self.assertRegexpMatches(result, regex)
 
     def test_clearindex_with_args(self):
-        call_command('algolia_clearindex', stdout=self.output,
+        call_command('algolia_clearindex', stdout=self.out,
                      model=['Website'])
-        self.output.seek(0)
-        result = ' '.join(self.output.readlines())
+        result = self.out.getvalue()
 
         regex = r'Website'
         try:
@@ -92,9 +84,8 @@ class CommandsTestCase(TestCase):
             self.assertNotRegexpMatches(result, regex)
 
     def test_applysettings(self):
-        call_command('algolia_applysettings', stdout=self.output)
-        self.output.seek(0)
-        result = ' '.join(self.output.readlines())
+        call_command('algolia_applysettings', stdout=self.out)
+        result = self.out.getvalue()
 
         regex = r'Website'
         try:
@@ -109,10 +100,9 @@ class CommandsTestCase(TestCase):
             self.assertRegexpMatches(result, regex)
 
     def test_applysettings_with_args(self):
-        call_command('algolia_applysettings', stdout=self.output,
+        call_command('algolia_applysettings', stdout=self.out,
                      model=['Website'])
-        self.output.seek(0)
-        result = ' '.join(self.output.readlines())
+        result = self.out.getvalue()
 
         regex = r'Website'
         try:

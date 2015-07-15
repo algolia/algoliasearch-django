@@ -21,14 +21,18 @@ class RegistrationError(AlgoliaEngineError):
 
 
 class AlgoliaEngine(object):
-    def __init__(self, app_id=None, api_key=None):
+    def __init__(self, settings=SETTINGS):
         '''Initializes Algolia engine.'''
 
-        if not (app_id and api_key):
-            app_id = SETTINGS['APPLICATION_ID']
-            api_key = SETTINGS['API_KEY']
+        try:
+            app_id = settings['APPLICATION_ID']
+            api_key = settings['API_KEY']
+        except KeyError:
+            raise AlgoliaEngineError(
+                'APPLICATION_ID and API_KEY must be defined.')
 
-        self.auto_indexing = SETTINGS.get('AUTO_INDEXING', True)
+        self.__auto_indexing = settings.get('AUTO_INDEXING', True)
+        self.__settings = settings
 
         self.__registered_models = {}
         self.client = algoliasearch.Client(app_id, api_key)
@@ -55,11 +59,11 @@ class AlgoliaEngine(object):
         if not issubclass(index_cls, AlgoliaIndex):
             raise RegistrationError(
                 '{} should be a subclass of AlgoliaIndex'.format(index_cls))
-        index_obj = index_cls(model, self.client)
+        index_obj = index_cls(model, self.client, self.__settings)
         self.__registered_models[model] = index_obj
 
         if (isinstance(auto_indexing, bool) and
-                auto_indexing) or self.auto_indexing:
+                auto_indexing) or self.__auto_indexing:
             # Connect to the signalling framework.
             post_save.connect(self.__post_save_receiver, model)
             pre_delete.connect(self.__pre_delete_receiver, model)
