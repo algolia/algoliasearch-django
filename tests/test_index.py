@@ -1,135 +1,173 @@
+from django.conf import settings
 from django.test import TestCase
-from django.db import models
 
-from algoliasearch_django import AlgoliaIndex, algolia_engine
+from algoliasearch_django import AlgoliaIndex
+from algoliasearch_django import algolia_engine
 from algoliasearch_django.models import AlgoliaIndexError
 
-from .models import Example
+from .models import User
+from .models import Website
 
 
 class IndexTestCase(TestCase):
     def setUp(self):
         self.client = algolia_engine.client
-        self.instance = Example(uid=4,
-                                name='SuperK',
-                                address='Finland',
-                                lat=63.3,
-                                lng=-32.0)
-        self.instance.category = ['Shop', 'Grocery']
+
+        # Create some records
+        User.objects.create(name='James Bond', username="jb")
+        User.objects.create(name='Captain America', username="captain")
+        User.objects.create(name='John Snow', username="john_snow",
+                            _lat=120.2, _lng=42.1)
+        User.objects.create(name='Steve Jobs', username="genius",
+                            followers_count=331213)
+
+        self.instance = User(name='Algolia', username="algolia",
+                             bio='Milliseconds matter', followers_count=42001,
+                             following_count=42, _lat=123, _lng=-42.24,
+                             _permissions='read,write,admin')
 
     def test_default_index_name(self):
-        index = AlgoliaIndex(Example, self.client)
-        regex = r'django(\d+.\d+)?_Example_test'
+        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        regex = r'^django(\d+.\d+)?_Website_test$'
         try:
             self.assertRegex(index.index_name, regex)
         except AttributeError:
             self.assertRegexpMatches(index.index_name, regex)
 
     def test_custom_index_name(self):
-        class ExampleIndex(AlgoliaIndex):
+        class WebsiteIndex(AlgoliaIndex):
             index_name = 'customName'
 
-        index = ExampleIndex(Example, self.client)
-        regex = r'django(\d+.\d+)?_customName_test'
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        regex = r'^django(\d+.\d+)?_customName_test$'
         try:
             self.assertRegex(index.index_name, regex)
         except AttributeError:
             self.assertRegexpMatches(index.index_name, regex)
 
-    def test_custom_objectID(self):
-        class ExampleIndex(AlgoliaIndex):
-            custom_objectID = 'uid'
+    def test_index_name_settings(self):
+        algolia_settings = dict(settings.ALGOLIA)
+        del algolia_settings['INDEX_PREFIX']
+        del algolia_settings['INDEX_SUFFIX']
 
-        index = ExampleIndex(Example, self.client)
+        with self.settings(ALGOLIA=algolia_settings):
+            index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            regex = r'^Website$'
+            try:
+                self.assertRegex(index.index_name, regex)
+            except AttributeError:
+                self.assertRegexpMatches(index.index_name, regex)
+
+    def test_custom_objectID(self):
+        class UserIndex(AlgoliaIndex):
+            custom_objectID = 'username'
+
+        index = UserIndex(User, self.client, settings.ALGOLIA)
         obj = index.get_raw_record(self.instance)
-        self.assertEqual(obj['objectID'], 4)
+        self.assertEqual(obj['objectID'], 'algolia')
 
     def test_invalid_custom_objectID(self):
-        class ExampleIndex(AlgoliaIndex):
-            custom_objectID = 'uuid'
+        class UserIndex(AlgoliaIndex):
+            custom_objectID = 'uid'
 
         with self.assertRaises(AlgoliaIndexError):
-            index = ExampleIndex(Example, self.client)
+            UserIndex(User, self.client, settings.ALGOLIA)
 
     def test_geo_fields(self):
-        class ExampleIndex(AlgoliaIndex):
+        class UserIndex(AlgoliaIndex):
             geo_field = 'location'
 
-        index = ExampleIndex(Example, self.client)
+        index = UserIndex(User, self.client, settings.ALGOLIA)
         obj = index.get_raw_record(self.instance)
-        self.assertEqual(obj['_geoloc'], {'lat': 63.3, 'lng': -32.0})
+        self.assertEqual(obj['_geoloc'], {'lat': 123, 'lng': -42.24})
 
     def test_invalid_geo_fields(self):
-        class ExampleIndex(AlgoliaIndex):
+        class UserIndex(AlgoliaIndex):
             geo_field = 'position'
 
         with self.assertRaises(AlgoliaIndexError):
-            index = ExampleIndex(Example, self.client)
+            UserIndex(User, self.client, settings.ALGOLIA)
 
     def test_tags(self):
-        class ExampleIndex(AlgoliaIndex):
-            tags = 'category'
+        class UserIndex(AlgoliaIndex):
+            tags = 'permissions'
 
-        index = ExampleIndex(Example, self.client)
+        index = UserIndex(User, self.client, settings.ALGOLIA)
         obj = index.get_raw_record(self.instance)
-        self.assertListEqual(obj['_tags'], self.instance.category)
+        self.assertListEqual(obj['_tags'], ['read', 'write', 'admin'])
 
     def test_invalid_tags(self):
-        class ExampleIndex(AlgoliaIndex):
-            tags = 'categories'
+        class UserIndex(AlgoliaIndex):
+            tags = 'tags'
 
         with self.assertRaises(AlgoliaIndexError):
-            index = ExampleIndex(Example, self.client)
+            UserIndex(User, self.client, settings.ALGOLIA)
 
     def test_one_field(self):
-        class ExampleIndex(AlgoliaIndex):
+        class UserIndex(AlgoliaIndex):
             fields = 'name'
 
-        index = ExampleIndex(Example, self.client)
+        index = UserIndex(User, self.client, settings.ALGOLIA)
         obj = index.get_raw_record(self.instance)
-        self.assertNotIn('uid', obj)
         self.assertIn('name', obj)
-        self.assertNotIn('address', obj)
-        self.assertNotIn('lat', obj)
-        self.assertNotIn('lng', obj)
+        self.assertNotIn('username', obj)
+        self.assertNotIn('bio', obj)
+        self.assertNotIn('followers_count', obj)
+        self.assertNotIn('following_count', obj)
+        self.assertNotIn('_lat', obj)
+        self.assertNotIn('_lng', obj)
+        self.assertNotIn('_permissions', obj)
         self.assertNotIn('location', obj)
-        self.assertNotIn('category', obj)
+        self.assertNotIn('_geoloc', obj)
+        self.assertNotIn('permissions', obj)
+        self.assertNotIn('_tags', obj)
         self.assertEqual(len(obj), 2)
 
     def test_multiple_fields(self):
-        class ExampleIndex(AlgoliaIndex):
-            fields = ('name', 'address')
+        class UserIndex(AlgoliaIndex):
+            fields = ('name', 'username', 'bio')
 
-        index = ExampleIndex(Example, self.client)
+        index = UserIndex(User, self.client, settings.ALGOLIA)
         obj = index.get_raw_record(self.instance)
-        self.assertNotIn('uid', obj)
         self.assertIn('name', obj)
-        self.assertIn('address', obj)
-        self.assertNotIn('lat', obj)
-        self.assertNotIn('lng', obj)
+        self.assertIn('username', obj)
+        self.assertIn('bio', obj)
+        self.assertNotIn('followers_count', obj)
+        self.assertNotIn('following_count', obj)
+        self.assertNotIn('_lat', obj)
+        self.assertNotIn('_lng', obj)
+        self.assertNotIn('_permissions', obj)
         self.assertNotIn('location', obj)
-        self.assertNotIn('category', obj)
-        self.assertEqual(len(obj), 3)
+        self.assertNotIn('_geoloc', obj)
+        self.assertNotIn('permissions', obj)
+        self.assertNotIn('_tags', obj)
+        self.assertEqual(len(obj), 4)
 
     def test_fields_with_custom_name(self):
-        class ExampleIndex(AlgoliaIndex):
-            fields = (
-                ('name', 'shopName'),
-                ('address', 'shopAddress')
-            )
+        class UserIndex(AlgoliaIndex):
+            fields = ('name', ('username', 'login'), 'bio')
 
-        index = ExampleIndex(Example, self.client)
+        index = UserIndex(User, self.client, settings.ALGOLIA)
         obj = index.get_raw_record(self.instance)
-        self.assertDictContainsSubset({
-            'shopName': self.instance.name,
-            'shopAddress': self.instance.address
-        }, obj)
-        self.assertNotIn('name', obj)
-        self.assertNotIn('address', obj)
+        self.assertIn('name', obj)
+        self.assertNotIn('username', obj)
+        self.assertIn('login', obj)
+        self.assertEqual(obj['login'], 'algolia')
+        self.assertIn('bio', obj)
+        self.assertNotIn('followers_count', obj)
+        self.assertNotIn('following_count', obj)
+        self.assertNotIn('_lat', obj)
+        self.assertNotIn('_lng', obj)
+        self.assertNotIn('_permissions', obj)
+        self.assertNotIn('location', obj)
+        self.assertNotIn('_geoloc', obj)
+        self.assertNotIn('permissions', obj)
+        self.assertNotIn('_tags', obj)
+        self.assertEqual(len(obj), 4)
 
     def test_invalid_fields(self):
-        class ExampleIndex(AlgoliaIndex):
+        class UserIndex(AlgoliaIndex):
             fields = ('name', 'color')
 
         with self.assertRaises(AlgoliaIndexError):
-            index = ExampleIndex(Example, self.client)
+            UserIndex(User, self.client, settings.ALGOLIA)

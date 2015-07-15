@@ -1,43 +1,21 @@
 from django.db import models
 
 
-class Example(models.Model):
-    uid = models.IntegerField()
-    name = models.CharField(max_length=20)
-    address = models.CharField(max_length=200)
-    lat = models.FloatField()
-    lng = models.FloatField()
-    category = []
-
-    def location(self):
-        return (self.lat, self.lng)
-
-
 class User(models.Model):
     name = models.CharField(max_length=30)
+    username = models.CharField(max_length=30, unique=True)
     bio = models.CharField(max_length=140, blank=True)
     followers_count = models.BigIntegerField(default=0)
     following_count = models.BigIntegerField(default=0)
-    lat = models.FloatField(default=0)
-    lng = models.FloatField(default=0)
+    _lat = models.FloatField(default=0)
+    _lng = models.FloatField(default=0)
+    _permissions = models.CharField(max_length=30, blank=True)
 
     def location(self):
-        return (self.lat, self.lng)
+        return (self._lat, self._lng)
 
-
-class Tweet(models.Model):
-    tweet_id = models.BigIntegerField(unique=True)
-    user = models.ForeignKey('User')
-    is_published = models.BooleanField(default=True)
-    published = models.DateTimeField(auto_now_add=True)
-    text = models.CharField(max_length=140)
-    retweet = models.PositiveIntegerField(default=0)
-    favori = models.PositiveIntegerField(default=0)
-    lat = models.FloatField(default=0)
-    lng = models.FloatField(default=0)
-
-    def location(self):
-        return (self.lat, self.lng)
+    def permissions(self):
+        return self._permissions.split(',')
 
 
 class Website(models.Model):
