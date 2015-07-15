@@ -46,11 +46,15 @@ class AlgoliaEngine(object):
         If the given model is already registered with Algolia engine, a
         RegistrationError will be raised.
         '''
-        # Check for existing registration
+        # Check for existing registration.
         if self.is_registered(model):
             raise RegistrationError(
                 '{} is already registered with Algolia engine'.format(model))
+
         # Perform the registration.
+        if not issubclass(index_cls, AlgoliaIndex):
+            raise RegistrationError(
+                '{} should be a subclass of AlgoliaIndex'.format(index_cls))
         index_obj = index_cls(model, self.client)
         self.__registered_models[model] = index_obj
 
