@@ -73,9 +73,11 @@ class AlgoliaIndex(object):
         all_model_fields = model._meta.get_all_field_names()
 
         if isinstance(self.fields, str):
-            self.fields = set([self.fields])
-        elif isinstance(self.fields, (list, tuple)):
-            self.fields = set(self.fields)
+            self.fields = (self.fields, )
+        elif isinstance(self.fields, (list, tuple, set)):
+            self.fields = tuple(self.fields)
+        else:
+            raise AlgoliaIndexError('Fields must be a str, list, tuple or set')
 
         # Check fields
         for field in self.fields:

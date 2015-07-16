@@ -1,6 +1,9 @@
+from django.conf import settings
 from django.test import TestCase
 
-from algoliasearch_django import AlgoliaIndex, AlgoliaEngine
+from algoliasearch_django import AlgoliaIndex
+from algoliasearch_django import AlgoliaEngine
+from algoliasearch_django.registration import AlgoliaEngineError
 from algoliasearch_django.registration import RegistrationError
 
 from .models import Website, User
@@ -9,6 +12,19 @@ from .models import Website, User
 class EngineTestCase(TestCase):
     def setUp(self):
         self.engine = AlgoliaEngine()
+
+    def tearDown(self):
+        for elt in self.engine.get_registered_models():
+            self.engine.unregister(elt)
+
+    def test_init_exception(self):
+        algolia_settings = dict(settings.ALGOLIA)
+        del algolia_settings['APPLICATION_ID']
+        del algolia_settings['API_KEY']
+
+        with self.settings(ALGOLIA=algolia_settings):
+            with self.assertRaises(AlgoliaEngineError):
+                AlgoliaEngine(settings=settings.ALGOLIA)
 
     def test_is_register(self):
         self.engine.register(Website)
