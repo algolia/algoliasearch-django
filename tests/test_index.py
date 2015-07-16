@@ -13,14 +13,6 @@ class IndexTestCase(TestCase):
     def setUp(self):
         self.client = algolia_engine.client
 
-        # Create some records
-        User.objects.create(name='James Bond', username="jb")
-        User.objects.create(name='Captain America', username="captain")
-        User.objects.create(name='John Snow', username="john_snow",
-                            _lat=120.2, _lng=42.1)
-        User.objects.create(name='Steve Jobs', username="genius",
-                            followers_count=331213)
-
         self.instance = User(name='Algolia', username="algolia",
                              bio='Milliseconds matter', followers_count=42001,
                              following_count=42, _lat=123, _lng=-42.24,
