@@ -90,5 +90,3 @@ class EngineTestCase(TestCase):
 
         with self.assertRaises(RegistrationError):
             self.engine.unregister(Website)
-
-    # TODO: test signalling hooks and update/delete methods

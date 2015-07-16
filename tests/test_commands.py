@@ -2,7 +2,6 @@ from django.test import TestCase
 from django.utils.six import StringIO
 from django.core.management import call_command
 
-from algoliasearch_django import algolia_engine
 from algoliasearch_django import register
 from algoliasearch_django import unregister
 from algoliasearch_django import get_adapter
@@ -22,17 +21,15 @@ class CommandsTestCase(TestCase):
 
         register(Website)
         register(User)
+
         self.out = StringIO()
 
     def tearDown(self):
-        website_index = get_adapter(Website).index_name
-        user_index = get_adapter(User).index_name
+        get_adapter(Website).clear_index()
+        get_adapter(User).clear_index()
 
         unregister(Website)
         unregister(User)
-
-        algolia_engine.client.delete_index(website_index)
-        algolia_engine.client.delete_index(user_index)
 
     def test_reindex(self):
         call_command('algolia_reindex', stdout=self.out)
@@ -84,7 +81,7 @@ class CommandsTestCase(TestCase):
 
     def test_clearindex_with_args(self):
         call_command('algolia_clearindex', stdout=self.out,
-                     model=['Website'])
+                     model=['Website'], batchsize=3)
         result = self.out.getvalue()
 
         regex = r'Website'

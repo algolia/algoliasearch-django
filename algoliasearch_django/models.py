@@ -252,7 +252,6 @@ class AlgoliaIndex(object):
             self.__tmp_index.clear_index()
             logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
-            result = None
             counts = 0
             batch = []
 
@@ -268,20 +267,20 @@ class AlgoliaIndex(object):
 
                 batch.append(self.get_raw_record(instance))
                 if len(batch) >= batch_size:
-                    result = self.__tmp_index.save_objects(batch)
+                    self.__tmp_index.save_objects(batch)
                     logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
                                 self.index_name)
                     batch = []
                 counts += 1
             if len(batch) > 0:
-                result = self.__tmp_index.save_objects(batch)
+                self.__tmp_index.save_objects(batch)
                 logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
                             self.index_name)
-            if result:
-                self.__client.move_index(self.index_name + '_tmp',
-                                         self.index_name)
-                logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
-                            self.index_name)
+
+            self.__client.move_index(self.__tmp_index.index_name,
+                                     self.__index.index_name)
+            logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
+                        self.index_name)
             return counts
         except AlgoliaException as e:
             if DEBUG:
