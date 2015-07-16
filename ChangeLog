@@ -1,5 +1,14 @@
 CHANGELOG
 
+2015-07-XX X.X.X
+  * [CHANGE] Module name to avoid conflict when installing the package with pip
+  * [CHANGE] Big performance improvements
+  * [ADD] Option to raise or not exceptions. By default, raise only when DEBUG=True
+  * [ADD] Create multiple AlgoliaEngine with different settings
+  * [ADD] Auto-indexing option at registration time
+  * [FIX] algolia_reindex command with batchsize argument on python34-django18
+  * [FIX] Fields syntax
+
 2015-07-09 1.2.1
   * [ADD] `get_queryset` for grain indexing possibility
   * [ADD] Option to deactivate auto-indexing
