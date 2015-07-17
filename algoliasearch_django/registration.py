@@ -124,8 +124,8 @@ class AlgoliaEngine(object):
 
         >>> from algoliasearch_django import update_records
         >>> qs = MyModel.objects.filter(myField=False)
-        >>> qs.update(myField=True)
         >>> update_records(MyModel, qs, myField=True)
+        >>> qs.update(myField=True)
         '''
         adapter = self.get_adapter(model)
         adapter.update_records(qs, batch_size=batch_size, **kwargs)

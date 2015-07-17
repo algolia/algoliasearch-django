@@ -220,8 +220,8 @@ class AlgoliaIndex(object):
 
         >>> from algoliasearch_django import update_records
         >>> qs = MyModel.objects.filter(myField=False)
-        >>> qs.update(myField=True)
         >>> update_records(MyModel, qs, myField=True)
+        >>> qs.update(myField=True)
         '''
         tmp = {}
         for key, value in kwargs:
