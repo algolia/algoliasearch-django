@@ -27,3 +27,4 @@ get_adapter = algolia_engine.get_adapter
 get_adapter_from_instance = algolia_engine.get_adapter_from_instance
 
 raw_search = algolia_engine.raw_search
+update_records = algolia_engine.update_records

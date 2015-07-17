@@ -91,7 +91,7 @@ class AlgoliaIndex(object):
                 raise AlgoliaIndexError(
                     'Invalid fields syntax: {}'.format(field))
 
-            self.__translate_fields[name] = attr
+            self.__translate_fields[attr] = name
             if attr in all_model_fields:
                 self.__named_fields[name] = get_model_attr(attr)
             else:
@@ -153,9 +153,10 @@ class AlgoliaIndex(object):
         tmp = {'objectID': self.objectID(instance)}
 
         if update_fields:
-            for key, value in self.__named_fields.items():
-                if self.__translate_fields[key] in update_fields:
-                    tmp[key] = value(instance)
+            for elt in update_fields:
+                key = self.__translate_fields.get(elt, None)
+                if key:
+                    tmp[key] = self.__named_fields[key](instance)
         else:
             for key, value in self.__named_fields.items():
                 tmp[key] = value(instance)
@@ -208,6 +209,37 @@ class AlgoliaIndex(object):
             else:
                 logger.warning('%s FROM %s NOT DELETED: %s', objectID,
                                self.model, e.message)
+
+    def update_records(self, qs, batch_size=1000, **kwargs):
+        '''
+        Update multiple records of this index
+
+        This method is optimized for speed. It takes a QuerySet and the same
+        arguments as QuerySet.update(). Optionnaly, you can specify the size
+        of the batch send to Algolia with batch_size (default to 1000).
+
+        >>> from algoliasearch_django import update_records
+        >>> qs = MyModel.objects.filter(myField=False)
+        >>> qs.update(myField=True)
+        >>> update_records(MyModel, qs, myField=True)
+        '''
+        tmp = {}
+        for key, value in kwargs:
+            name = self.__translate_fields.get(key, None)
+            if name:
+                tmp[name] = value
+
+        batch = []
+        for instance in qs.only(self.custom_objectID):
+            tmp['objectID'] = self.objectID(instance)
+            batch.append(dict(tmp))
+
+            if len(batch) >= batch_size:
+                self.__index.partial_update_objects(batch)
+                batch = []
+
+        if len(batch) > 0:
+            self.__index.partial_update_objects(batch)
 
     def raw_search(self, query='', params={}):
         '''Return the raw JSON.'''
