@@ -230,8 +230,10 @@ class AlgoliaIndex(object):
                 tmp[name] = value
 
         batch = []
-        for instance in qs.only(self.custom_objectID):
-            tmp['objectID'] = self.objectID(instance)
+        objectsIDs = qs.only(self.custom_objectID).values_list(
+            self.custom_objectID, flat=True)
+        for elt in objectsIDs:
+            tmp['objectID'] = elt
             batch.append(dict(tmp))
 
             if len(batch) >= batch_size:
