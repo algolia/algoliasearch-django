@@ -3,8 +3,6 @@ AlgoliaSearch integration for Django.
 http://www.algolia.com
 '''
 
-from __future__ import unicode_literals
-
 from . import models
 from . import registration
 from . import settings
@@ -26,5 +24,9 @@ get_registered_model = algolia_engine.get_registered_models
 get_adapter = algolia_engine.get_adapter
 get_adapter_from_instance = algolia_engine.get_adapter_from_instance
 
-raw_search = algolia_engine.raw_search
+save_record = algolia_engine.save_record
+delete_record = algolia_engine.delete_record
 update_records = algolia_engine.update_records
+raw_search = algolia_engine.raw_search
+clear_index = algolia_engine.clear_index
+reindex_all = algolia_engine.reindex_all

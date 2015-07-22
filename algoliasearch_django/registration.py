@@ -152,7 +152,7 @@ class AlgoliaEngine(object):
         adapter = self.get_adapter(model)
         adapter.clear_index()
 
-    def rendex_all(self, model, batch_size=1000):
+    def reindex_all(self, model, batch_size=1000):
         """
         Reindex all the records.
 
@@ -161,7 +161,7 @@ class AlgoliaEngine(object):
         the performance (for example with select_related or prefetch_related).
         """
         adapter = self.get_adapter(model)
-        adapter.reindex_all(batch_size)
+        return adapter.reindex_all(batch_size)
 
     # Signalling hooks.
 

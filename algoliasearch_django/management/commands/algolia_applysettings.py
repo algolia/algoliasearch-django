@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
-import algoliasearch_django as algoliasearch
+
+from algoliasearch_django import get_registered_model
+from algoliasearch_django import get_adapter
 
 
 class Command(BaseCommand):
@@ -11,11 +13,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Run the management command."""
         self.stdout.write('Apply settings to index:')
-        for model in algoliasearch.get_registered_model():
-            adapter = algoliasearch.get_adapter(model)
+        for model in get_registered_model():
             if options.get('model', None) and not (model.__name__ in
                                                    options['model']):
                 continue
 
-            adapter.set_settings()
+            get_adapter(model).set_settings()
             self.stdout.write('\t* {}'.format(model.__name__))
