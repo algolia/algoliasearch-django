@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.utils.six import StringIO
 from django.core.management import call_command
 
+from algoliasearch_django import algolia_engine
 from algoliasearch_django import register
 from algoliasearch_django import unregister
 from algoliasearch_django import get_adapter
@@ -10,6 +11,18 @@ from .models import Website, User
 
 
 class CommandsTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        register(Website, auto_indexing=False)
+        register(User, auto_indexing=False)
+
+    @classmethod
+    def tearDownClass(cls):
+        algolia_engine.client.delete_index(get_adapter(User).index_name)
+        algolia_engine.client.delete_index(get_adapter(Website).index_name)
+        unregister(Website)
+        unregister(User)
+
     def setUp(self):
         # Create some records
         User.objects.create(name='James Bond', username="jb")
@@ -19,17 +32,11 @@ class CommandsTestCase(TestCase):
         User.objects.create(name='Steve Jobs', username="genius",
                             followers_count=331213)
 
-        register(Website)
-        register(User)
-
         self.out = StringIO()
 
     def tearDown(self):
         get_adapter(Website).clear_index()
         get_adapter(User).clear_index()
-
-        unregister(Website)
-        unregister(User)
 
     def test_reindex(self):
         call_command('algolia_reindex', stdout=self.out)
