@@ -7,6 +7,7 @@ from algoliasearch_django import get_adapter
 from algoliasearch_django import register
 from algoliasearch_django import unregister
 from algoliasearch_django import raw_search
+from algoliasearch_django import clear_index
 from algoliasearch_django import update_records
 
 from .models import Website
@@ -23,7 +24,7 @@ class SignalTestCase(TestCase):
         unregister(Website)
 
     def tearDown(self):
-        get_adapter(Website).clear_index()
+        clear_index(Website)
 
     def test_save_signal(self):
         Website.objects.create(name='Algolia', url='https://www.algolia.com')
