@@ -2,6 +2,7 @@ import time
 
 from django.test import TestCase
 
+from algoliasearch_django import algolia_engine
 from algoliasearch_django import get_adapter
 from algoliasearch_django import register
 from algoliasearch_django import unregister
@@ -11,12 +12,17 @@ from .models import Website
 
 
 class EngineTestCase(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         register(Website)
+
+    @classmethod
+    def tearDownClass(cls):
+        algolia_engine.client.delete_index(get_adapter(Website).index_name)
+        unregister(Website)
 
     def tearDown(self):
         get_adapter(Website).clear_index()
-        unregister(Website)
 
     def test_save_signal(self):
         Website.objects.create(name='Algolia', url='https://www.algolia.com')
