@@ -224,7 +224,7 @@ class AlgoliaIndex(object):
         >>> qs.update(myField=True)
         '''
         tmp = {}
-        for key, value in kwargs:
+        for key, value in kwargs.items():
             name = self.__translate_fields.get(key, None)
             if name:
                 tmp[name] = value
