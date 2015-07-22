@@ -28,11 +28,11 @@ def get_model_attr(name):
 
 
 class AlgoliaIndexError(Exception):
-    '''Something went wrong with an Algolia Index.'''
+    """Something went wrong with an Algolia Index."""
 
 
 class AlgoliaIndex(object):
-    '''An index in the Algolia backend.'''
+    """An index in the Algolia backend."""
 
     # Use to specify a custom field that will be used for the objectID.
     # This field should be unique.
@@ -58,18 +58,15 @@ class AlgoliaIndex(object):
     # The attribute should be a callable that returns a boolean.
     should_index = None
 
-    # Instance of the index from algoliasearch client
-    __index = None
-
     def __init__(self, model, client, settings):
-        '''Initializes the index.'''
+        """Initializes the index."""
+        self.__init_index(client, model, settings)
+
         self.model = model
         self.__client = client
-        self.__settings = settings
-        self.__set_index(client)
-
         self.__named_fields = {}
         self.__translate_fields = {}
+
         all_model_fields = model._meta.get_all_field_names()
 
         if isinstance(self.fields, str):
@@ -95,7 +92,7 @@ class AlgoliaIndex(object):
             if attr in all_model_fields:
                 self.__named_fields[name] = get_model_attr(attr)
             else:
-                self.__named_fields[name] = self.__check_and_get_attr(attr)
+                self.__named_fields[name] = check_and_get_attr(model, attr)
 
         # If no fields are specified, index all the fields of the model
         if not self.fields:
@@ -121,38 +118,42 @@ class AlgoliaIndex(object):
             if self.tags in all_model_fields:
                 self.tags = get_model_attr(self.tags)
             else:
-                self.tags = self.__check_and_get_attr(self.tags)
+                self.tags = check_and_get_attr(model, self.tags)
 
         # Check geo_field
         if self.geo_field:
-            self.geo_field = self.__check_and_get_attr(self.geo_field)
+            self.geo_field = check_and_get_attr(model, self.geo_field)
 
         # Check should_index
         if self.should_index:
-            self.should_index = self.__check_and_get_attr(self.should_index)
+            self.should_index = check_and_get_attr(model, self.should_index)
 
-    def __check_and_get_attr(self, attr):
-        return check_and_get_attr(self.model, attr)
-
-    def __set_index(self, client):
-        '''Get an instance of Algolia Index'''
+    def __init_index(self, client, model, settings):
         if not self.index_name:
-            self.index_name = self.model.__name__
+            self.index_name = model.__name__
 
-        if 'INDEX_PREFIX' in self.__settings:
-            self.index_name = (self.__settings['INDEX_PREFIX'] + '_' +
-                               self.index_name)
-        if 'INDEX_SUFFIX' in self.__settings:
-            self.index_name += '_' + self.__settings['INDEX_SUFFIX']
+        if 'INDEX_PREFIX' in settings:
+            self.index_name = settings['INDEX_PREFIX'] + '_' + self.index_name
+        if 'INDEX_SUFFIX' in settings:
+            self.index_name += '_' + settings['INDEX_SUFFIX']
 
         self.__index = client.init_index(self.index_name)
         self.__tmp_index = client.init_index(self.index_name + '_tmp')
 
     def get_raw_record(self, instance, update_fields=None):
-        '''Get the raw record (JSON).'''
+        """
+        Gets the raw record.
+
+        If `update_fields` is set, the raw record will be build with only
+        the objectID and the given fields. Also, `_geoloc` and `_tags` will
+        not be included.
+        """
         tmp = {'objectID': self.objectID(instance)}
 
         if update_fields:
+            if isinstance(update_fields, str):
+                update_fields = (update_fields,)
+
             for elt in update_fields:
                 key = self.__translate_fields.get(elt, None)
                 if key:
@@ -172,7 +173,14 @@ class AlgoliaIndex(object):
         return tmp
 
     def save_record(self, instance, update_fields=None, **kwargs):
-        '''Save the object.'''
+        """Saves the record.
+
+        If `update_fields` is set, this method will use partial_update_object()
+        and will update only the given fields (never `_geoloc` and `_tags`).
+
+        For more information about partial_update_object:
+        https://github.com/algolia/algoliasearch-client-python#update-an-existing-object-in-the-index
+        """
         if self.should_index:
             if not self.should_index(instance):
                 # Should not index, but since we don't now the state of the
@@ -198,7 +206,7 @@ class AlgoliaIndex(object):
                                self.model, e.message)
 
     def delete_record(self, instance):
-        '''Delete the object.'''
+        """Deletes the record."""
         objectID = self.objectID(instance)
         try:
             self.__index.delete_object(objectID)
@@ -211,8 +219,8 @@ class AlgoliaIndex(object):
                                self.model, e.message)
 
     def update_records(self, qs, batch_size=1000, **kwargs):
-        '''
-        Update multiple records of this index
+        """
+        Updates multiple records.
 
         This method is optimized for speed. It takes a QuerySet and the same
         arguments as QuerySet.update(). Optionnaly, you can specify the size
@@ -222,7 +230,7 @@ class AlgoliaIndex(object):
         >>> qs = MyModel.objects.filter(myField=False)
         >>> update_records(MyModel, qs, myField=True)
         >>> qs.update(myField=True)
-        '''
+        """
         tmp = {}
         for key, value in kwargs.items():
             name = self.__translate_fields.get(key, None)
@@ -244,7 +252,7 @@ class AlgoliaIndex(object):
             self.__index.partial_update_objects(batch)
 
     def raw_search(self, query='', params={}):
-        '''Return the raw JSON.'''
+        """Performs a search query and returns the parsed JSON."""
         try:
             return self.__index.search(query, params)
         except AlgoliaException as e:
@@ -254,20 +262,22 @@ class AlgoliaIndex(object):
                 logger.warning('ERROR DURING SEARCH: %s', e.message)
 
     def set_settings(self):
-        '''Apply the settings to the index.'''
-        if self.settings:
-            try:
-                self.__index.set_settings(self.settings)
-                logger.info('APPLY SETTINGS ON %s', self.index_name)
-            except AlgoliaException as e:
-                if DEBUG:
-                    raise e
-                else:
-                    logger.warning('SETTINGS NOT APPLYED ON %s: %s',
-                                   self.model, e.message)
+        """Applies the settings to the index."""
+        if not self.settings:
+            return
+
+        try:
+            self.__index.set_settings(self.settings)
+            logger.info('APPLY SETTINGS ON %s', self.index_name)
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('SETTINGS NOT APPLYED ON %s: %s',
+                               self.model, e.message)
 
     def clear_index(self):
-        '''Clear the index.'''
+        """Clears the index."""
         try:
             self.__index.clear_index()
             logger.info('CLEAR INDEX %s', self.index_name)
@@ -278,7 +288,13 @@ class AlgoliaIndex(object):
                 logger.warning('%s NOT CLEARED: %s', self.model, e.message)
 
     def reindex_all(self, batch_size=1000):
-        '''Reindex all records.'''
+        """
+        Reindex all the records.
+
+        By default, this method use Model.objects.all() but you can implement
+        a method `get_queryset` in your subclass. This can be used to optimize
+        the performance (for example with select_related or prefetch_related).
+        """
         try:
             if self.settings:
                 self.__tmp_index.set_settings(self.settings)

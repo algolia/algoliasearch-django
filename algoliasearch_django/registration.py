@@ -13,16 +13,16 @@ logger = logging.getLogger(__name__)
 
 
 class AlgoliaEngineError(Exception):
-    '''Something went wrong with Algolia Engine.'''
+    """Something went wrong with Algolia Engine."""
 
 
 class RegistrationError(AlgoliaEngineError):
-    '''Something went wrong when registering a model.'''
+    """Something went wrong when registering a model."""
 
 
 class AlgoliaEngine(object):
     def __init__(self, settings=SETTINGS):
-        '''Initializes Algolia engine.'''
+        """Initializes Algolia engine."""
 
         try:
             app_id = settings['APPLICATION_ID']
@@ -40,16 +40,16 @@ class AlgoliaEngine(object):
                                      'Algolia for Django {}'.format(VERSION))
 
     def is_registered(self, model):
-        '''Checks whether the given models is registered with Algolia engine'''
+        """Checks whether the given models is registered with Algolia engine"""
         return model in self.__registered_models
 
     def register(self, model, index_cls=AlgoliaIndex, auto_indexing=None):
-        '''
+        """
         Registers the given model with Algolia engine.
 
         If the given model is already registered with Algolia engine, a
         RegistrationError will be raised.
-        '''
+        """
         # Check for existing registration.
         if self.is_registered(model):
             raise RegistrationError(
@@ -70,12 +70,12 @@ class AlgoliaEngine(object):
             logger.info('REGISTER %s', model)
 
     def unregister(self, model):
-        '''
+        """
         Unregisters the given model with Algolia engine.
 
         If the given model is not registered with Algolia engine, a
         RegistrationError will be raised.
-        '''
+        """
         if not self.is_registered(model):
             raise RegistrationError(
                 '{} is not registered with Algolia engine'.format(model))
@@ -88,14 +88,14 @@ class AlgoliaEngine(object):
         logger.info('UNREGISTER %s', model)
 
     def get_registered_models(self):
-        '''
-        Returns a sequence of models that have been registered with Algolia
+        """
+        Returns a list of models that have been registered with Algolia
         engine.
-        '''
+        """
         return list(self.__registered_models.keys())
 
     def get_adapter(self, model):
-        '''Returns the adapter associated with the given model.'''
+        """Returns the adapter associated with the given model."""
         if not self.is_registered(model):
             raise RegistrationError(
                 '{} is not registered with Algolia engine'.format(model))
@@ -103,20 +103,32 @@ class AlgoliaEngine(object):
         return self.__registered_models[model]
 
     def get_adapter_from_instance(self, instance):
+        """Returns the adapater associated with the given instance."""
         model = instance.__class__
         return self.get_adapter(model)
 
-    def save_record(self, obj, **kwargs):
-        adapter = self.get_adapter_from_instance(obj)
-        adapter.save_record(obj, **kwargs)
+    # Proxies methods.
 
-    def delete_record(self, obj):
-        adapter = self.get_adapter_from_instance(obj)
-        adapter.delete_record(obj)
+    def save_record(self, instance, **kwargs):
+        """Saves the record.
+
+        If `update_fields` is set, this method will use partial_update_object()
+        and will update only the given fields (never `_geoloc` and `_tags`).
+
+        For more information about partial_update_object:
+        https://github.com/algolia/algoliasearch-client-python#update-an-existing-object-in-the-index
+        """
+        adapter = self.get_adapter_from_instance(instance)
+        adapter.save_record(instance, **kwargs)
+
+    def delete_record(self, instance):
+        """Deletes the record."""
+        adapter = self.get_adapter_from_instance(instance)
+        adapter.delete_record(instance)
 
     def update_records(self, model, qs, batch_size=1000, **kwargs):
-        '''
-        Update multiple records of an index.
+        """
+        Updates multiple records.
 
         This method is optimized for speed. It takes a QuerySet and the same
         arguments as QuerySet.update(). Optionnaly, you can specify the size
@@ -126,24 +138,40 @@ class AlgoliaEngine(object):
         >>> qs = MyModel.objects.filter(myField=False)
         >>> update_records(MyModel, qs, myField=True)
         >>> qs.update(myField=True)
-        '''
+        """
         adapter = self.get_adapter(model)
         adapter.update_records(qs, batch_size=batch_size, **kwargs)
 
     def raw_search(self, model, query='', params={}):
-        '''Return the raw JSON.'''
+        """Performs a search query and returns the parsed JSON."""
         adapter = self.get_adapter(model)
         return adapter.raw_search(query, params)
+
+    def clear_index(self, model):
+        """Clears the index."""
+        adapter = self.get_adapter(model)
+        adapter.clear_index()
+
+    def rendex_all(self, model, batch_size=1000):
+        """
+        Reindex all the records.
+
+        By default, this method use Model.objects.all() but you can implement
+        a method `get_queryset` in your subclass. This can be used to optimize
+        the performance (for example with select_related or prefetch_related).
+        """
+        adapter = self.get_adapter(model)
+        adapter.reindex_all(batch_size)
 
     # Signalling hooks.
 
     def __post_save_receiver(self, instance, **kwargs):
-        '''Signal handler for when a registered model has been saved.'''
+        """Signal handler for when a registered model has been saved."""
         logger.debug('RECEIVE post_save FOR %s', instance.__class__)
         self.save_record(instance, **kwargs)
 
     def __pre_delete_receiver(self, instance, **kwargs):
-        '''Signal handler for when a registered model has been deleted.'''
+        """Signal handler for when a registered model has been deleted."""
         logger.debug('RECEIVE pre_delete FOR %s', instance.__class__)
         self.delete_record(instance)
 

@@ -10,7 +10,7 @@ class Command(BaseCommand):
         parser.add_argument('--model', nargs='+', type=str)
 
     def handle(self, *args, **options):
-        '''Run the management command.'''
+        """Run the management command."""
         batch_size = options.get('batchsize', None)
         if not batch_size:
             # py34-django18: batchsize is set to None if the user don't set
