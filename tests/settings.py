@@ -57,11 +57,18 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+
+def safe_index_name(name):
+    if 'TRAVIS' not in os.environ:
+        return name
+    job = os.environ['TRAVIS_JOB_NUMBER']
+    return '{}_travis-{}'.format(name, job)
+
 # AlgoliaSearch settings
 ALGOLIA = {
     'APPLICATION_ID': os.getenv('ALGOLIA_APPLICATION_ID'),
     'API_KEY': os.getenv('ALGOLIA_API_KEY'),
-    'INDEX_PREFIX': 'django' + os.getenv('TRAVIS_JOB_NUMBER', ''),
-    'INDEX_SUFFIX': 'test',
+    'INDEX_PREFIX': 'test',
+    'INDEX_SUFFIX': safe_index_name('django'),
     'RAISE_EXCEPTIONS': True
 }

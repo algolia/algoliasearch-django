@@ -20,7 +20,7 @@ class IndexTestCase(TestCase):
 
     def test_default_index_name(self):
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
-        regex = r'^django(\d+.\d+)?_Website_test$'
+        regex = r'^test_Website_django(_travis-\d+.\d+)?$'
         try:
             self.assertRegex(index.index_name, regex)
         except AttributeError:
@@ -31,7 +31,7 @@ class IndexTestCase(TestCase):
             index_name = 'customName'
 
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        regex = r'^django(\d+.\d+)?_customName_test$'
+        regex = r'^test_customName_django(_travis-\d+.\d+)?$'
         try:
             self.assertRegex(index.index_name, regex)
         except AttributeError:
