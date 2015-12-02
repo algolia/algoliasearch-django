@@ -45,7 +45,7 @@ class AlgoliaIndex(object):
         self.__client = client
         self.__set_index(client)
 
-        all_fields = model._meta.get_all_field_names()
+        all_fields = [f.name for f in model._meta.get_fields()]
 
         # Avoid error when there is only one field to index
         if isinstance(self.fields, str):
