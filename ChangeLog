@@ -1,5 +1,8 @@
 CHANGELOG
 
+2015-12-03 1.2.2
+  * [FIX] Compatibility warning with Django 1.9
+
 2015-07-09 1.2.1
   * [ADD] `get_queryset` for grain indexing possibility
   * [ADD] Option to deactivate auto-indexing
