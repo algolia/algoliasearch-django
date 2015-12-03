@@ -45,7 +45,10 @@ class AlgoliaIndex(object):
         self.__client = client
         self.__set_index(client)
 
-        all_fields = [f.name for f in model._meta.get_fields()]
+        try:
+            all_fields = [f.name for f in model._meta.get_fields()]
+        except AttributeError:  # Django 1.7
+            all_fields = model._meta.get_all_field_names()
 
         # Avoid error when there is only one field to index
         if isinstance(self.fields, str):
