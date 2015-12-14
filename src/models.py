@@ -154,7 +154,9 @@ class AlgoliaIndex(object):
 
         if self.geo_field:
             loc = self.geo_field(instance)
-            tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
+
+            if loc:
+                tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
 
         if self.tags:
             attr = getattr(instance, self.tags)
