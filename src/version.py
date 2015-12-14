@@ -1,1 +1,1 @@
-VERSION = '1.2.2-adamghill'
+VERSION = '1.2.2'
