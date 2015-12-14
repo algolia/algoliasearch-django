@@ -23,6 +23,7 @@ Table of Content
 1. [Geo-search](#geo-search)
 1. [Tags](#tags)
 1. [Options](#options)
+1. [Run Tests](#run-tests)
 
 
 Install
@@ -185,4 +186,13 @@ class Contact(models.model):
 
 class ContactIndex(AlgoliaIndex):
     should_index = 'is_adult'
+```
+
+Run Tests
+-------------
+
+To run the tests, first find your Algolia application id and Admin API key (found on the Credentials page).
+
+```shell
+ALGOLIA_APPLICATION_ID={APPLICATION_ID} ALGOLIA_API_KEY={ADMIN_API_KEY} tox
 ```
