@@ -1,5 +1,8 @@
 CHANGELOG
 
+2015-12-15 1.2.3
+  * [FIX] Check that geo_field callable returns something valid
+
 2015-12-03 1.2.2
   * [FIX] Compatibility warning with Django 1.9
 
