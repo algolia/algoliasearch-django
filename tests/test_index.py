@@ -60,6 +60,15 @@ class IndexTestCase(TestCase):
         obj = index._build_object(self.instance)
         self.assertEqual(obj['_geoloc'], {'lat': 63.3, 'lng': -32.0})
 
+    def test_none_geo_fields(self):
+        class ExampleIndex(AlgoliaIndex):
+            geo_field = 'location'
+
+        Example.location = lambda x: None
+        index = ExampleIndex(Example, self.client)
+        obj = index._build_object(self.instance)
+        self.assertIsNone(obj.get('_geoloc'))
+
     def test_invalid_geo_fields(self):
         class ExampleIndex(AlgoliaIndex):
             geo_field = 'position'
