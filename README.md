@@ -1,5 +1,7 @@
+<!--NO_HTML-->
 Algolia Search for Django
 ==================
+<!--/NO_HTML-->
 
 This package lets you easily integrate the Algolia Search API to your [Django](https://www.djangoproject.com/) project. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
 
@@ -11,6 +13,7 @@ Compatible with **Python 2.7**, **Python 3.2+** and **Django 1.7+**
 [![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master)](https://coveralls.io/r/algolia/algoliasearch-django)
 [![PyPI version](https://badge.fury.io/py/algoliasearch-django.svg?branch=master)](http://badge.fury.io/py/algoliasearch-django)
 
+<!--NO_HTML-->
 Table of Content
 -------------
 **Get started**
@@ -25,16 +28,15 @@ Table of Content
 1. [Options](#options)
 1. [Run Tests](#run-tests)
 
+<!--/NO_HTML-->
 
-Install
--------------
+# Install
 
 ```sh
 pip install algoliasearch-django
 ```
 
-Setup
--------------
+# Setup
 
 In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add these two settings:
 
@@ -51,8 +53,8 @@ There are two optional settings:
 * `INDEX_SUFFIX`: suffix all indexes. Use it to differenciate development and production environment, like `Location_dev` and `Location_prod`.
 * `AUTO_INDEXING`: automatically synchronize the models with Algolia (default to **True**).
 
-Quick Start
--------------
+
+# Quick Start
 
 Simply call `AlgoliaSearch.register()` for each of the models you want to index. A good place to do this is in your application's AppConfig (generally named `apps.py`). More info in the [documentation](https://docs.djangoproject.com/en/1.8/ref/applications/)
 
@@ -88,13 +90,13 @@ class YourModelIndex(AlgoliaIndex):
 
 And then replace `algoliasearch.register(YourModel)` with `algoliasearch.register(YourModel, YourModelIndex)`.
 
-## Commands
+# Commands
 
 * `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
 * `python manage.py algolia_applysettings`: (re)apply the index settings.
 * `python manage.py algolia_clearindex`: clear the index
 
-## Search
+# Search
 
 We recommend the usage of our [JavaScript API Client](https://github.com/algolia/algoliasearch-client-js) to perform queries directly from the end-user browser without going through your server.
 
@@ -107,7 +109,7 @@ params = { "hitsPerPage": 5 }
 raw_search(Contact, "jim", params)
 ```
 
-## Geo-Search
+# Geo-Search
 
 Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
 
@@ -188,11 +190,12 @@ class ContactIndex(AlgoliaIndex):
     should_index = 'is_adult'
 ```
 
-Run Tests
--------------
+<!--NO_HTML-->
+# Run Tests
 
 To run the tests, first find your Algolia application id and Admin API key (found on the Credentials page).
 
 ```shell
 ALGOLIA_APPLICATION_ID={APPLICATION_ID} ALGOLIA_API_KEY={ADMIN_API_KEY} tox
 ```
+<!--/NO_HTML-->
