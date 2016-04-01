@@ -16,7 +16,6 @@ Compatible with **Python 2.7**, **Python 3.2+** and **Django 1.7+**
 <!--NO_HTML-->
 Table of Content
 -------------
-**Get started**
 
 1. [Install](#install)
 1. [Setup](#setup)
