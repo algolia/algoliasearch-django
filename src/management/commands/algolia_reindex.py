@@ -19,5 +19,5 @@ class Command(BaseCommand):
                 continue
 
             counts = adapter.reindex_all(
-                batch_size=options.get('batchsize', None))
+                batch_size=options.get('batchsize', 1000))
             self.stdout.write('\t* {} --> {}'.format(model.__name__, counts))
