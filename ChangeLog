@@ -1,5 +1,8 @@
 CHANGELOG
 
+2016-04-15 1.2.4
+  * [FIX] Fix --batch-size of reindex command on Django 1.7
+
 2015-12-15 1.2.3
   * [FIX] Check that geo_field callable returns something valid
 
