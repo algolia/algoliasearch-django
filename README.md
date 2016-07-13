@@ -29,13 +29,13 @@ Table of Content
 
 <!--/NO_HTML-->
 
-# Install
+## Install
 
 ```sh
 pip install algoliasearch-django
 ```
 
-# Setup
+## Setup
 
 In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add these two settings:
 
@@ -53,7 +53,7 @@ There are two optional settings:
 * `AUTO_INDEXING`: automatically synchronize the models with Algolia (default to **True**).
 
 
-# Quick Start
+## Quick Start
 
 Simply call `AlgoliaSearch.register()` for each of the models you want to index. A good place to do this is in your application's AppConfig (generally named `apps.py`). More info in the [documentation](https://docs.djangoproject.com/en/1.8/ref/applications/)
 
@@ -89,14 +89,14 @@ class YourModelIndex(AlgoliaIndex):
 
 And then replace `algoliasearch.register(YourModel)` with `algoliasearch.register(YourModel, YourModelIndex)`.
 
-# Commands
+## Commands
 
 * `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
     * you can pass ``--model`` parameter to reindex a given model
 * `python manage.py algolia_applysettings`: (re)apply the index settings.
 * `python manage.py algolia_clearindex`: clear the index
 
-# Search
+## Search
 
 We recommend the usage of our [JavaScript API Client](https://github.com/algolia/algoliasearch-client-js) to perform queries directly from the end-user browser without going through your server.
 
@@ -109,7 +109,7 @@ params = { "hitsPerPage": 5 }
 raw_search(Contact, "jim", params)
 ```
 
-# Geo-Search
+## Geo-Search
 
 Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
 
@@ -131,7 +131,7 @@ class ContactIndex(AlgoliaIndex):
 algoliasearch.register(Contact, ContactIndex)
 ```
 
-# Tags
+## Tags
 
 Use the `tags` attributes to add tags to your record. It can be a field or a callable.
 
@@ -142,9 +142,9 @@ class ArticleIndex(AlgoliaIndex):
 
 At query time, specify `{ tagFilters: 'tagvalue' }` or `{ tagFilters: ['tagvalue1', 'tagvalue2'] }` as search parameters to restrict the result set to specific tags.
 
-# Options
+## Options
 
-## Custom `objectID`
+### Custom `objectID`
 
 You can choose which field will be used as the `objectID `. The field should be unique and can be a string or integer. By default, we use the `pk` field of the model.
 
@@ -153,7 +153,7 @@ class ArticleIndex(AlgoliaIndex):
     custom_objectID = 'post_id'
 ```
 
-## Custom index name
+### Custom index name
 
 You can customize the index name. By default, the index name will be the name of the model class.
 
@@ -162,7 +162,7 @@ class ContactIndex(algoliaindex):
     index_name = 'Entreprise'
 ```
 
-## Index settings
+### Index settings
 
 We provide many ways to configure your index allowing you to tune your overall index relevancy. All the configuration is explained on [our website](https://www.algolia.com/doc/python#Settings).
 
@@ -174,7 +174,7 @@ class ArticleIndex(AlgoliaIndex):
     }
 ```
 
-## Restrict indexing to a subset of your data
+### Restrict indexing to a subset of your data
 
 You can add constraints controlling if a record must be indexed or not. `should_index` should be a callable that returns a boolean.
 
@@ -191,7 +191,7 @@ class ContactIndex(AlgoliaIndex):
 ```
 
 <!--NO_HTML-->
-# Run Tests
+## Run Tests
 
 To run the tests, first find your Algolia application id and Admin API key (found on the Credentials page).
 
