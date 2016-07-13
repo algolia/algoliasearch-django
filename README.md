@@ -29,13 +29,15 @@ Table of Content
 
 <!--/NO_HTML-->
 
-## Install
+## Setup
+
+### Install
 
 ```sh
 pip install algoliasearch-django
 ```
 
-## Setup
+### Setup
 
 In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add these two settings:
 
@@ -53,7 +55,7 @@ There are two optional settings:
 * `AUTO_INDEXING`: automatically synchronize the models with Algolia (default to **True**).
 
 
-## Quick Start
+### Quick Start
 
 Simply call `AlgoliaSearch.register()` for each of the models you want to index. A good place to do this is in your application's AppConfig (generally named `apps.py`). More info in the [documentation](https://docs.djangoproject.com/en/1.8/ref/applications/)
 
@@ -91,12 +93,15 @@ And then replace `algoliasearch.register(YourModel)` with `algoliasearch.registe
 
 ## Commands
 
+### Commands
+
 * `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
     * you can pass ``--model`` parameter to reindex a given model
 * `python manage.py algolia_applysettings`: (re)apply the index settings.
 * `python manage.py algolia_clearindex`: clear the index
 
 ## Search
+### Search
 
 We recommend the usage of our [JavaScript API Client](https://github.com/algolia/algoliasearch-client-js) to perform queries directly from the end-user browser without going through your server.
 
@@ -110,6 +115,7 @@ raw_search(Contact, "jim", params)
 ```
 
 ## Geo-Search
+### Geo-Search
 
 Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
 
@@ -132,6 +138,7 @@ algoliasearch.register(Contact, ContactIndex)
 ```
 
 ## Tags
+### Tags
 
 Use the `tags` attributes to add tags to your record. It can be a field or a callable.
 
@@ -191,7 +198,8 @@ class ContactIndex(AlgoliaIndex):
 ```
 
 <!--NO_HTML-->
-## Run Tests
+## Tests
+### Run Tests
 
 To run the tests, first find your Algolia application id and Admin API key (found on the Credentials page).
 
