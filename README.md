@@ -166,7 +166,7 @@ You can customize the index name. By default, the index name will be the name of
 
 ```python
 class ContactIndex(algoliaindex):
-    index_name = 'Entreprise'
+    index_name = 'Enterprise'
 ```
 
 ### Index settings
