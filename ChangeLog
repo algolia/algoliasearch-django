@@ -1,5 +1,8 @@
 CHANGELOG
 
+2017-01-20
+  * [FIX] Default to model.pk instead of 'id'
+
 2016-04-15 1.2.4
   * [FIX] Fix --batch-size of reindex command on Django 1.7
 
