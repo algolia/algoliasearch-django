@@ -60,17 +60,17 @@ class AlgoliaIndex(object):
                 raise AlgoliaIndexError(
                     '{} is not an attribute of {}.'.format(field, model))
 
-        # If no fields are specified, index all the fields of the model
-        if not self.fields:
-            self.fields = all_fields
-            self.fields.remove('id')
-
         # Check custom_objectID
         if self.custom_objectID:
             if not (hasattr(model, self.custom_objectID) or
                     (self.custom_objectID in all_fields)):
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.custom_objectID, model))
+
+        # If no fields are specified, index all the fields of the model
+        if not self.fields:
+            self.fields = all_fields
+            self.fields.remove(self.custom_objectID if self.custom_objectID else 'id')
 
         # Check tags
         if self.tags:
