@@ -70,7 +70,7 @@ class AlgoliaIndex(object):
         # If no fields are specified, index all the fields of the model
         if not self.fields:
             self.fields = all_fields
-            self.fields.remove(self.custom_objectID if self.custom_objectID else 'id')
+            self.fields.remove(self.custom_objectID if self.custom_objectID else model._meta.pk.name)
 
         # Check tags
         if self.tags:
