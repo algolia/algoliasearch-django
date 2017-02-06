@@ -136,6 +136,31 @@ class ContactIndex(AlgoliaIndex):
 
 algoliasearch.register(Contact, ContactIndex)
 ```
+Multiple geolocations are supported, for instance:
+
+```python
+class Location(models.Model):
+    lat = models.FloatField()
+    lng = models.FloatField()
+
+class Contact(models.Model):
+    name = models.CharField(max_lenght=20)
+    locations = models.ManyToManyField('Location')
+
+    def geolocations(self):
+        return [
+            {'lat': location.lat, 'lng': location.lng}
+            for location in self.locations.all()
+        ]
+
+
+class ContactIndex(AlgoliaIndex):
+    fields = 'name'
+    geo_field = 'geolocations'
+
+
+algoliasearch.register(Contact, ContactIndex)
+```
 
 ## Tags
 ### Tags
