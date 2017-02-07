@@ -136,6 +136,18 @@ class AlgoliaIndex(object):
         else:
             return instance.pk
 
+    @staticmethod
+    def _validate_geolocation(geolocation):
+        '''
+        Make sure we have the proper geolocation format.
+        '''
+        if set(geolocation) != {'lat', 'lng'}:
+            raise AlgoliaIndexError(
+                'Invalid geolocation format, requires "lat" and "lng" keys only got {}'.format(
+                    geolocation
+                )
+            )
+
     def _build_object(self, instance):
         '''Build the JSON object.'''
         tmp = {'objectID': self.__get_objectID(instance)}
@@ -155,8 +167,14 @@ class AlgoliaIndex(object):
         if self.geo_field:
             loc = self.geo_field(instance)
 
-            if loc:
+            if isinstance(loc, tuple):
                 tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
+            elif isinstance(loc, dict):
+                self._validate_geolocation(loc)
+                tmp['_geoloc'] = loc
+            elif isinstance(loc, list):
+                [self._validate_geolocation(geo) for geo in loc]
+                tmp['_geoloc'] = loc
 
         if self.tags:
             attr = getattr(instance, self.tags)

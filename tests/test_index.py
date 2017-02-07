@@ -17,6 +17,10 @@ class IndexTestCase(TestCase):
                                 lat=63.3,
                                 lng=-32.0)
         self.instance.category = ['Shop', 'Grocery']
+        self.instance.locations = [
+            {'lat': 10.3, 'lng': -20.0},
+            {'lat': 22.3, 'lng': 10.0},
+        ]
 
     def test_default_index_name(self):
         index = AlgoliaIndex(Example, self.client)
@@ -59,6 +63,26 @@ class IndexTestCase(TestCase):
         index = ExampleIndex(Example, self.client)
         obj = index._build_object(self.instance)
         self.assertEqual(obj['_geoloc'], {'lat': 63.3, 'lng': -32.0})
+
+    def test_several_geo_fields(self):
+        class ExampleIndex(AlgoliaIndex):
+            geo_field = 'geolocations'
+
+        index = ExampleIndex(Example, self.client)
+        obj = index._build_object(self.instance)
+        self.assertEqual(obj['_geoloc'], [
+            {'lat': 10.3, 'lng': -20.0},
+            {'lat': 22.3, 'lng': 10.0},
+        ])
+
+    def test_geo_fields_already_formatted(self):
+        class ExampleIndex(AlgoliaIndex):
+            geo_field = 'geolocations'
+
+        self.instance.locations = {'lat': 10.3, 'lng': -20.0}
+        index = ExampleIndex(Example, self.client)
+        obj = index._build_object(self.instance)
+        self.assertEqual(obj['_geoloc'], {'lat': 10.3, 'lng': -20.0})
 
     def test_none_geo_fields(self):
         class ExampleIndex(AlgoliaIndex):

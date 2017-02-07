@@ -8,6 +8,10 @@ class Example(models.Model):
     lat = models.FloatField()
     lng = models.FloatField()
     category = []
+    locations = []
 
     def location(self):
         return (self.lat, self.lng)
+
+    def geolocations(self):
+        return self.locations
