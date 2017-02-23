@@ -19,3 +19,11 @@ class Example(models.Model):
 
     def has_name(self):
         return self.name is not None
+
+    @staticmethod
+    def static_should_index():
+        return True
+
+    @staticmethod
+    def static_should_not_index():
+        return False

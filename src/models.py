@@ -101,8 +101,9 @@ class AlgoliaIndex(object):
                     should_index_attr_name = self.should_index
                     if isinstance(attr, bool):
                         self.should_index = lambda instance: getattr(instance, should_index_attr_name) is True
+                        self.should_index._is_default = True
                     else:
-                        raise AlgoliaIndexError('{} should be a callable or a boolean attribute.'.format(
+                        raise AlgoliaIndexError('{} should be a bound callable or a boolean attribute.'.format(
                             self.should_index))
             else:
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
@@ -194,7 +195,7 @@ class AlgoliaIndex(object):
     def update_obj_index(self, instance):
         '''Update the object.'''
         if self.should_index:
-            if not self.should_index(instance):
+            if not self._should_really_index(instance):
                 # Should not index, but since we don't now the state of the
                 # instance, we need to send a DELETE request to ensure that if
                 # the instance was previously indexed, it will be removed.
@@ -206,8 +207,20 @@ class AlgoliaIndex(object):
         logger.debug('UPDATE %s FROM %s', obj['objectID'], self.model)
 
     def _should_index(self, instance):
-        '''Return true if the object should be indexed.'''
-        return self.should_index(instance) if self.should_index else True
+        """Return true if the object should be indexed (including when self.should_index is not set)."""
+        if self.should_index:
+            return self._should_really_index(instance)
+        else:
+            return True
+
+    def _should_really_index(self, instance):
+        """Return true if according to should_index the object should be indexed."""
+        if hasattr(self.should_index, "__self__") or hasattr(self.should_index, '_is_default'):
+            # bound method or lambda, let's use instance
+            return self.should_index(instance)
+        else:
+            # unbound method, simply call without arguments
+            return self.should_index()
 
     def delete_obj_index(self, instance):
         '''Delete the object.'''

@@ -182,6 +182,24 @@ class IndexTestCase(TestCase):
         self.assertFalse(index._should_index(instance_should_not),
                         "We should not index an instance when should_index(instance) returns False")
 
+    def test_should_index_unbound(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'static_should_index'
+        index = ExampleIndex(Example, self.client)
+        obj = index._build_object(self.instance)
+        self.assertTrue(index._should_index(self.instance),
+                        "We should index an instance when should_index() returns True")
+
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'static_should_not_index'
+        index = ExampleIndex(Example, self.client)
+        instance_should_not = Example()
+        obj = index._build_object(instance_should_not)
+        self.assertFalse(index._should_index(instance_should_not),
+                        "We should not index an instance when should_index() returns False")
+
     def test_should_index_attr(self):
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
