@@ -7,6 +7,7 @@ class Example(models.Model):
     address = models.CharField(max_length=200)
     lat = models.FloatField()
     lng = models.FloatField()
+    is_admin = models.BooleanField(default=False)
     category = []
     locations = []
     index_me = True
@@ -27,3 +28,7 @@ class Example(models.Model):
     @staticmethod
     def static_should_not_index():
         return False
+
+    @property
+    def property_should_index(self):
+        return True

@@ -213,4 +213,18 @@ class IndexTestCase(TestCase):
         instance_should_not.index_me = False
         obj = index._build_object(instance_should_not)
         self.assertFalse(index._should_index(instance_should_not),
-                        "We should not index an instance when its should_index attr is False")
+                         "We should not index an instance when its should_index attr is False")
+
+    def test_should_index_field_raises(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'is_admin'
+        with self.assertRaises(AlgoliaIndexError):
+            index = ExampleIndex(Example, self.client)
+
+    def test_should_index_property_raises(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'property_should_index'
+        with self.assertRaises(AlgoliaIndexError):
+            index = ExampleIndex(Example, self.client)
