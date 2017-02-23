@@ -98,8 +98,12 @@ class AlgoliaIndex(object):
                 if callable(attr):
                     self.should_index = attr
                 else:
-                    raise AlgoliaIndexError('{} should be a callable.'.format(
-                        self.should_index))
+                    should_index_attr_name = self.should_index
+                    if isinstance(attr, bool):
+                        self.should_index = lambda instance: getattr(instance, should_index_attr_name) is True
+                    else:
+                        raise AlgoliaIndexError('{} should be a callable or a boolean attribute.'.format(
+                            self.should_index))
             else:
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.should_index, model))
@@ -200,6 +204,10 @@ class AlgoliaIndex(object):
         obj = self._build_object(instance)
         self.__index.save_object(obj)
         logger.debug('UPDATE %s FROM %s', obj['objectID'], self.model)
+
+    def _should_index(self, instance):
+        '''Return true if the object should be indexed.'''
+        return self.should_index(instance) if self.should_index else True
 
     def delete_obj_index(self, instance):
         '''Delete the object.'''

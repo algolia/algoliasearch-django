@@ -9,9 +9,13 @@ class Example(models.Model):
     lng = models.FloatField()
     category = []
     locations = []
+    index_me = True
 
     def location(self):
         return (self.lat, self.lng)
 
     def geolocations(self):
         return self.locations
+
+    def has_name(self):
+        return self.name is not None
