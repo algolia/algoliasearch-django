@@ -12,28 +12,31 @@ class AlgoliaIndexError(Exception):
 class AlgoliaIndex(object):
     '''An index in the Algolia backend.'''
 
-    # Use to specify a custom field that will be used for the objectID.
+    # Used to specify a custom field that will be used for the objectID.
     # This field should be unique.
     custom_objectID = None
 
-    # Use to specify the fields that should be included in the index.
+    # Used to specify the fields that should be included in the index.
     fields = ()
 
-    # Use to specify the geo-fields that should be used for location search.
+    # Used to specify the geo-fields that should be used for location search.
     # The attribute should be a callable that returns a tuple.
     geo_field = None
 
-    # Use to specify the field that should be used for filtering by tag.
+    # Used to specify the field that should be used for filtering by tag.
     tags = None
 
-    # Use to specify the index to target on Algolia.
+    # Used to specify the index to target on Algolia.
     index_name = None
 
-    # Use to specify the settings of the index.
+    # Used to specify the settings of the index.
     settings = {}
 
-    # Use to specify a callable that say if the instance should be indexed.
-    # The attribute should be a callable that returns a boolean.
+    # Used to specify if the instance should be indexed.
+    # The attribute should be either:
+    # - a callable that returns a boolean.
+    # - a BooleanField
+    # - a boolean property or attribute
     should_index = None
 
     # Instance of the index from algoliasearch client
@@ -52,7 +55,7 @@ class AlgoliaIndex(object):
 
         # Avoid error when there is only one field to index
         if isinstance(self.fields, str):
-            self.fields = (self.fields, )
+            self.fields = (self.fields,)
 
         # Check fields
         for field in self.fields:
@@ -63,7 +66,7 @@ class AlgoliaIndex(object):
         # Check custom_objectID
         if self.custom_objectID:
             if not (hasattr(model, self.custom_objectID) or
-                    (self.custom_objectID in all_fields)):
+                        (self.custom_objectID in all_fields)):
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.custom_objectID, model))
 
