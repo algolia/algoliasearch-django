@@ -15,7 +15,8 @@ class IndexTestCase(TestCase):
                                 name='SuperK',
                                 address='Finland',
                                 lat=63.3,
-                                lng=-32.0)
+                                lng=-32.0,
+                                is_admin=True)
         self.instance.category = ['Shop', 'Grocery']
         self.instance.locations = [
             {'lat': 10.3, 'lng': -20.0},
@@ -205,26 +206,59 @@ class IndexTestCase(TestCase):
             fields = 'name'
             should_index = 'index_me'
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
         self.assertTrue(index._should_index(self.instance),
                         "We should index an instance when its should_index attr is True")
 
         instance_should_not = Example()
         instance_should_not.index_me = False
-        obj = index._build_object(instance_should_not)
         self.assertFalse(index._should_index(instance_should_not),
                          "We should not index an instance when its should_index attr is False")
 
-    def test_should_index_field_raises(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'category'
+        index = ExampleIndex(Example, self.client)
+        with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index attr is not boolean"):
+            index._should_index(self.instance)
+
+    def test_should_index_field(self):
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'is_admin'
-        with self.assertRaises(AlgoliaIndexError):
-            index = ExampleIndex(Example, self.client)
+        index = ExampleIndex(Example, self.client)
+        self.assertTrue(index._should_index(self.instance),
+                        "We should index an instance when its should_index field is True")
 
-    def test_should_index_property_raises(self):
+        instance_should_not = Example()
+        instance_should_not.is_admin = False
+        self.assertFalse(index._should_index(instance_should_not),
+                         "We should not index an instance when its should_index field is False")
+
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'name'
+        index = ExampleIndex(Example, self.client)
+        with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index field is not boolean"):
+            index._should_index(self.instance)
+
+    def test_should_index_property(self):
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'property_should_index'
-        with self.assertRaises(AlgoliaIndexError):
-            index = ExampleIndex(Example, self.client)
+        index = ExampleIndex(Example, self.client)
+        self.assertTrue(index._should_index(self.instance),
+                        "We should index an instance when its should_index property is True")
+
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'static_should_not_index'
+        index = ExampleIndex(Example, self.client)
+        self.assertFalse(index._should_index(self.instance),
+                         "We should not index an instance when its should_index property is False")
+
+        class ExampleIndex(AlgoliaIndex):
+            fields = 'name'
+            should_index = 'property_string'
+        index = ExampleIndex(Example, self.client)
+        with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index property is not boolean"):
+            index._should_index(self.instance)

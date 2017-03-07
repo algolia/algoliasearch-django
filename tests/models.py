@@ -32,3 +32,11 @@ class Example(models.Model):
     @property
     def property_should_index(self):
         return True
+
+    @property
+    def property_should_not_index(self):
+        return True
+
+    @property
+    def property_string(self):
+        return "foo"
