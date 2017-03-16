@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.db import models
 
 from django.contrib.algoliasearch import AlgoliaIndex
 from django.contrib.algoliasearch import algolia_engine
@@ -167,19 +166,17 @@ class IndexTestCase(TestCase):
             fields = ('name', 'color')
 
         with self.assertRaises(AlgoliaIndexError):
-            index = ExampleIndex(Example, self.client)
+            ExampleIndex(Example, self.client)
 
     def test_should_index_method(self):
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'has_name'
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
         self.assertTrue(index._should_index(self.instance),
                         "We should index an instance when should_index(instance) returns True")
 
         instance_should_not = Example(name=None)
-        obj = index._build_object(instance_should_not)
         self.assertFalse(index._should_index(instance_should_not),
                         "We should not index an instance when should_index(instance) returns False")
 
@@ -188,7 +185,6 @@ class IndexTestCase(TestCase):
             fields = 'name'
             should_index = 'static_should_index'
         index = ExampleIndex(Example, self.client)
-        obj = index._build_object(self.instance)
         self.assertTrue(index._should_index(self.instance),
                         "We should index an instance when should_index() returns True")
 
@@ -197,7 +193,6 @@ class IndexTestCase(TestCase):
             should_index = 'static_should_not_index'
         index = ExampleIndex(Example, self.client)
         instance_should_not = Example()
-        obj = index._build_object(instance_should_not)
         self.assertFalse(index._should_index(instance_should_not),
                         "We should not index an instance when should_index() returns False")
 
