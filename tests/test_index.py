@@ -254,7 +254,7 @@ class IndexTestCase(TestCase):
 
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
-            should_index = 'static_should_not_index'
+            should_index = 'property_should_not_index'
 
         index = ExampleIndex(Example, self.client)
         self.assertFalse(index._should_index(self.instance),

@@ -35,7 +35,7 @@ class Example(models.Model):
 
     @property
     def property_should_not_index(self):
-        return True
+        return False
 
     @property
     def property_string(self):
