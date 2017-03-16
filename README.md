@@ -230,9 +230,18 @@ class ArticleIndex(AlgoliaIndex):
 
 ## Restrict indexing to a subset of your data
 
-You can add constraints controlling if a record must be indexed or not. `should_index` should be a callable that returns a boolean.
+You can add constraints controlling if a record must be indexed or not. `should_index` should be a boolean or a callable that returns a boolean.
 
 ```python
+# with a boolean attribute
+class Article(models.model):
+    name = models.CharField(max_length=64)
+    is_indexable = True
+
+class ArticleIndex(AlgoliaIndex):
+    should_index = "is_indexable"
+
+# with a callable returning a boolean
 class Contact(models.model):
     name = models.CharField(max_lenght=20)
     age = models.IntegerField()

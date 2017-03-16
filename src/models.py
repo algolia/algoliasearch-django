@@ -12,29 +12,34 @@ class AlgoliaIndexError(Exception):
 class AlgoliaIndex(object):
     '''An index in the Algolia backend.'''
 
-    # Use to specify a custom field that will be used for the objectID.
+    # Used to specify a custom field that will be used for the objectID.
     # This field should be unique.
     custom_objectID = None
 
-    # Use to specify the fields that should be included in the index.
+    # Used to specify the fields that should be included in the index.
     fields = ()
 
-    # Use to specify the geo-fields that should be used for location search.
+    # Used to specify the geo-fields that should be used for location search.
     # The attribute should be a callable that returns a tuple.
     geo_field = None
 
-    # Use to specify the field that should be used for filtering by tag.
+    # Used to specify the field that should be used for filtering by tag.
     tags = None
 
-    # Use to specify the index to target on Algolia.
+    # Used to specify the index to target on Algolia.
     index_name = None
 
-    # Use to specify the settings of the index.
+    # Used to specify the settings of the index.
     settings = {}
 
-    # Use to specify a callable that say if the instance should be indexed.
-    # The attribute should be a callable that returns a boolean.
+    # Used to specify if the instance should be indexed.
+    # The attribute should be either:
+    # - a callable that returns a boolean.
+    # - a BooleanField
+    # - a boolean property or attribute
     should_index = None
+    # Name of the attribute to check on instances if should_index is not a callable
+    _should_index_is_method = False
 
     # Instance of the index from algoliasearch client
     __index = None
@@ -52,7 +57,7 @@ class AlgoliaIndex(object):
 
         # Avoid error when there is only one field to index
         if isinstance(self.fields, str):
-            self.fields = (self.fields, )
+            self.fields = (self.fields,)
 
         # Check fields
         for field in self.fields:
@@ -63,7 +68,7 @@ class AlgoliaIndex(object):
         # Check custom_objectID
         if self.custom_objectID:
             if not (hasattr(model, self.custom_objectID) or
-                    (self.custom_objectID in all_fields)):
+                        (self.custom_objectID in all_fields)):
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.custom_objectID, model))
 
@@ -91,18 +96,20 @@ class AlgoliaIndex(object):
                 raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
                     self.geo_field, model))
 
-        # Check should_index + get the callable
+        # Check should_index + get the callable or attribute/field name
         if self.should_index:
             if hasattr(model, self.should_index):
                 attr = getattr(model, self.should_index)
-                if callable(attr):
+                if type(attr) is not bool:  # if attr is a bool, we keep attr=name to getattr on instance
                     self.should_index = attr
-                else:
-                    raise AlgoliaIndexError('{} should be a callable.'.format(
-                        self.should_index))
+                if callable(self.should_index):
+                    self._should_index_is_method = True
             else:
-                raise AlgoliaIndexError('{} is not an attribute of {}.'.format(
-                    self.should_index, model))
+                try:
+                    model._meta.get_field_by_name(self.should_index)
+                except:
+                    raise AlgoliaIndexError('{} is not an attribute nor a field of {}.'.format(
+                        self.should_index, model))
 
     def __set_index(self, client):
         '''Get an instance of Algolia Index'''
@@ -188,9 +195,9 @@ class AlgoliaIndex(object):
         return tmp
 
     def update_obj_index(self, instance):
-        '''Update the object.'''
-        if self.should_index:
-            if not self.should_index(instance):
+        """Update the object."""
+        if self._has_should_index():
+            if not self._should_really_index(instance):
                 # Should not index, but since we don't now the state of the
                 # instance, we need to send a DELETE request to ensure that if
                 # the instance was previously indexed, it will be removed.
@@ -200,6 +207,41 @@ class AlgoliaIndex(object):
         obj = self._build_object(instance)
         self.__index.save_object(obj)
         logger.debug('UPDATE %s FROM %s', obj['objectID'], self.model)
+
+    def _has_should_index(self):
+        """Return True if this AlgoliaIndex has a should_index method or attribute"""
+        return self.should_index is not None
+
+    def _should_index(self, instance):
+        """Return True if the object should be indexed (including when self.should_index is not set)."""
+        if self._has_should_index():
+            return self._should_really_index(instance)
+        else:
+            return True
+
+    def _should_really_index(self, instance):
+        """Return True if according to should_index the object should be indexed."""
+        if self._should_index_is_method:
+            if hasattr(self.should_index, "__self__"):
+                # bound method, call with instance
+                return self.should_index(instance)
+            else:
+                # unbound method, simply call without arguments
+                return self.should_index()
+        else:
+            # property/attribute/Field, evaluate as bool
+            attr_type = type(self.should_index)
+            if attr_type is str:
+                attr_value = getattr(instance, self.should_index)
+            elif attr_type is property:
+                attr_value = self.should_index.__get__(instance)
+            else:
+                raise AlgoliaIndexError('{} should be a boolean attribute or a method that returns a boolean.'.format(
+                    self.should_index))
+            if type(attr_value) is not bool:
+                raise AlgoliaIndexError("%s's should_index (%s) should be a boolean" % (
+                    instance.__class__.__name__, self.should_index))
+            return attr_value
 
     def delete_obj_index(self, instance):
         '''Delete the object.'''
