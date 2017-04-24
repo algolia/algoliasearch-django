@@ -79,7 +79,7 @@ ALGOLIA = {
 }
 ```
 
-There are two optional settings:
+There are three optional settings:
 
 * `INDEX_PREFIX`: prefix all indexes. Use it to separate different applications, like `site1_Products` and `site2_Products`.
 * `INDEX_SUFFIX`: suffix all indexes. Use it to differenciate development and production environment, like `Location_dev` and `Location_prod`.
@@ -87,7 +87,7 @@ There are two optional settings:
 
 ## Quick Start
 
-Simply call `AlgoliaSearch.register()` for each of the models you want to index. A good place to do this is in your application's AppConfig (generally named `apps.py`). More info in the [documentation](https://docs.djangoproject.com/en/1.8/ref/applications/)
+Simply call `algoliasearch.register()` for each of the models you want to index. A good place to do this is in your application's AppConfig (generally named `apps.py`). More info in the [documentation](https://docs.djangoproject.com/en/1.8/ref/applications/)
 
 ```python
 from django.apps import AppConfig
@@ -162,7 +162,7 @@ Use the `geo_field` attribute to localize your record. `geo_field` should be a c
 
 ```python
 class Contact(models.model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_lenght=20)
     lat = models.FloatField()
     lng = models.FloatField()
 
@@ -230,18 +230,9 @@ class ArticleIndex(AlgoliaIndex):
 
 ## Restrict indexing to a subset of your data
 
-You can add constraints controlling if a record must be indexed or not. `should_index` should be a boolean or a callable that returns a boolean.
+You can add constraints controlling if a record must be indexed or not. `should_index` should be a callable that returns a boolean.
 
 ```python
-# with a boolean attribute
-class Article(models.model):
-    name = models.CharField(max_length=64)
-    is_indexable = True
-
-class ArticleIndex(AlgoliaIndex):
-    should_index = "is_indexable"
-
-# with a callable returning a boolean
 class Contact(models.model):
     name = models.CharField(max_lenght=20)
     age = models.IntegerField()
