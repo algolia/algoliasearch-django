@@ -1,10 +1,12 @@
-
 from __future__ import unicode_literals
+
+import inspect
 from functools import partial
 from itertools import chain
 import logging
 
 from algoliasearch.helpers import AlgoliaException
+from django.db.models.query_utils import DeferredAttribute
 
 from .settings import DEBUG
 
@@ -55,9 +57,15 @@ class AlgoliaIndex(object):
     # Use to specify the settings of the index.
     settings = {}
 
-    # Use to specify a callable that say if the instance should be indexed.
-    # The attribute should be a callable that returns a boolean.
+    # Used to specify if the instance should be indexed.
+    # The attribute should be either:
+    # - a callable that returns a boolean.
+    # - a BooleanField
+    # - a boolean property or attribute
     should_index = None
+
+    # Name of the attribute to check on instances if should_index is not a callable
+    _should_index_is_method = False
 
     def __init__(self, model, client, settings):
         """Initializes the index."""
@@ -70,11 +78,11 @@ class AlgoliaIndex(object):
 
         try:
             all_model_fields = model._meta.get_all_field_names()
-        except AttributeError: # get_all_field_names is removed in Django >= 1.10
+        except AttributeError:  # get_all_field_names is removed in Django >= 1.10
             all_model_fields = [f.name for f in model._meta.get_fields()]
 
         if isinstance(self.fields, str):
-            self.fields = (self.fields, )
+            self.fields = (self.fields,)
         elif isinstance(self.fields, (list, tuple, set)):
             self.fields = tuple(self.fields)
         else:
@@ -128,9 +136,20 @@ class AlgoliaIndex(object):
         if self.geo_field:
             self.geo_field = check_and_get_attr(model, self.geo_field)
 
-        # Check should_index
+        # Check should_index + get the callable or attribute/field name
         if self.should_index:
-            self.should_index = check_and_get_attr(model, self.should_index)
+            if hasattr(model, self.should_index):
+                attr = getattr(model, self.should_index)
+                if type(attr) is not bool:  # if attr is a bool, we keep attr=name to getattr on instance
+                    self.should_index = attr
+                if callable(self.should_index):
+                    self._should_index_is_method = True
+            else:
+                try:
+                    model._meta.get_field_by_name(self.should_index)
+                except:
+                    raise AlgoliaIndexError('{} is not an attribute nor a field of {}.'.format(
+                        self.should_index, model))
 
     def __init_index(self, client, model, settings):
         if not self.index_name:
@@ -143,6 +162,18 @@ class AlgoliaIndex(object):
 
         self.__index = client.init_index(self.index_name)
         self.__tmp_index = client.init_index(self.index_name + '_tmp')
+
+    @staticmethod
+    def _validate_geolocation(geolocation):
+        """
+        Make sure we have the proper geolocation format.
+        """
+        if set(geolocation) != {'lat', 'lng'}:
+            raise AlgoliaIndexError(
+                'Invalid geolocation format, requires "lat" and "lng" keys only got {}'.format(
+                    geolocation
+                )
+            )
 
     def get_raw_record(self, instance, update_fields=None):
         """
@@ -168,13 +199,70 @@ class AlgoliaIndex(object):
 
             if self.geo_field:
                 loc = self.geo_field(instance)
-                tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
+
+                if isinstance(loc, tuple):
+                    tmp['_geoloc'] = {'lat': loc[0], 'lng': loc[1]}
+                elif isinstance(loc, dict):
+                    self._validate_geolocation(loc)
+                    tmp['_geoloc'] = loc
+                elif isinstance(loc, list):
+                    [self._validate_geolocation(geo) for geo in loc]
+                    tmp['_geoloc'] = loc
 
             if self.tags:
-                tmp['_tags'] = self.tags(instance)
+                if callable(self.tags):
+                    self.tags = self.tags(instance)
+                if not isinstance(self.tags, list):
+                    self.tags = list(self.tags)
+                tmp['_tags'] = self.tags
 
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp
+
+    def _has_should_index(self):
+        """Return True if this AlgoliaIndex has a should_index method or attribute"""
+        return self.should_index is not None
+
+    def _should_index(self, instance):
+        """Return True if the object should be indexed (including when self.should_index is not set)."""
+        if self._has_should_index():
+            return self._should_really_index(instance)
+        else:
+            return True
+
+    def _should_really_index(self, instance):
+        """Return True if according to should_index the object should be indexed."""
+        if self._should_index_is_method:
+            is_method = inspect.ismethod(self.should_index)
+            try:
+                count_args = len(inspect.signature(self.should_index).parameters)
+            except AttributeError:
+                count_args = len(inspect.getargspec(self.should_index).args)
+
+            if is_method or count_args is 1:
+                # bound method, call with instance
+                return self.should_index(instance)
+            else:
+                # unbound method, simply call without arguments
+                return self.should_index()
+        else:
+            # property/attribute/Field, evaluate as bool
+            attr_type = type(self.should_index)
+            if attr_type is DeferredAttribute:
+                attr_value = self.should_index.__get__(instance, None)
+                attr_type = type(attr_value)
+                print("Attr: %s, type: %s." % (attr_value, attr_type))
+            elif attr_type is str:
+                attr_value = getattr(instance, self.should_index)
+            elif attr_type is property:
+                attr_value = self.should_index.__get__(instance)
+            else:
+                raise AlgoliaIndexError('{} should be a boolean attribute or a method that returns a boolean.'.format(
+                    self.should_index))
+            if type(attr_value) is not bool:
+                raise AlgoliaIndexError("%s's should_index (%s) should be a boolean" % (
+                    instance.__class__.__name__, self.should_index))
+            return attr_value
 
     def save_record(self, instance, update_fields=None, **kwargs):
         """Saves the record.

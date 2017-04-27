@@ -1,6 +1,6 @@
 CHANGELOG
 
-2015-07-XX X.X.X
+2017-04-27 X.X.X
   * [CHANGE] Module name to avoid conflict when installing the package with pip
   * [CHANGE] Big performance improvements
   * [ADD] Option to raise or not exceptions. By default, raise only when DEBUG=True
@@ -8,6 +8,18 @@ CHANGELOG
   * [ADD] Auto-indexing option at registration time
   * [FIX] algolia_reindex command with batchsize argument on python34-django18
   * [FIX] Fields syntax
+
+2017-01-20
+  * [FIX] Default to model.pk instead of 'id'
+
+2016-04-15 1.2.4
+  * [FIX] Fix --batch-size of reindex command on Django 1.7
+
+2015-12-15 1.2.3
+  * [FIX] Check that geo_field callable returns something valid
+
+2015-12-03 1.2.2
+  * [FIX] Compatibility warning with Django 1.9
 
 2015-07-09 1.2.1
   * [ADD] `get_queryset` for grain indexing possibility
