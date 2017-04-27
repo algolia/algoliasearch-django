@@ -1,9 +1,10 @@
+
 from __future__ import unicode_literals
 from functools import partial
 from itertools import chain
 import logging
 
-from algoliasearch.algoliasearch import AlgoliaException
+from algoliasearch.helpers import AlgoliaException
 
 from .settings import DEBUG
 
