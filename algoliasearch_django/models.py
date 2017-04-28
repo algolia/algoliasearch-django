@@ -11,7 +11,10 @@ from django.db.models.query_utils import DeferredAttribute
 from .settings import DEBUG
 
 logger = logging.getLogger(__name__)
-_getattr = lambda object, name: getattr(object, name)
+
+
+def _getattr(obj, name):
+    return getattr(obj, name)
 
 
 def check_and_get_attr(model, name):
