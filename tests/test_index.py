@@ -12,15 +12,15 @@ class IndexTestCase(TestCase):
     def setUp(self):
         self.client = algolia_engine.client
         self.user = User(name='Algolia', username="algolia",
-                             bio='Milliseconds matter', followers_count=42001,
-                             following_count=42, _lat=123, _lng=-42.24,
-                             _permissions='read,write,admin')
+                         bio='Milliseconds matter', followers_count=42001,
+                         following_count=42, _lat=123, _lng=-42.24,
+                         _permissions='read,write,admin')
         self.example = Example(uid=4,
-                                name='SuperK',
-                                address='Finland',
-                                lat=63.3,
-                                lng=-32.0,
-                                is_admin=True)
+                               name='SuperK',
+                               address='Finland',
+                               lat=63.3,
+                               lng=-32.0,
+                               is_admin=True)
         self.example.category = ['Shop', 'Grocery']
         self.example.locations = [
             {'lat': 10.3, 'lng': -20.0},

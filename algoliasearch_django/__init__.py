@@ -1,7 +1,7 @@
-'''
+"""
 AlgoliaSearch integration for Django.
 http://www.algolia.com
-'''
+"""
 
 from . import models
 from . import registration
