@@ -254,7 +254,6 @@ class AlgoliaIndex(object):
             attr_type = type(self.should_index)
             if attr_type is DeferredAttribute:
                 attr_value = self.should_index.__get__(instance, None)
-                attr_type = type(attr_value)
             elif attr_type is str:
                 attr_value = getattr(instance, self.should_index)
             elif attr_type is property:
