@@ -240,6 +240,7 @@ class AlgoliaIndex(object):
             try:
                 count_args = len(inspect.signature(self.should_index).parameters)
             except AttributeError:
+                # noinspection PyDeprecation
                 count_args = len(inspect.getargspec(self.should_index).args)
 
             if is_method or count_args is 1:
@@ -281,7 +282,7 @@ class AlgoliaIndex(object):
                 # Should not index, but since we don't now the state of the
                 # instance, we need to send a DELETE request to ensure that if
                 # the instance was previously indexed, it will be removed.
-                self.delete_obj(instance)
+                self.delete_record(instance)
                 return
 
         try:
