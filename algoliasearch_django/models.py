@@ -346,8 +346,11 @@ class AlgoliaIndex(object):
         if len(batch) > 0:
             self.__index.partial_update_objects(batch)
 
-    def raw_search(self, query='', params={}):
+    def raw_search(self, query='', params=None):
         """Performs a search query and returns the parsed JSON."""
+        if params is None:
+            params = {}
+
         try:
             return self.__index.search(query, params)
         except AlgoliaException as e:
