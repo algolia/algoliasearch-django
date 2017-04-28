@@ -298,7 +298,7 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('%s FROM %s NOT SAVED: %s', obj['objectID'],
-                               self.model, e.message)
+                               self.model, e)
 
     def delete_record(self, instance):
         """Deletes the record."""
@@ -311,7 +311,7 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('%s FROM %s NOT DELETED: %s', objectID,
-                               self.model, e.message)
+                               self.model, e)
 
     def update_records(self, qs, batch_size=1000, **kwargs):
         """
@@ -354,7 +354,7 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('ERROR DURING SEARCH: %s', e.message)
+                logger.warning('ERROR DURING SEARCH: %s', e)
 
     def set_settings(self):
         """Applies the settings to the index."""
@@ -369,7 +369,7 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('SETTINGS NOT APPLYED ON %s: %s',
-                               self.model, e.message)
+                               self.model, e)
 
     def clear_index(self):
         """Clears the index."""
@@ -380,7 +380,7 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('%s NOT CLEARED: %s', self.model, e.message)
+                logger.warning('%s NOT CLEARED: %s', self.model, e)
 
     def reindex_all(self, batch_size=1000):
         """
@@ -432,4 +432,4 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('ERROR DURING REINDEXING %s: %s', self.model,
-                               e.message)
+                               e)
