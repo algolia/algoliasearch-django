@@ -11,6 +11,8 @@ This package lets you easily integrate the Algolia Search API to your [Django](h
 
 You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
 
+Compatible with **Python 2.7**, **Python 3.3+** and **Django 1.7+**
+
 
 
 
@@ -70,7 +72,7 @@ pip install algoliasearch-django
 
 ## Setup
 
-In your Django settings, add `algoliasearch_django` to `INSTALLED_APPS` and add these two settings:
+In your Django settings, add `django.contrib.algoliasearch` to `INSTALLED_APPS` and add these two settings:
 
 ```python
 ALGOLIA = {
@@ -91,14 +93,14 @@ Simply call `algoliasearch.register()` for each of the models you want to index.
 
 ```python
 from django.apps import AppConfig
-from algoliasearch_django import register
+from django.contrib import algoliasearch
 
 class YourAppConfig(AppConfig):
     name = 'your_app'
 
     def ready(self):
         YourModel = self.get_model('your_model')
-        register(YourModel)
+        algoliasearch.register(YourModel)
 ```
 
 And then, don't forget the line below in the `__init__.py` file of your Django application.
@@ -110,7 +112,7 @@ default_app_config = 'your_django_app.apps.YourAppConfig'
 By default, all the fields of your model will be used. You can configure the index by creating a subclass of `AlgoliaIndex`. A good place to do this is in a separate file, like `index.py`.
 
 ```python
-from algoliasearch_django import AlgoliaIndex
+from django.contrib.algoliasearch import AlgoliaIndex
 
 class YourModelIndex(AlgoliaIndex):
     fields = ('name', 'date')
@@ -119,7 +121,7 @@ class YourModelIndex(AlgoliaIndex):
     index_name = 'my_index'
 ```
 
-And then replace `register(YourModel)` with `register(YourModel, YourModelIndex)`.
+And then replace `algoliasearch.register(YourModel)` with `algoliasearch.register(YourModel, YourModelIndex)`.
 
 
 # Commands
@@ -145,7 +147,7 @@ We recommend the usage of our [JavaScript API Client](https://github.com/algolia
 However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', params)` method. It retrieves the raw JSON answer from the API.
 
 ```python
-from algoliasearch_django import raw_search
+from django.contrib.algoliasearch import raw_search
 
 params = { "hitsPerPage": 5 }
 raw_search(Contact, "jim", params)
@@ -212,7 +214,7 @@ You can customize the index name. By default, the index name will be the name of
 
 ```python
 class ContactIndex(algoliaindex):
-    index_name = 'MyIndexName'
+    index_name = 'Enterprise'
 ```
 
 ## Index settings
