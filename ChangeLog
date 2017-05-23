@@ -11,7 +11,7 @@ CHANGELOG
   * [FIX] Avoid mutable default parameters
   * [FIX] Fix bug in error handling
 
-2017-01-20
+2017-01-20 1.2.5
   * [FIX] Default to model.pk instead of 'id'
 
 2016-04-15 1.2.4
