@@ -60,11 +60,12 @@ class IndexTestCase(TestCase):
                 self.assertRegexpMatches(index.index_name, regex)
 
     def test_reindex_with_replicas(self):
+        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
-                    'django_contact_name_asc',
-                    'django_contact_name_desc'
+                    index.index_name + '_name_asc',
+                    index.index_name + '_name_desc'
                 ]
             }
 
