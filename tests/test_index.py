@@ -59,6 +59,18 @@ class IndexTestCase(TestCase):
             except AttributeError:
                 self.assertRegexpMatches(index.index_name, regex)
 
+    def test_reindex_with_replicas(self):
+        class WebsiteIndex(AlgoliaIndex):
+            settings = {
+                'replicas': [
+                    'django_contact_name_asc',
+                    'django_contact_name_desc'
+                ]
+            }
+
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+
     def test_custom_objectID(self):
         class UserIndex(AlgoliaIndex):
             custom_objectID = 'username'

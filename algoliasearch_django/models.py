@@ -394,7 +394,20 @@ class AlgoliaIndex(object):
         """
         try:
             if self.settings:
-                self.__tmp_index.set_settings(self.settings)
+                replicas = self.settings.get('replicas', None)
+                slaves = self.settings.get('slaves', None)
+
+                should_keep_replicas = replicas is not None
+                should_keep_slaves = slaves is not None
+
+                if should_keep_replicas:
+                    self.settings['replicas'] = []
+                    logger.debug("REMOVE REPLICAS FROM SETTINGS")
+                if should_keep_slaves:
+                    self.settings['slaves'] = []
+                    logger.debug("REMOVE SLAVES FROM SETTINGS")
+
+                self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings)['taskID'])
                 logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
             self.__tmp_index.clear_index()
             logger.debug('CLEAR INDEX %s_tmp', self.index_name)
@@ -428,6 +441,16 @@ class AlgoliaIndex(object):
                                      self.__index.index_name)
             logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
                         self.index_name)
+
+            if self.settings:
+                if should_keep_replicas:
+                    self.settings['replicas'] = replicas
+                    logger.debug("RESTORE REPLICAS")
+                if should_keep_slaves:
+                    self.settings['slaves'] = slaves
+                    logger.debug("RESTORE SLAVES")
+                if should_keep_replicas or should_keep_slaves:
+                    self.__index.set_settings(self.settings)
             return counts
         except AlgoliaException as e:
             if DEBUG:
