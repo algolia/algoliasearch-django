@@ -259,5 +259,22 @@ To run the tests, first find your Algolia application id and Admin API key (foun
 ALGOLIA_APPLICATION_ID={APPLICATION_ID} ALGOLIA_API_KEY={ADMIN_API_KEY} tox
 ```
 
+To override settings for some tests, use the [settings method](https://docs.djangoproject.com/en/1.11/topics/testing/tools/#django.test.SimpleTestCase.settings):
+```python
+class OverrideSettingsTestCase(TestCase):
+    def setUp(self):
+        with self.settings(ALGOLIA={
+            'APPLICATION_ID': 'foo',
+            'API_KEY': 'bar',
+            'AUTO_INDEXING': False
+        }):
+            algolia_engine.reset(settings.ALGOLIA)
+
+    def tearDown(self):
+        algolia_engine.reset(settings.ALGOLIA)
+
+    def test_foo():
+        # ...
+```
 
 
