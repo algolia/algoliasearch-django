@@ -1,4 +1,7 @@
 CHANGELOG
+2017-05-21 1.4.0
+  * [ADD] Reset method to reinitialize an AlgoliaEngine
+
 2017-05-21 1.3.2
   * [FIX] Fix reindex to handle replicas 
 
