@@ -22,7 +22,7 @@ class RegistrationError(AlgoliaEngineError):
 
 class AlgoliaEngine(object):
     def __init__(self, settings=SETTINGS):
-        """Initializes Algolia engine."""
+        """Initializes the Algolia engine."""
 
         try:
             app_id = settings['APPLICATION_ID']
@@ -166,6 +166,12 @@ class AlgoliaEngine(object):
         adapter = self.get_adapter(model)
         return adapter.reindex_all(batch_size)
 
+    def reset(self, settings=None):
+        """Reinitializes the Algolia engine and its client.
+        :param settings: settings to use instead of the default django.conf.settings.algolia
+        """
+        self.__init__(settings=settings if settings is not None else SETTINGS)
+
     # Signalling hooks.
 
     def __post_save_receiver(self, instance, **kwargs):
@@ -177,6 +183,7 @@ class AlgoliaEngine(object):
         """Signal handler for when a registered model has been deleted."""
         logger.debug('RECEIVE pre_delete FOR %s', instance.__class__)
         self.delete_record(instance)
+
 
 # Algolia engine
 algolia_engine = AlgoliaEngine()
