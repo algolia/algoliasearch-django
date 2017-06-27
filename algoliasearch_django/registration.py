@@ -22,7 +22,7 @@ class RegistrationError(AlgoliaEngineError):
 
 class AlgoliaEngine(object):
     def __init__(self, settings=SETTINGS):
-        """Initializes Algolia engine."""
+        """Initializes the Algolia engine."""
 
         try:
             app_id = settings['APPLICATION_ID']
