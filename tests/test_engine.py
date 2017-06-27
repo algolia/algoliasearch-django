@@ -1,6 +1,7 @@
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
+from algoliasearch_django import algolia_engine
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django import AlgoliaEngine
 from algoliasearch_django.registration import AlgoliaEngineError
@@ -90,3 +91,19 @@ class EngineTestCase(TestCase):
 
         with self.assertRaises(RegistrationError):
             self.engine.unregister(Website)
+
+
+class OverrideSettingsTestCase(TestCase):
+    def setUp(self):
+        with self.settings(ALGOLIA={
+            'APPLICATION_ID': 'foo',
+            'API_KEY': 'bar',
+            'AUTO_INDEXING': False
+        }):
+            algolia_engine.reset(settings.ALGOLIA)
+
+    def tearDown(self):
+        algolia_engine.reset(settings.ALGOLIA)
+
+    def test_no_indexing(self):
+        self.assertFalse(algolia_engine.__dict__["_AlgoliaEngine__auto_indexing"], "AUTO_INDEXING should be disabled for this test.")
