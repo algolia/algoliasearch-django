@@ -1,4 +1,7 @@
 CHANGELOG
+2017-05-21 1.4.1
+  * [FIX] Fix handling of unicode strings in python2
+
 2017-05-21 1.4.0
   * [ADD] Reset method to reinitialize an AlgoliaEngine
 
