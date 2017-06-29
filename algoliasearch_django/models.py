@@ -5,6 +5,7 @@ from functools import partial
 from itertools import chain
 import logging
 
+import sys
 from algoliasearch.helpers import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
 
@@ -93,7 +94,9 @@ class AlgoliaIndex(object):
 
         # Check fields
         for field in self.fields:
-            if isinstance(field, str):
+            # unicode is a type in python < 3.0, which we need to support (e.g. dev uses unicode_literals)
+            # noinspection PyUnresolvedReferences
+            if sys.version_info < (3, 0) and isinstance(field, unicode) or isinstance(field, str):
                 attr = field
                 name = field
             elif isinstance(field, (list, tuple)) and len(field) == 2:
@@ -101,7 +104,7 @@ class AlgoliaIndex(object):
                 name = field[1]
             else:
                 raise AlgoliaIndexError(
-                    'Invalid fields syntax: {}'.format(field))
+                    'Invalid fields syntax: {} (type: {})'.format(field, type(field)))
 
             self.__translate_fields[attr] = name
             if attr in all_model_fields:
