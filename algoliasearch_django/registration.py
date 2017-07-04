@@ -82,7 +82,7 @@ class AlgoliaEngine(object):
         # Perform the unregistration.
         del self.__registered_models[model]
 
-        # Disconnect fron the signalling framework.
+        # Disconnect from the signalling framework.
         post_save.disconnect(self.__post_save_receiver, model)
         pre_delete.disconnect(self.__pre_delete_receiver, model)
         logger.info('UNREGISTER %s', model)
@@ -103,7 +103,7 @@ class AlgoliaEngine(object):
         return self.__registered_models[model]
 
     def get_adapter_from_instance(self, instance):
-        """Returns the adapater associated with the given instance."""
+        """Returns the adapter associated with the given instance."""
         model = instance.__class__
         return self.get_adapter(model)
 
@@ -131,7 +131,7 @@ class AlgoliaEngine(object):
         Updates multiple records.
 
         This method is optimized for speed. It takes a QuerySet and the same
-        arguments as QuerySet.update(). Optionnaly, you can specify the size
+        arguments as QuerySet.update(). Optionally, you can specify the size
         of the batch send to Algolia with batch_size (default to 1000).
 
         >>> from algoliasearch_django import update_records

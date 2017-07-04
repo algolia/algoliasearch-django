@@ -373,7 +373,7 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('SETTINGS NOT APPLYED ON %s: %s',
+                logger.warning('SETTINGS NOT APPLIED ON %s: %s',
                                self.model, e)
 
     def clear_index(self):

@@ -32,7 +32,7 @@ class EngineTestCase(TestCase):
         self.assertTrue(self.engine.is_registered(Website))
         self.assertFalse(self.engine.is_registered(User))
 
-    def test_get_adapater(self):
+    def test_get_adapter(self):
         self.engine.register(Website)
         self.assertEquals(AlgoliaIndex,
                           self.engine.get_adapter(Website).__class__)
@@ -41,7 +41,7 @@ class EngineTestCase(TestCase):
         with self.assertRaises(RegistrationError):
             self.engine.get_adapter(Website)
 
-    def test_get_adapater_from_instance(self):
+    def test_get_adapter_from_instance(self):
         self.engine.register(Website)
         instance = Website()
         self.assertEquals(

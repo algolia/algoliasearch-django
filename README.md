@@ -84,7 +84,7 @@ ALGOLIA = {
 There are three optional settings:
 
 * `INDEX_PREFIX`: prefix all indexes. Use it to separate different applications, like `site1_Products` and `site2_Products`.
-* `INDEX_SUFFIX`: suffix all indexes. Use it to differenciate development and production environment, like `Location_dev` and `Location_prod`.
+* `INDEX_SUFFIX`: suffix all indexes. Use it to differentiate development and production environment, like `Location_dev` and `Location_prod`.
 * `AUTO_INDEXING`: automatically synchronize the models with Algolia (default to **True**).
 
 ## Quick Start
