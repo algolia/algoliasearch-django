@@ -52,6 +52,7 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
     * [Custom index name](#custom-index-name)
     * [Index settings](#index-settings)
     * [Restrict indexing to a subset of your data](#restrict-indexing-to-a-subset-of-your-data)
+    * [Multiple indices per model](#multiple-indices-per-model)
 
 1. **[Tests](#tests)**
 
