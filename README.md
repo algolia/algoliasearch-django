@@ -246,6 +246,69 @@ class ContactIndex(AlgoliaIndex):
     should_index = 'is_adult'
 ```
 
+## Multiple indices per model
+
+It is possible to have several indices for a single model.
+
+- First, define all your indices that you want for a model:
+```python
+from django.contrib.algoliasearch import AlgoliaIndex
+
+class MyModelIndex1(AlgoliaIndex):
+    name = 'MyModelIndex1'
+    ...
+
+class MyModelIndex2(AlgoliaIndex):
+    name = 'MyModelIndex2'
+    ...
+```
+
+- Then, define a meta model which will aggregate those indices:
+```python
+class MyModelMetaIndex(AlgoliaIndex):
+    def __init__(self, model, client, settings):
+        self.indices = [
+            MyModelIndex1(model, client, settings),
+            MyModelIndex2(model, client, settings),
+        ]
+
+    def raw_search(self, query='', params=None):
+        res = {}
+        for index in self.indices:
+            res[index.name] = index.raw_search(query, params)
+        return res
+
+    def update_records(self, qs, batch_size=1000, **kwargs):
+        for index in self.indices:
+            index.update_records(qs, batch_size, **kwargs)
+
+    def reindex_all(self, batch_size=1000):
+        for index in self.indices:
+            index.reindex_all(batch_size)
+
+    def set_settings(self):
+        for index in self.indices:
+            index.set_settings()
+
+    def clear_index(self):
+        for index in self.indices:
+            index.clear_index()
+
+    def save_record(self, instance, update_fields=None, **kwargs):
+        for index in self.indices:
+            index.save_record(instance, update_fields, **kwargs)
+
+    def delete_record(self, instance):
+        for index in self.indices:
+            index.delete_record(instance)
+```
+
+- Finally, register this `AlgoliaIndex` with your `Model`:
+```python
+import algoliasearch_django as algoliasearch
+algoliasearch.register(MyModel, MyModelMetaIndex)
+```
+
 
 # Tests
 
