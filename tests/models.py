@@ -11,6 +11,10 @@ class User(models.Model):
     _lng = models.FloatField(default=0)
     _permissions = models.CharField(max_length=30, blank=True)
 
+    @property
+    def reverse_username(self):
+        return self.username[::-1]
+
     def location(self):
         return self._lat, self._lng
 
