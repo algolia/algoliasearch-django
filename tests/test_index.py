@@ -80,6 +80,14 @@ class IndexTestCase(TestCase):
         obj = index.get_raw_record(self.user)
         self.assertEqual(obj['objectID'], 'algolia')
 
+    def test_custom_objectID_property(self):
+        class UserIndex(AlgoliaIndex):
+            custom_objectID = 'reverse_username'
+
+        index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = index.get_raw_record(self.user)
+        self.assertEqual(obj['objectID'], 'ailogla')
+
     def test_invalid_custom_objectID(self):
         class UserIndex(AlgoliaIndex):
             custom_objectID = 'uid'

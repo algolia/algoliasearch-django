@@ -125,7 +125,7 @@ class AlgoliaIndex(object):
                                                             self.fields)))
 
         # Check custom_objectID
-        if self.custom_objectID in chain(['pk'], all_model_fields):
+        if self.custom_objectID in chain(['pk'], all_model_fields) or hasattr(model, self.custom_objectID):
             self.objectID = get_model_attr(self.custom_objectID)
         else:
             raise AlgoliaIndexError('{} is not a model field of {}'.format(
