@@ -50,6 +50,7 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
 
     * [Custom `objectID`](#custom-objectid)
     * [Custom index name](#custom-index-name)
+    * [Field Preprocessing and Related objects](#field-preprocessing-and-related-objects)
     * [Index settings](#index-settings)
     * [Restrict indexing to a subset of your data](#restrict-indexing-to-a-subset-of-your-data)
     * [Multiple indices per model](#multiple-indices-per-model)
@@ -217,6 +218,46 @@ You can customize the index name. By default, the index name will be the name of
 class ContactIndex(algoliaindex):
     index_name = 'Enterprise'
 ```
+
+## Field Preprocessing and Related objects
+
+If you want to process a field before indexing it (e.g. capitalizing a `Contact`'s `name`), or if you want to index a [related object](https://docs.djangoproject.com/en/1.11/ref/models/relations/)'s attribute, 
+you need to define **proxy methods** for these fields.
+
+### Models
+```python
+class Account(models.Model):
+    username = models.CharField(max_length=40)
+    service = models.CharField(max_length=40)
+
+class Contact(models.Model):
+    name = models.CharField(max_length=40)
+    email = models.EmailField(max_length=60)
+    //...
+    accounts = models.ManyToManyField(Account)
+
+    def account_names(self):
+        return [str(account) for account in self.accounts.all()]
+
+    def account_ids(self):
+        return [account.id for account in self.accounts.all()]
+```
+
+### Index
+```python
+from algoliasearch_django import AlgoliaIndex
+
+
+class ContactIndex(AlgoliaIndex):
+    fields = ('name', 'email', 'company', 'address', 'city', 'county',
+              'state', 'zip_code', 'phone', 'fax', 'web', 'followers', 'account_names', 'account_ids')
+
+    settings = {
+        'searchableAttributes': ['name', 'email', 'company', 'city', 'county', 'account_names',
+        }
+```
+- With this configuration, you can search for a `Contact` using its `Account` names
+- You can use the associated `account_ids` at search-time to fetch more data from your model (you should **only proxy the fields relevant for search** to keep your records' size as small as possible)
 
 ## Index settings
 
