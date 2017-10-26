@@ -72,6 +72,25 @@ class IndexTestCase(TestCase):
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         index.reindex_all()
 
+    def test_reindex_with_should_index_boolean(self):
+        Website.objects.create(
+            name='Algolia',
+            url='https://algolia.com',
+            is_online=True
+        )
+        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        class WebsiteIndex(AlgoliaIndex):
+            settings = {
+                'replicas': [
+                    index.index_name + '_name_asc',
+                    index.index_name + '_name_desc'
+                ]
+            }
+            should_index = 'is_online'
+
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+
     def test_custom_objectID(self):
         class UserIndex(AlgoliaIndex):
             custom_objectID = 'username'
@@ -382,3 +401,22 @@ class IndexTestCase(TestCase):
         index = ExampleIndex(Example, self.client, settings.ALGOLIA)
         with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index property is not boolean"):
             index._should_index(self.example)
+
+    def test_save_record_should_index_boolean(self):
+        website = Website.objects.create(
+            name='Algolia',
+            url='https://algolia.com',
+            is_online=True
+        )
+        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        class WebsiteIndex(AlgoliaIndex):
+            settings = {
+                'replicas': [
+                    index.index_name + '_name_asc',
+                    index.index_name + '_name_desc'
+                ]
+            }
+            should_index = 'is_online'
+
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.save_record(website)

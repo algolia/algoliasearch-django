@@ -25,6 +25,7 @@ class User(models.Model):
 class Website(models.Model):
     name = models.CharField(max_length=100)
     url = models.URLField()
+    is_online = models.BooleanField(default=False)
 
 
 class Example(models.Model):
