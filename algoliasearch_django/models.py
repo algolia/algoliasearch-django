@@ -278,13 +278,12 @@ class AlgoliaIndex(object):
         For more information about partial_update_object:
         https://github.com/algolia/algoliasearch-client-python#update-an-existing-object-in-the-index
         """
-        if self.should_index:
-            if not self.should_index(instance):
-                # Should not index, but since we don't now the state of the
-                # instance, we need to send a DELETE request to ensure that if
-                # the instance was previously indexed, it will be removed.
-                self.delete_record(instance)
-                return
+        if not self._should_index(instance):
+            # Should not index, but since we don't now the state of the
+            # instance, we need to send a DELETE request to ensure that if
+            # the instance was previously indexed, it will be removed.
+            self.delete_record(instance)
+            return
 
         try:
             if update_fields:
@@ -424,9 +423,8 @@ class AlgoliaIndex(object):
                 qs = self.model.objects.all()
 
             for instance in qs:
-                if self.should_index:
-                    if not self.should_index(instance):
-                        continue  # should not index
+                if not self._should_index(instance):
+                    continue  # should not index
 
                 batch.append(self.get_raw_record(instance))
                 if len(batch) >= batch_size:
