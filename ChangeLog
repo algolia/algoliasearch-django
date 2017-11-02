@@ -1,5 +1,8 @@
 
-HANGELOG
+CHANGELOG
+2017-11-02 1.5.1
+  * [FIX] Fix reindex_all() and save_record() when should_index is not callable
+
 2017-05-21 1.5.0
   * [FEAT] Allow properties as custom_objectID
 
