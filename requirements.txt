@@ -1,5 +1,7 @@
 django>=1.7
 algoliasearch
-tox
-wheel
+# dev dependencies
 pypandoc
+wheel
+tox
+twine
