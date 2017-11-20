@@ -437,3 +437,19 @@ class IndexTestCase(TestCase):
 
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         index.save_record(website)
+
+    def test_cyrillic(self):
+        class CyrillicIndex(AlgoliaIndex):
+            fields = ['bio', 'name']
+            settings = {
+                'searchableAttributes': ['name', 'bio'],
+            }
+            index_name = "test_cyrillic"
+
+        self.user.bio = "крупнейших"
+        self.user.save()
+        index = CyrillicIndex(User, self.client, settings.ALGOLIA)
+        index.wait_task(index.save_record(self.user)["taskID"])
+        result = index.raw_search("крупнейших")
+        self.assertEqual(result['nbHits'], 1, "Search should return one result")
+        self.assertEqual(result['hits'][0]['name'], 'Algolia', "The result should be self.user")

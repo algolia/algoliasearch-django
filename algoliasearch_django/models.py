@@ -288,11 +288,12 @@ class AlgoliaIndex(object):
             if update_fields:
                 obj = self.get_raw_record(instance,
                                           update_fields=update_fields)
-                self.__index.partial_update_object(obj)
+                result = self.__index.partial_update_object(obj)
             else:
                 obj = self.get_raw_record(instance)
-                self.__index.save_object(obj)
+                result = self.__index.save_object(obj)
             logger.info('SAVE %s FROM %s', obj['objectID'], self.model)
+            return result
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -384,6 +385,16 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('%s NOT CLEARED: %s', self.model, e)
+
+    def wait_task(self, task_id):
+        try:
+            self.__index.wait_task(task_id)
+            logger.info('WAIT TASK %s', self.index_name)
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('%s NOT WAIT: %s', self.model, e)
 
     def reindex_all(self, batch_size=1000):
         """
