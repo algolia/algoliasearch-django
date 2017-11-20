@@ -6,21 +6,34 @@ install:
 - pip install tox
 script:
 - tox
+matrix:
+    include:
+        - python: 2.7
+          env: TOXENV=py27-django17
+        - python: 2.7
+          env: TOXENV=py27-django18
+        - python: 2.7
+          env: TOXENV=py27-django19
+        - python: 3.3
+          env: TOXENV=py33-django17
+        - python: 3.3
+          env: TOXENV=py33-django18
+        - python: 3.4
+          env: TOXENV=py34-django17
+        - python: 3.4
+          env: TOXENV=py34-django18
+        - python: 3.4
+          env: TOXENV=py34-django19
+        - python: 3.5
+          env: TOXENV=py35-django18
+        - python: 3.5
+          env: TOXENV=py35-django19
+        - python: 3.6
+          env: TOXENV=py36-django18
+        - python: 3.6
+          env: TOXENV=py36-django19
+
 env:
-  matrix:
-  - TOXENV=py27-django17
-  - TOXENV=py27-django18
-  - TOXENV=py27-django19
-  - TOXENV=py33-django17
-  - TOXENV=py33-django18
-  - TOXENV=py34-django17
-  - TOXENV=py34-django18
-  - TOXENV=py34-django19
-  - TOXENV=py35-django18
-  - TOXENV=py35-django19
-  - TOXENV=py36-django18
-  - TOXENV=py36-django19
-  - TOXENV=coveralls
   global:
   - secure: upiNM5+0o3+OnDmkNUhIiytQwIvDsT/rYuC0yrE3cwQV/UgzYBn66YAO03aBBheL6jjqyzteqKnSAm/sNJ7wPkH4brebG6JPWOYMLa2EPdRRfA+Ztxz8ZwKDwQ8syzsdUiw8aHwcPNB0Uc2wO2cUbBKyq6SfVHGJXDVIsViZgnl8CO3KpvwYJ8gj1aj1GQh7aR7y7lsXuTlO9/uFO3AQS6iIJ5QbWPDtjuFdz31xZbW2nIVIv1pQ/OgKsGt0gyLZ1KzirXv9+5enyqQd3ZdVZVTp516Cyxah2bKFQ0shUVDPrLoHQ3iXKUynV1kEzCcqNa4Icu6JfOIyddB0F1NC6FPkUkhnBIrONrCjWBCbUJFHPBCGzmmtSGGXbcQ9zJXFiTmop2P5aWLyvGpavaH840mz/zRLBCpjACGuuB91+pUdvkTHufia1TUW+KN+YSyXyOPPo8a2HvQb3Hj9ehaxKM7yqdL+DeeCXqZDX6U2UGjrLwPEFMdSojm2c8kDBXN7tI/Gi+TiWsnbn9kBHYt9ZWZRdZ4gN95X8KPaoJu4YC9mxmsG83DEUlM+3otyymSqRqp3x8aEHIfw7+Myxvr2rcb4ul8pQ0ps0MGeZDTMa69FQejrS8CZfw5CUG5rwYLHBijE2+gW4r1HgHv2Yz0MPimAQJ98nTon8gsDmxAIsAk=
   - secure: eCgpcXJB4l9qBffkbbBY65666Pr0jkq0dKhhe5MVN46HYtmqTIfucYiMVwouySEQeILkPyb2W/l+lDFBWmbnwJe1/cGbu1ccukt4j7PGun9UpHxN7jnnww+3t7y9pY7VG9g2fC/A9Jxq7TTut4wGu9yqddWBxQczCqidr9POCXDLSPD+SfM2nc1+n2C2uM62pxHZwHIsyl2mWtaglpcQ53GGni4NDmmQw4izT0arOXH0Pc7mCjYK+8ucdtHq3yuhtP2q5nn9jeioJcGNqUMFnh+IAVr/Y5+oLPsqigGbG2sHVBWESKWo08joKRkTBtb8rvO7hmBERdaUumHCRsN2vUCcVTUbV32FaIp1AJbZ09WFpn1KObJyTF3DLa/PkaDWjZ4NqacbHb4Zq+PRbFLLI3UybBz2Cyw1M/8JgxCbAh6KivLaFeebI83aFQuRskIzPAaPEMMW2Si9v55fSfkJ6NESLOPY9h4VhI6qvZjJpXf8lgB1bnm8PkKsILXUL95kn0m2qljfkeH6+YaBfTZhRqWGkXOwtG8BNXl/F+cI5jqksoxZF4jpTDTVBWmExd+RXZFD3NFlA/tNCM9SDuuCfku2beMHOJpaySmBe59IR/H1PDzpLlfIMWavBtMhNajIsBNRCNtazDXKufDXDNEGElnZGY/R9lZHNraK18qU4Gg=
