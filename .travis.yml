@@ -7,34 +7,33 @@ install:
 script:
 - tox
 matrix:
-    include:
-        - python: 2.7
-          env: TOXENV=py27-django17
-        - python: 2.7
-          env: TOXENV=py27-django18
-        - python: 2.7
-          env: TOXENV=py27-django19
-        - python: 3.3
-          env: TOXENV=py33-django17
-        - python: 3.3
-          env: TOXENV=py33-django18
-        - python: 3.4
-          env: TOXENV=py34-django17
-        - python: 3.4
-          env: TOXENV=py34-django18
-        - python: 3.4
-          env: TOXENV=py34-django19
-        - python: 3.5
-          env: TOXENV=py35-django18
-        - python: 3.5
-          env: TOXENV=py35-django19
-        - python: 3.6
-          env: TOXENV=py36-django18
-        - python: 3.6
-          env: TOXENV=py36-django19
-
+  include:
+  - python: 2.7
+    env: TOXENV=py27-django17
+  - python: 2.7
+    env: TOXENV=py27-django18
+  - python: 2.7
+    env: TOXENV=py27-django19
+  - python: 3.3
+    env: TOXENV=py33-django17
+  - python: 3.3
+    env: TOXENV=py33-django18
+  - python: 3.4
+    env: TOXENV=py34-django17
+  - python: 3.4
+    env: TOXENV=py34-django18
+  - python: 3.4
+    env: TOXENV=py34-django19
+  - python: 3.5
+    env: TOXENV=py35-django18
+  - python: 3.5
+    env: TOXENV=py35-django19
+  - python: 3.6
+    env: TOXENV=py36-django18
+  - python: 3.6
+    env: TOXENV=py36-django19
 env:
   global:
-  - secure: upiNM5+0o3+OnDmkNUhIiytQwIvDsT/rYuC0yrE3cwQV/UgzYBn66YAO03aBBheL6jjqyzteqKnSAm/sNJ7wPkH4brebG6JPWOYMLa2EPdRRfA+Ztxz8ZwKDwQ8syzsdUiw8aHwcPNB0Uc2wO2cUbBKyq6SfVHGJXDVIsViZgnl8CO3KpvwYJ8gj1aj1GQh7aR7y7lsXuTlO9/uFO3AQS6iIJ5QbWPDtjuFdz31xZbW2nIVIv1pQ/OgKsGt0gyLZ1KzirXv9+5enyqQd3ZdVZVTp516Cyxah2bKFQ0shUVDPrLoHQ3iXKUynV1kEzCcqNa4Icu6JfOIyddB0F1NC6FPkUkhnBIrONrCjWBCbUJFHPBCGzmmtSGGXbcQ9zJXFiTmop2P5aWLyvGpavaH840mz/zRLBCpjACGuuB91+pUdvkTHufia1TUW+KN+YSyXyOPPo8a2HvQb3Hj9ehaxKM7yqdL+DeeCXqZDX6U2UGjrLwPEFMdSojm2c8kDBXN7tI/Gi+TiWsnbn9kBHYt9ZWZRdZ4gN95X8KPaoJu4YC9mxmsG83DEUlM+3otyymSqRqp3x8aEHIfw7+Myxvr2rcb4ul8pQ0ps0MGeZDTMa69FQejrS8CZfw5CUG5rwYLHBijE2+gW4r1HgHv2Yz0MPimAQJ98nTon8gsDmxAIsAk=
-  - secure: eCgpcXJB4l9qBffkbbBY65666Pr0jkq0dKhhe5MVN46HYtmqTIfucYiMVwouySEQeILkPyb2W/l+lDFBWmbnwJe1/cGbu1ccukt4j7PGun9UpHxN7jnnww+3t7y9pY7VG9g2fC/A9Jxq7TTut4wGu9yqddWBxQczCqidr9POCXDLSPD+SfM2nc1+n2C2uM62pxHZwHIsyl2mWtaglpcQ53GGni4NDmmQw4izT0arOXH0Pc7mCjYK+8ucdtHq3yuhtP2q5nn9jeioJcGNqUMFnh+IAVr/Y5+oLPsqigGbG2sHVBWESKWo08joKRkTBtb8rvO7hmBERdaUumHCRsN2vUCcVTUbV32FaIp1AJbZ09WFpn1KObJyTF3DLa/PkaDWjZ4NqacbHb4Zq+PRbFLLI3UybBz2Cyw1M/8JgxCbAh6KivLaFeebI83aFQuRskIzPAaPEMMW2Si9v55fSfkJ6NESLOPY9h4VhI6qvZjJpXf8lgB1bnm8PkKsILXUL95kn0m2qljfkeH6+YaBfTZhRqWGkXOwtG8BNXl/F+cI5jqksoxZF4jpTDTVBWmExd+RXZFD3NFlA/tNCM9SDuuCfku2beMHOJpaySmBe59IR/H1PDzpLlfIMWavBtMhNajIsBNRCNtazDXKufDXDNEGElnZGY/R9lZHNraK18qU4Gg=
-  - secure: JMIuIU3hSpPH6kX8YcDaRwo7JE4kPBL7mEvNvvCIrk+4wpzdz+v9SQwEt74nsf3keoDBvg9AEg9J7DKhr/OCGTG+clKrrJPN2eY+zrYJLGuBJjvCTkC5VmhWvAFAnzTJ8hIhRCPkCKQ83O3Elhp9fh/yWyiRvp8+TRS17vyvSdF6DjC2ql+AMC0su+gKaKNsdxwE6LYU51B97TSQhwmCX4PTeoK3vjEnLJL5TZdXpkOm2Z199gu8UWAALoLhwSWcfuqLDjMyEPQFri2FpkEYQjKoXI5CCVl6IEiO2irrZApalH0UT39qo/N5AVp5Oom+hj1tize6VET1XHKsjBRKlEZaxFmSelxRoaTxdZ/blJKAmQvvsG/S5AMHcEh9UON0TZQyfdbUjSDAyM4mJZVoRsWswi4A6+6rC7/vqzX/HBEJiStukz8uPf1I1LXRrO1MvxkDus1WIfF1gumagVdNFUM6yX2rH/DxznD5WDdAOk3FFsry4vDxYpAW+mgJW2I9dz1vnVdcmU9ijRmBQdJ76/XiG02wjYJX6DivQvus8IKRtW828g/40XZD3bDcUa3kJ5bMXL6/HAlE42YKNTeqTHXaH5sLUe3Wa9SuwYDImfHwP1w6iPFag0Biu/whqEWGwgrAXOPravxrTsELpcKyqU5DTD3xh23/tl6XFWNUM7w=
+  - secure: BvefwB7dAyxeVeIwaDoklOwE04DkuP4xqj18awneFYJdln2qWUB/AcchVGrp6Toi1XnL+4e/CkSRbj/XLr3FBceARknfgzT3zp7BQyJLREAXFXV75dcCtcN9Jxh4IMpNlLTcZcB8OvU+edrRulmsOR0hXIie8rLg3pt+2LfGxhVzaUBq6F9vv+Db7tdZ+DNnciA+geJQZ+ThtxxUzVcNqCgTvQSrPYMGx07ScEG6MuEakHopEVuTE3n7hiOZW/17sS4uBfj+JwL3RX1gg/lnobbicYxBJ+WzuIP2cpVGLDJDwnclqlAezPMEG0AymeOrM9/5fYRkyawOyeaJZFmcd4cqnKurG/lDmidABzB3LXYWnAYVMOsQ5R9JqRRa+AVHt8u1wJZu4VXMoI7AtLHaMCVBO0iAGkH7dD41oy/aMzN63bIp+ANo7seIouxRfCX62H5+1unUbYYExsKvUhwb7uSLLq67QcbkudklIpb/xsNkueqFgJ9APBH3/K7MYjRjPrCA8pjOgnWXyzJRty+fZctrJZTbWg9ubky7t/48enDmFzDOgMjnEtkKAXYO7lHDEsA2HceLtYx08VI9Hfry579AhdqZSRaXZejSN8ZUIOHJLXT+2Md35IuySTpqkQiEjDYWwhLooEFvrirVB+3YCw6Sw6kAoT7P5FS2hOOZtKw=
+  - secure: vgk2Q/0DDr/kPe/WnCj12/RLwHwU0nfy5SodTHdcZIG9o3nQ+1mgzR4+SMID3eAUm5qBiH34S5NKSivVCM4pcgjugtFdAWX88v3QZF3ZEdE7Y9E3PjWlQB6O11J50O3UBfMBhuKEmgqisazhGcE7PhD1EcoRKjOGn8rAoqLBYU0pSc/LNeHELd2N03j4/2z1ZwOKW+X2zptynvHiwdvj5N9a/xdmI4SHS1kyS6mTUbdMa3lIO5j3JJx8b/9CNBjpHbnbd72bILzy5xuBnDeoGHlF0f7QOloPlSwb1ktiS1tdgmBs4cinqGinomGm1pPzkF+OLnUfEt7boU6NBlla/fOdtjvMOl4zJQwQIZhZKzirNZBFwZXVVvccAuHOHGBzgGAmJb1t0k+aliaTV2f5KwOIGT159gj9bWSGX29Qw4gkc7Dpjs8RXaHhwx4UUBvokD7yrI5FCdk6GdAAMz46Cuy3Cha9EGBo6GnzYBxNehnC0EICjOI6iAbez4aQ9a+S/hlsjUvusqM20Gt8NKxtDfMOYDZO2ddH4CjfdAUQ2o9+FNQHrbw4TItRaa+cCjHpuHfbGhMcnzLV9ug0pK+38tFYlwpicoWmTfSU5hNlA3+/qeg/02vvuYu8rGSXJ9loAyGD+WgMYPbLOpEEKzdVFOqN1i6VmfGuKMGRyRcneoA=
+  - secure: TwXsNlHF2X0CaeWV2jJ+Htx1X/y8ZPwMzRcyqMyxZMwl3qCy9nK8sXNZWx9fmi11xjCNrnlaqnOCoACalih3OpPd89jvLfS0iyLwp6YZsD8z4qA9CP5QcVPBbovauD6atJ5ipFDY9qI8sK4R6Q+3gJgc1gjSG9jZubiJHAJMAFr8YTZgc0QUD5rJpkLziRV1jI/z3YIUiAEZ/YNEFGK+XjMEa68cuEu7+nlBBQNQM6enIBfY+W85AG7WKgqDm08H3QNb1y6Gyje3GA+I/zIVZaac22XkKwe3Kc9WxS2rgmXz4O8Z/tCGkbhhBgi//sRbn52Juw46ECZMBcXd2hxOj6/8mnl6Gw33mkAHzaizfsHIkzwk3t+ENNwdGYTxWX8b9gRbcIUNS3JzVsSmkwoEmbQVVkRsA34D7JmRvqx1KVZBEqJYZ1CVki6fRMCyhbF43v0uC9IziQDVv27X/LYNEtfgkIiis33cUu/5V8g4f6U+Ezp/AodcwNQj+CihOYC2kB98NgYlOUh+FIZWOHygXXVTgE914V6GwyyBOd5ScNmJMeb9WGpai78LrTNbYU2ShB/1tuVuT6ce14TcxxuH335rUl2griFJcapvZRRC7qT3vGDbJ8PzS6UFxZoaKx1qvXc0s/3lKUfBUoPOVGPqGT5NHXjJRtrvj5nZZdVLxF4=
