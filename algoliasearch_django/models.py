@@ -80,10 +80,7 @@ class AlgoliaIndex(object):
         self.__named_fields = {}
         self.__translate_fields = {}
 
-        try:
-            all_model_fields = model._meta.get_all_field_names()
-        except AttributeError:  # get_all_field_names is removed in Django >= 1.10
-            all_model_fields = [f.name for f in model._meta.get_fields()]
+        all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
 
         if isinstance(self.fields, str):
             self.fields = (self.fields,)

@@ -46,6 +46,11 @@ class IndexTestCase(TestCase):
         except AttributeError:
             self.assertRegexpMatches(index.index_name, regex)
 
+    def test_index_model_with_foreign_key_reference(self):
+        index = AlgoliaIndex(User, self.client, settings.ALGOLIA)
+        index.reindex_all()
+        self.assertFalse("blogpost" in index.fields)
+
     def test_index_name_settings(self):
         algolia_settings = dict(settings.ALGOLIA)
         del algolia_settings['INDEX_PREFIX']
