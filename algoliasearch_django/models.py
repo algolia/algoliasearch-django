@@ -217,10 +217,9 @@ class AlgoliaIndex(object):
 
             if self.tags:
                 if callable(self.tags):
-                    self.tags = self.tags(instance)
-                if not isinstance(self.tags, list):
-                    self.tags = list(self.tags)
-                tmp['_tags'] = self.tags
+                    tmp['_tags'] = self.tags(instance)
+                if not isinstance(tmp['_tags'], list):
+                    tmp['_tags'] = list(tmp['_tags'])
 
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp

@@ -15,6 +15,18 @@ class IndexTestCase(TestCase):
                          bio='Milliseconds matter', followers_count=42001,
                          following_count=42, _lat=123, _lng=-42.24,
                          _permissions='read,write,admin')
+
+        self.contributor = User(
+            name='Contributor',
+            username="contributor",
+            bio='Contributions matter',
+            followers_count=7,
+            following_count=5,
+            _lat=52.0705,
+            _lng=-4.3007,
+            _permissions='contribute,follow'
+        )
+
         self.example = Example(uid=4,
                                name='SuperK',
                                address='Finland',
@@ -163,8 +175,13 @@ class IndexTestCase(TestCase):
             tags = 'permissions'
 
         index = UserIndex(User, self.client, settings.ALGOLIA)
+
+        # Test the users' tag individually
         obj = index.get_raw_record(self.user)
         self.assertListEqual(obj['_tags'], ['read', 'write', 'admin'])
+
+        obj = index.get_raw_record(self.contributor)
+        self.assertListEqual(obj['_tags'], ['contribute', 'follow'])
 
     def test_invalid_tags(self):
         class UserIndex(AlgoliaIndex):
