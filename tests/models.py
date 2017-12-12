@@ -67,3 +67,8 @@ class Example(models.Model):
     @property
     def property_string(self):
         return "foo"
+
+
+class BlogPost(models.Model):
+    author = models.ForeignKey(User)
+    text = models.TextField(default="")
