@@ -1,5 +1,8 @@
 
 CHANGELOG
+2017-11-02 1.5.2
+  * [FIX] Remove relations from indexed model fields (#233)
+
 2017-11-02 1.5.1
   * [FIX] Fix reindex_all() and save_record() when should_index is not callable
 
