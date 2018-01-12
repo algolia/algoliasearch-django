@@ -360,6 +360,18 @@ class AlgoliaIndex(object):
             else:
                 logger.warning('ERROR DURING SEARCH: %s', e)
 
+    def get_settings(self):
+        """Returns the settings of the index."""
+        try:
+            logger.info('GET SETTINGS ON %s', self.index_name)
+            return self.__index.get_settings()
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('ERROR DURING GET_SETTINGS ON %s: %s',
+                               self.model, e)
+
     def set_settings(self):
         """Applies the settings to the index."""
         if not self.settings:
@@ -404,6 +416,15 @@ class AlgoliaIndex(object):
         a method `get_queryset` in your subclass. This can be used to optimize
         the performance (for example with select_related or prefetch_related).
         """
+        try:
+            if not self.settings:
+                self.settings = self.get_settings()
+                logger.debug('Got settings for index %s: %s', self.index_name, self.settings)
+        except AlgoliaException as e:
+            if "Index does not exist" in e.message:
+                pass  # Expected, let's clear and recreate from scratch
+            else:
+                raise e  # Unexpected error while getting settings
         try:
             if self.settings:
                 replicas = self.settings.get('replicas', None)
