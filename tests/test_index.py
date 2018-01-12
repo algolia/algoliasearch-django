@@ -80,6 +80,7 @@ class IndexTestCase(TestCase):
 
     def test_reindex_with_replicas(self):
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
@@ -456,6 +457,7 @@ class IndexTestCase(TestCase):
             is_online=True
         )
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [

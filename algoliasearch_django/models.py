@@ -82,7 +82,7 @@ class AlgoliaIndex(object):
 
         try:
             all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
-        except AttributeError: # get_fields requires Django >= 1.8
+        except AttributeError:  # get_fields requires Django >= 1.8
             all_model_fields = [f.name for f in model._meta.local_fields]
 
         if isinstance(self.fields, str):
@@ -358,7 +358,7 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('ERROR DURING SEARCH: %s', e)
+                logger.warning('ERROR DURING SEARCH ON %s: %s', self.index_name, e)
 
     def get_settings(self):
         """Returns the settings of the index."""
