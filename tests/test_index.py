@@ -1,4 +1,5 @@
 # coding=utf-8
+import time
 from django.conf import settings
 from django.test import TestCase
 
@@ -79,6 +80,7 @@ class IndexTestCase(TestCase):
 
     def test_reindex_with_replicas(self):
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
@@ -97,6 +99,7 @@ class IndexTestCase(TestCase):
             is_online=True
         )
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
@@ -108,6 +111,28 @@ class IndexTestCase(TestCase):
 
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         index.reindex_all()
+
+    def test_reindex_no_settings(self):
+        self.maxDiff = None
+
+        class WebsiteIndex(AlgoliaIndex):
+            foo = {}
+
+        # Given an existing index with settings
+        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        index.settings = {'hitsPerPage': 42}
+        index.reindex_all()
+        time.sleep(10)  # FIXME: Refactor reindex_all to use waitTask
+        index_settings = index.get_settings()
+
+        # When reindexing with no current settings
+        index.settings = None
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+
+        # Expect the settings to be kept across reindex
+        self.assertEqual(index.get_settings(), index_settings,
+                         "An index whose model has no settings should keep its settings after reindex")
 
     def test_custom_objectID(self):
         class UserIndex(AlgoliaIndex):
@@ -432,6 +457,7 @@ class IndexTestCase(TestCase):
             is_online=True
         )
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [

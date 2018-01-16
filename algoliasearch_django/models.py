@@ -82,7 +82,7 @@ class AlgoliaIndex(object):
 
         try:
             all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
-        except AttributeError: # get_fields requires Django >= 1.8
+        except AttributeError:  # get_fields requires Django >= 1.8
             all_model_fields = [f.name for f in model._meta.local_fields]
 
         if isinstance(self.fields, str):
@@ -358,7 +358,19 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('ERROR DURING SEARCH: %s', e)
+                logger.warning('ERROR DURING SEARCH ON %s: %s', self.index_name, e)
+
+    def get_settings(self):
+        """Returns the settings of the index."""
+        try:
+            logger.info('GET SETTINGS ON %s', self.index_name)
+            return self.__index.get_settings()
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('ERROR DURING GET_SETTINGS ON %s: %s',
+                               self.model, e)
 
     def set_settings(self):
         """Applies the settings to the index."""
@@ -404,6 +416,15 @@ class AlgoliaIndex(object):
         a method `get_queryset` in your subclass. This can be used to optimize
         the performance (for example with select_related or prefetch_related).
         """
+        try:
+            if not self.settings:
+                self.settings = self.get_settings()
+                logger.debug('Got settings for index %s: %s', self.index_name, self.settings)
+        except AlgoliaException as e:
+            if any("Index does not exist" in arg for arg in e.args):
+                pass  # Expected, let's clear and recreate from scratch
+            else:
+                raise e  # Unexpected error while getting settings
         try:
             if self.settings:
                 replicas = self.settings.get('replicas', None)
