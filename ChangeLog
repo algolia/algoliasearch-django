@@ -1,5 +1,8 @@
 
 CHANGELOG
+2018-01-16 1.5.3
+  * [FIX] Fix reindex_all deleting settings (#239)
+
 2017-11-02 1.5.2
   * [FIX] Remove relations from indexed model fields (#233)
 
