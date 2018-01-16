@@ -421,7 +421,7 @@ class AlgoliaIndex(object):
                 self.settings = self.get_settings()
                 logger.debug('Got settings for index %s: %s', self.index_name, self.settings)
         except AlgoliaException as e:
-            if "Index does not exist" in e.message:
+            if any("Index does not exist" in arg for arg in e.args):
                 pass  # Expected, let's clear and recreate from scratch
             else:
                 raise e  # Unexpected error while getting settings
