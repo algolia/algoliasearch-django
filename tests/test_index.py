@@ -41,6 +41,7 @@ class IndexTestCase(TestCase):
             {'lat': 22.3, 'lng': 10.0},
         ]
 
+
     def test_default_index_name(self):
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
         regex = r'^test_Website_django(_travis-\d+.\d+)?$'
@@ -115,24 +116,64 @@ class IndexTestCase(TestCase):
     def test_reindex_no_settings(self):
         self.maxDiff = None
 
+        # Given an existing index defined without settings
         class WebsiteIndex(AlgoliaIndex):
-            foo = {}
+            pass
 
-        # Given an existing index with settings
-        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
-        index.settings = {'hitsPerPage': 42}
-        index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to use waitTask
-        index_settings = index.get_settings()
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
 
-        # When reindexing with no current settings
-        index.settings = None
+        # Given some existing settings on the index
+        existing_settings = self.apply_some_settings(index)
+
+        # When reindexing with no settings on the instance
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         index.reindex_all()
+        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
-        # Expect the settings to be kept across reindex
-        self.assertEqual(index.get_settings(), index_settings,
+        # Expect the former settings to be kept across reindex
+        self.assertEqual(index.get_settings(), existing_settings,
                          "An index whose model has no settings should keep its settings after reindex")
+
+    def test_reindex_with_settings(self):
+        self.maxDiff = None
+
+        # Given an existing index defined with settings
+        class WebsiteIndex(AlgoliaIndex):
+            settings = {
+                'hitsPerPage': 1
+            }
+
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+
+        # Given some existing settings on the index
+        existing_settings = self.apply_some_settings(index)
+
+        # When reindexing with no settings on the instance
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+
+        # Expect the settings to be reset to model definition over reindex
+        existing_settings['hitsPerPage'] = 1
+        self.assertEqual(index.get_settings(), existing_settings)
+
+    def apply_some_settings(self, index):
+        """
+        Applies a sample setting to the index.
+
+        :param index: an AlgoliaIndex that will be updated
+        :return: the new settings
+        """
+        # When reindexing with settings on the instance
+        index.settings = {'hitsPerPage': 42}
+        index.reindex_all()
+        index.settings = None
+        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+        index_settings = index.get_settings()
+        # Expect the instance's settings to be applied at reindex
+        self.assertEqual(index_settings['hitsPerPage'], 42,
+                         "An index whose model has settings should apply those at reindex")
+        return index_settings
 
     def test_custom_objectID(self):
         class UserIndex(AlgoliaIndex):
