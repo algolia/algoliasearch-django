@@ -59,7 +59,7 @@ class AlgoliaIndex(object):
     index_name = None
 
     # Use to specify the settings of the index.
-    settings = {}
+    settings = None
 
     # Used to specify if the instance should be indexed.
     # The attribute should be either:
@@ -79,6 +79,9 @@ class AlgoliaIndex(object):
         self.__client = client
         self.__named_fields = {}
         self.__translate_fields = {}
+
+        if self.settings is None:  # Only set settings if the actual index class does not define some
+            self.settings = {}
 
         try:
             all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
