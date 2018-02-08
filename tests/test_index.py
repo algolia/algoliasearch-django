@@ -135,14 +135,34 @@ class IndexTestCase(TestCase):
 
     def test_reindex_with_settings(self):
         self.maxDiff = None
+        index_settings = {'searchableAttributes': ['name', 'email', 'company', 'city', 'county', 'account_names',
+                                                   'unordered(address)', 'state', 'zip_code', 'phone', 'fax',
+                                                   'unordered(web)'], 'attributesForFaceting': ['city', 'company'],
+                          'customRanking': ['desc(followers)'],
+                          'queryType': 'prefixAll',
+                          'highlightPreTag': '<mark>',
+                          'ranking': [
+                              'asc(name)',
+                              'typo',
+                              'geo',
+                              'words',
+                              'filters',
+                              'proximity',
+                              'attribute',
+                              'exact',
+                              'custom'
+                          ],
+                          'replicas': ['WebsiteIndexReplica_name_asc', 'WebsiteIndexReplica_name_desc'],
+                          'highlightPostTag': '</mark>', 'hitsPerPage': 15}
 
         # Given an existing index defined with settings
         class WebsiteIndex(AlgoliaIndex):
-            settings = {
-                'hitsPerPage': 1
-            }
+            settings = index_settings
 
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+
+        # Given some existing query rules on the index
+        # index.__index.save_rule()  # TODO: Check query rules are kept
 
         # Given some existing settings on the index
         existing_settings = self.apply_some_settings(index)
@@ -153,8 +173,9 @@ class IndexTestCase(TestCase):
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the settings to be reset to model definition over reindex
-        existing_settings['hitsPerPage'] = 1
-        self.assertEqual(index.get_settings(), existing_settings)
+        former_settings = existing_settings
+        former_settings["hitsPerPage"] = 15
+        self.assertDictEqual(index.get_settings(), former_settings)
 
     def apply_some_settings(self, index):
         """
