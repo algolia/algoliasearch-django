@@ -41,7 +41,6 @@ class IndexTestCase(TestCase):
             {'lat': 22.3, 'lng': 10.0},
         ]
 
-
     def test_default_index_name(self):
         index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
         regex = r'^test_Website_django(_travis-\d+.\d+)?$'
@@ -165,9 +164,10 @@ class IndexTestCase(TestCase):
         :return: the new settings
         """
         # When reindexing with settings on the instance
-        index.settings = {'hitsPerPage': 42}
+        old_hpp = index.settings['hitsPerPage'] if 'hitsPerPage' in index.settings else None
+        index.settings['hitsPerPage'] = 42
         index.reindex_all()
-        index.settings = None
+        index.settings['hitsPerPage'] = old_hpp
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
         index_settings = index.get_settings()
         # Expect the instance's settings to be applied at reindex
