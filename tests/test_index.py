@@ -177,6 +177,63 @@ class IndexTestCase(TestCase):
         former_settings["hitsPerPage"] = 15
         self.assertDictEqual(index.get_settings(), former_settings)
 
+    def test_reindex_with_rules(self):
+        # Given an existing index defined with settings
+        class WebsiteIndex(AlgoliaIndex):
+            settings = {'hitsPerPage': 42}
+
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        underlying_index = index._AlgoliaIndex__index
+
+        # Given some existing query rules on the index
+        rule = {
+            'objectID': 'my-rule',
+            'condition': {
+                'pattern': 'some text',
+                'anchoring': 'is'
+            },
+            'consequence': {
+                'params': {
+                    'query': 'other text'
+                }
+            }
+        }
+        res = underlying_index.save_rule(rule)
+        index.wait_task(res['taskID'])
+
+        # When reindexing with no settings on the instance
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+
+        # Expect the rules to be kept across reindex
+        rules = [r for r in underlying_index.iter_rules()]
+        self.assertEqual(len(rules), 1, "There should only be one rule")
+        self.assertIn(rule, rules, "The existing rule should be kept over reindex")
+
+    def test_reindex_with_synonyms(self):
+        # Given an existing index defined with settings
+        class WebsiteIndex(AlgoliaIndex):
+            settings = {'hitsPerPage': 42}
+
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        underlying_index = index._AlgoliaIndex__index
+
+        # Given some existing synonyms on the index
+        synonym = {'objectID': 'street', 'type': 'altCorrection1', 'word': 'Street', 'corrections': ['St']}
+        task = underlying_index.batch_synonyms([synonym])
+        underlying_index.wait_task(task['taskID'])
+
+        # When reindexing with no settings on the instance
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+
+        # Expect the synonyms to be kept across reindex
+        synonyms = [s for s in underlying_index.iter_synonyms()]
+        self.assertEqual(len(synonyms), 1, "There should only be one synonym")
+        self.assertIn(synonym, synonyms, "The existing synonym should be kept over reindex")
+
     def apply_some_settings(self, index):
         """
         Applies a sample setting to the index.
