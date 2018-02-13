@@ -41,29 +41,33 @@ class IndexTestCase(TestCase):
             {'lat': 22.3, 'lng': 10.0},
         ]
 
+    def tearDown(self):
+        if hasattr(self, 'index') and hasattr(self.index, 'index_name'):
+            self.client.delete_index(self.index.index_name)
+
     def test_default_index_name(self):
-        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
         regex = r'^test_Website_django(_travis-\d+.\d+)?$'
         try:
-            self.assertRegex(index.index_name, regex)
+            self.assertRegex(self.index.index_name, regex)
         except AttributeError:
-            self.assertRegexpMatches(index.index_name, regex)
+            self.assertRegexpMatches(self.index.index_name, regex)
 
     def test_custom_index_name(self):
         class WebsiteIndex(AlgoliaIndex):
             index_name = 'customName'
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         regex = r'^test_customName_django(_travis-\d+.\d+)?$'
         try:
-            self.assertRegex(index.index_name, regex)
+            self.assertRegex(self.index.index_name, regex)
         except AttributeError:
-            self.assertRegexpMatches(index.index_name, regex)
+            self.assertRegexpMatches(self.index.index_name, regex)
 
     def test_index_model_with_foreign_key_reference(self):
-        index = AlgoliaIndex(User, self.client, settings.ALGOLIA)
-        index.reindex_all()
-        self.assertFalse("blogpost" in index.fields)
+        self.index = AlgoliaIndex(User, self.client, settings.ALGOLIA)
+        self.index.reindex_all()
+        self.assertFalse("blogpost" in self.index.fields)
 
     def test_index_name_settings(self):
         algolia_settings = dict(settings.ALGOLIA)
@@ -71,26 +75,26 @@ class IndexTestCase(TestCase):
         del algolia_settings['INDEX_SUFFIX']
 
         with self.settings(ALGOLIA=algolia_settings):
-            index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
             regex = r'^Website$'
             try:
-                self.assertRegex(index.index_name, regex)
+                self.assertRegex(self.index.index_name, regex)
             except AttributeError:
-                self.assertRegexpMatches(index.index_name, regex)
+                self.assertRegexpMatches(self.index.index_name, regex)
 
     def test_reindex_with_replicas(self):
-        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
-                    index.index_name + '_name_asc',
-                    index.index_name + '_name_desc'
+                    self.index.index_name + '_name_asc',
+                    self.index.index_name + '_name_desc'
                 ]
             }
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        index.reindex_all()
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index.reindex_all()
 
     def test_reindex_with_should_index_boolean(self):
         Website.objects.create(
@@ -98,19 +102,19 @@ class IndexTestCase(TestCase):
             url='https://algolia.com',
             is_online=True
         )
-        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
-                    index.index_name + '_name_asc',
-                    index.index_name + '_name_desc'
+                    self.index.index_name + '_name_asc',
+                    self.index.index_name + '_name_desc'
                 ]
             }
             should_index = 'is_online'
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        index.reindex_all()
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index.reindex_all()
 
     def test_reindex_no_settings(self):
         self.maxDiff = None
@@ -119,18 +123,18 @@ class IndexTestCase(TestCase):
         class WebsiteIndex(AlgoliaIndex):
             pass
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
 
         # Given some existing settings on the index
-        existing_settings = self.apply_some_settings(index)
+        existing_settings = self.apply_some_settings(self.index)
 
         # When reindexing with no settings on the instance
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        index.reindex_all()
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index.reindex_all()
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the former settings to be kept across reindex
-        self.assertEqual(index.get_settings(), existing_settings,
+        self.assertEqual(self.index.get_settings(), existing_settings,
                          "An index whose model has no settings should keep its settings after reindex")
 
     def test_reindex_with_settings(self):
@@ -159,31 +163,31 @@ class IndexTestCase(TestCase):
         class WebsiteIndex(AlgoliaIndex):
             settings = index_settings
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
 
         # Given some existing query rules on the index
         # index.__index.save_rule()  # TODO: Check query rules are kept
 
         # Given some existing settings on the index
-        existing_settings = self.apply_some_settings(index)
+        existing_settings = self.apply_some_settings(self.index)
 
         # When reindexing with no settings on the instance
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        index.reindex_all()
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index.reindex_all()
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the settings to be reset to model definition over reindex
         former_settings = existing_settings
         former_settings["hitsPerPage"] = 15
-        self.assertDictEqual(index.get_settings(), former_settings)
+        self.assertDictEqual(self.index.get_settings(), former_settings)
 
     def test_reindex_with_rules(self):
         # Given an existing index defined with settings
         class WebsiteIndex(AlgoliaIndex):
             settings = {'hitsPerPage': 42}
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        underlying_index = index._AlgoliaIndex__index
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        underlying_index = self.index._AlgoliaIndex__index
 
         # Given some existing query rules on the index
         rule = {
@@ -199,11 +203,11 @@ class IndexTestCase(TestCase):
             }
         }
         res = underlying_index.save_rule(rule)
-        index.wait_task(res['taskID'])
+        self.index.wait_task(res['taskID'])
 
         # When reindexing with no settings on the instance
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        index.reindex_all()
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index.reindex_all()
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the rules to be kept across reindex
@@ -216,8 +220,8 @@ class IndexTestCase(TestCase):
         class WebsiteIndex(AlgoliaIndex):
             settings = {'hitsPerPage': 42}
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        underlying_index = index._AlgoliaIndex__index
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        underlying_index = self.index._AlgoliaIndex__index
 
         # Given some existing synonyms on the index
         synonym = {'objectID': 'street', 'type': 'altCorrection1', 'word': 'Street', 'corrections': ['St']}
@@ -225,8 +229,8 @@ class IndexTestCase(TestCase):
         underlying_index.wait_task(task['taskID'])
 
         # When reindexing with no settings on the instance
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        index.reindex_all()
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index.reindex_all()
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the synonyms to be kept across reindex
@@ -257,16 +261,16 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             custom_objectID = 'username'
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user)
         self.assertEqual(obj['objectID'], 'algolia')
 
     def test_custom_objectID_property(self):
         class UserIndex(AlgoliaIndex):
             custom_objectID = 'reverse_username'
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user)
         self.assertEqual(obj['objectID'], 'ailogla')
 
     def test_invalid_custom_objectID(self):
@@ -280,16 +284,16 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             geo_field = 'location'
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user)
         self.assertEqual(obj['_geoloc'], {'lat': 123, 'lng': -42.24})
 
     def test_several_geo_fields(self):
         class ExampleIndex(AlgoliaIndex):
             geo_field = 'geolocations'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.example)
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.example)
         self.assertEqual(obj['_geoloc'], [
             {'lat': 10.3, 'lng': -20.0},
             {'lat': 22.3, 'lng': 10.0},
@@ -300,8 +304,8 @@ class IndexTestCase(TestCase):
             geo_field = 'geolocations'
 
         self.example.locations = {'lat': 10.3, 'lng': -20.0}
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.example)
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.example)
         self.assertEqual(obj['_geoloc'], {'lat': 10.3, 'lng': -20.0})
 
     def test_none_geo_fields(self):
@@ -309,8 +313,8 @@ class IndexTestCase(TestCase):
             geo_field = 'location'
 
         Example.location = lambda x: None
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.example)
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.example)
         self.assertIsNone(obj.get('_geoloc'))
 
     def test_invalid_geo_fields(self):
@@ -324,13 +328,13 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             tags = 'permissions'
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
 
         # Test the users' tag individually
-        obj = index.get_raw_record(self.user)
+        obj = self.index.get_raw_record(self.user)
         self.assertListEqual(obj['_tags'], ['read', 'write', 'admin'])
 
-        obj = index.get_raw_record(self.contributor)
+        obj = self.index.get_raw_record(self.contributor)
         self.assertListEqual(obj['_tags'], ['contribute', 'follow'])
 
     def test_invalid_tags(self):
@@ -344,8 +348,8 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             fields = 'name'
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user)
         self.assertIn('name', obj)
         self.assertNotIn('username', obj)
         self.assertNotIn('bio', obj)
@@ -364,8 +368,8 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             fields = ('name', 'username', 'bio')
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user)
         self.assertIn('name', obj)
         self.assertIn('username', obj)
         self.assertIn('bio', obj)
@@ -385,8 +389,8 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             fields = ('name', ('username', 'login'), 'bio')
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user)
         self.assertIn('name', obj)
         self.assertNotIn('username', obj)
         self.assertIn('login', obj)
@@ -407,8 +411,8 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             fields = ('name', ['username', 'login'], 'bio')
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user)
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user)
         self.assertIn('name', obj)
         self.assertNotIn('username', obj)
         self.assertIn('login', obj)
@@ -450,9 +454,9 @@ class IndexTestCase(TestCase):
         class UserIndex(AlgoliaIndex):
             fields = ('name', 'username', ['bio', 'description'])
 
-        index = UserIndex(User, self.client, settings.ALGOLIA)
-        obj = index.get_raw_record(self.user,
-                                   update_fields=('name', 'bio'))
+        self.index = UserIndex(User, self.client, settings.ALGOLIA)
+        obj = self.index.get_raw_record(self.user,
+                                        update_fields=('name', 'bio'))
         self.assertIn('name', obj)
         self.assertNotIn('username', obj)
         self.assertNotIn('bio', obj)
@@ -474,12 +478,12 @@ class IndexTestCase(TestCase):
             fields = 'name'
             should_index = 'has_name'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        self.assertTrue(index._should_index(self.example),
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.assertTrue(self.index._should_index(self.example),
                         "We should index an instance when should_index(instance) returns True")
 
         instance_should_not = Example(name=None)
-        self.assertFalse(index._should_index(instance_should_not),
+        self.assertFalse(self.index._should_index(instance_should_not),
                          "We should not index an instance when should_index(instance) returns False")
 
     def test_should_index_unbound(self):
@@ -487,17 +491,17 @@ class IndexTestCase(TestCase):
             fields = 'name'
             should_index = 'static_should_index'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        self.assertTrue(index._should_index(self.example),
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.assertTrue(self.index._should_index(self.example),
                         "We should index an instance when should_index() returns True")
 
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'static_should_not_index'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
         instance_should_not = Example()
-        self.assertFalse(index._should_index(instance_should_not),
+        self.assertFalse(self.index._should_index(instance_should_not),
                          "We should not index an instance when should_index() returns False")
 
     def test_should_index_attr(self):
@@ -505,69 +509,69 @@ class IndexTestCase(TestCase):
             fields = 'name'
             should_index = 'index_me'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        self.assertTrue(index._should_index(self.example),
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.assertTrue(self.index._should_index(self.example),
                         "We should index an instance when its should_index attr is True")
 
         instance_should_not = Example()
         instance_should_not.index_me = False
-        self.assertFalse(index._should_index(instance_should_not),
+        self.assertFalse(self.index._should_index(instance_should_not),
                          "We should not index an instance when its should_index attr is False")
 
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'category'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
         with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index attr is not boolean"):
-            index._should_index(self.example)
+            self.index._should_index(self.example)
 
     def test_should_index_field(self):
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'is_admin'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        self.assertTrue(index._should_index(self.example),
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.assertTrue(self.index._should_index(self.example),
                         "We should index an instance when its should_index field is True")
 
         instance_should_not = Example()
         instance_should_not.is_admin = False
-        self.assertFalse(index._should_index(instance_should_not),
+        self.assertFalse(self.index._should_index(instance_should_not),
                          "We should not index an instance when its should_index field is False")
 
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'name'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
         with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index field is not boolean"):
-            index._should_index(self.example)
+            self.index._should_index(self.example)
 
     def test_should_index_property(self):
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'property_should_index'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        self.assertTrue(index._should_index(self.example),
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.assertTrue(self.index._should_index(self.example),
                         "We should index an instance when its should_index property is True")
 
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'property_should_not_index'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
-        self.assertFalse(index._should_index(self.example),
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.assertFalse(self.index._should_index(self.example),
                          "We should not index an instance when its should_index property is False")
 
         class ExampleIndex(AlgoliaIndex):
             fields = 'name'
             should_index = 'property_string'
 
-        index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
         with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index property is not boolean"):
-            index._should_index(self.example)
+            self.index._should_index(self.example)
 
     def test_save_record_should_index_boolean(self):
         website = Website.objects.create(
@@ -575,19 +579,19 @@ class IndexTestCase(TestCase):
             url='https://algolia.com',
             is_online=True
         )
-        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
-                    index.index_name + '_name_asc',
-                    index.index_name + '_name_desc'
+                    self.index.index_name + '_name_asc',
+                    self.index.index_name + '_name_desc'
                 ]
             }
             should_index = 'is_online'
 
-        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        index.save_record(website)
+        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        self.index.save_record(website)
 
     def test_cyrillic(self):
         class CyrillicIndex(AlgoliaIndex):
@@ -599,8 +603,8 @@ class IndexTestCase(TestCase):
 
         self.user.bio = "крупнейших"
         self.user.save()
-        index = CyrillicIndex(User, self.client, settings.ALGOLIA)
-        index.wait_task(index.save_record(self.user)["taskID"])
-        result = index.raw_search("крупнейших")
+        self.index = CyrillicIndex(User, self.client, settings.ALGOLIA)
+        self.index.wait_task(self.index.save_record(self.user)["taskID"])
+        result = self.index.raw_search("крупнейших")
         self.assertEqual(result['nbHits'], 1, "Search should return one result")
         self.assertEqual(result['hits'][0]['name'], 'Algolia', "The result should be self.user")
