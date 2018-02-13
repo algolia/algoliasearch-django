@@ -138,6 +138,8 @@ class IndexTestCase(TestCase):
                          "An index whose model has no settings should keep its settings after reindex")
 
     def test_reindex_with_settings(self):
+        import uuid
+        id = str(uuid.uuid4())
         self.maxDiff = None
         index_settings = {'searchableAttributes': ['name', 'email', 'company', 'city', 'county', 'account_names',
                                                    'unordered(address)', 'state', 'zip_code', 'phone', 'fax',
@@ -156,7 +158,8 @@ class IndexTestCase(TestCase):
                               'exact',
                               'custom'
                           ],
-                          'replicas': ['WebsiteIndexReplica_name_asc', 'WebsiteIndexReplica_name_desc'],
+                          'replicas': ['WebsiteIndexReplica_' + id + '_name_asc',
+                                       'WebsiteIndexReplica_' + id + '_name_desc'],
                           'highlightPostTag': '</mark>', 'hitsPerPage': 15}
 
         # Given an existing index defined with settings
