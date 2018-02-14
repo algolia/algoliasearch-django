@@ -59,7 +59,7 @@ class AlgoliaIndex(object):
     index_name = None
 
     # Use to specify the settings of the index.
-    settings = {}
+    settings = None
 
     # Used to specify if the instance should be indexed.
     # The attribute should be either:
@@ -79,6 +79,9 @@ class AlgoliaIndex(object):
         self.__client = client
         self.__named_fields = {}
         self.__translate_fields = {}
+
+        if self.settings is None:  # Only set settings if the actual index class does not define some
+            self.settings = {}
 
         try:
             all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
@@ -416,10 +419,14 @@ class AlgoliaIndex(object):
         a method `get_queryset` in your subclass. This can be used to optimize
         the performance (for example with select_related or prefetch_related).
         """
+        should_keep_synonyms = False
+        should_keep_rules = False
         try:
             if not self.settings:
                 self.settings = self.get_settings()
                 logger.debug('Got settings for index %s: %s', self.index_name, self.settings)
+            else:
+                logger.debug("index %s already has settings: %s", self.index_name, self.settings)
         except AlgoliaException as e:
             if any("Index does not exist" in arg for arg in e.args):
                 pass  # Expected, let's clear and recreate from scratch
@@ -442,6 +449,19 @@ class AlgoliaIndex(object):
 
                 self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings)['taskID'])
                 logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
+            rules = []
+            synonyms = []
+            for r in self.__index.iter_rules():
+                rules.append(r)
+            for s in self.__index.iter_synonyms():
+                synonyms.append(s)
+            if len(rules):
+                logger.debug('Got rules for index %s: %s', self.index_name, rules)
+                should_keep_rules = True
+            if len(synonyms):
+                logger.debug('Got synonyms for index %s: %s', self.index_name, rules)
+                should_keep_synonyms = True
+
             self.__tmp_index.clear_index()
             logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
@@ -483,6 +503,14 @@ class AlgoliaIndex(object):
                     logger.debug("RESTORE SLAVES")
                 if should_keep_replicas or should_keep_slaves:
                     self.__index.set_settings(self.settings)
+                if should_keep_rules:
+                    response = self.__index.batch_rules(rules, forward_to_replicas=True)
+                    self.__index.wait_task(response['taskID'])
+                    logger.info("Saved rules for index %s with response: {}".format(response), self.index_name)
+                if should_keep_synonyms:
+                    response = self.__index.batch_synonyms(synonyms, forward_to_replicas=True)
+                    self.__index.wait_task(response['taskID'])
+                    logger.info("Saved synonyms for index %s with response: {}".format(response), self.index_name)
             return counts
         except AlgoliaException as e:
             if DEBUG:
