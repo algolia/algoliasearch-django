@@ -30,3 +30,14 @@ update_records = algolia_engine.update_records
 raw_search = algolia_engine.raw_search
 clear_index = algolia_engine.clear_index
 reindex_all = algolia_engine.reindex_all
+
+# Default log handler
+import logging
+
+
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+
+logging.getLogger(__name__.split('.')[0]).addHandler(NullHandler())
