@@ -163,7 +163,7 @@ raw_search(Contact, "jim", params)
 
 ## Geo-Search
 
-Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
+Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple `(latitude, longitude)` or a list of such tuples.
 
 ```python
 class Contact(models.model):
