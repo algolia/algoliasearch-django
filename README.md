@@ -1,6 +1,8 @@
+
 # Algolia Search API Client for Django
 
-[Algolia Search](https://www.algolia.com) is a hosted full-text, numerical, and faceted search engine capable of delivering realtime results from the first keystroke.
+[Algolia Search](https://www.algolia.com) is a hosted full-text, numerical,
+and faceted search engine capable of delivering realtime results from the first keystroke.
 
 [![Build Status](https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master)](https://travis-ci.org/algolia/algoliasearch-django)
 [![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master)](https://coveralls.io/r/algolia/algoliasearch-django)
@@ -15,40 +17,32 @@ Compatible with **Python 2.7**, **Python 3.3+** and **Django 1.7+**
 
 
 
-
 ## API Documentation
 
 You can find the full reference on [Algolia's website](https://www.algolia.com/doc/api-client/django/).
 
 
-## Table of Contents
-
 
 1. **[Setup](#setup)**
-
+    * [Introduction](#introduction)
     * [Install](#install)
     * [Setup](#setup)
     * [Quick Start](#quick-start)
 
 1. **[Commands](#commands)**
-
     * [Commands](#commands)
 
 1. **[Search](#search)**
-
     * [Search](#search)
 
 1. **[Geo-Search](#geo-search)**
-
     * [Geo-Search](#geo-search)
 
 1. **[Tags](#tags)**
-
     * [Tags](#tags)
 
 1. **[Options](#options)**
-
-    * [Custom `objectID`](#custom-objectid)
+    * [Custom <code>objectID</code>](#custom-codeobjectidcode)
     * [Custom index name](#custom-index-name)
     * [Field Preprocessing and Related objects](#field-preprocessing-and-related-objects)
     * [Index settings](#index-settings)
@@ -56,8 +50,8 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
     * [Multiple indices per model](#multiple-indices-per-model)
 
 1. **[Tests](#tests)**
-
     * [Run Tests](#run-tests)
+
 
 
 
@@ -65,6 +59,14 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
 # Setup
 
 
+
+## Introduction
+
+This package lets you easily integrate the Algolia Search API to your [Django](https://www.djangoproject.com/) project. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
+
+You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
+
+Compatible with **Python 2.7**, **Python 3.3+** and **Django 1.7+**
 
 ## Install
 
@@ -86,7 +88,7 @@ ALGOLIA = {
 There are several optional settings:
 
 * `INDEX_PREFIX`: prefix all indexes. Use it to separate different applications, like `site1_Products` and `site2_Products`.
-* `INDEX_SUFFIX`: suffix all indexes. Use it to differentiate development and production environment, like `Location_dev` and `Location_prod`.
+* `INDEX_SUFFIX`: suffix all indexes. Use it to differentiate development and production environments, like `Location_dev` and `Location_prod`.
 * `AUTO_INDEXING`: automatically synchronize the models with Algolia (default to **True**).
 * `RAISE_EXCEPTIONS`: raise exceptions on network errors instead of logging them (default to **settings.DEBUG**).
 
@@ -127,6 +129,8 @@ class YourModelIndex(AlgoliaIndex):
 And then replace `algoliasearch.register(YourModel)` with `algoliasearch.register(YourModel, YourModelIndex)`.
 
 
+
+
 # Commands
 
 
@@ -139,22 +143,29 @@ And then replace `algoliasearch.register(YourModel)` with `algoliasearch.registe
 * `python manage.py algolia_clearindex`: clear the index
 
 
+
+
 # Search
 
 
 
 ## Search
 
-We recommend the usage of our [JavaScript API Client](https://github.com/algolia/algoliasearch-client-javascript) to perform queries directly from the end-user browser without going through your server.
+We recommend using our [InstantSearch.js library](https://community.algolia.com/instantsearch.js) to build your search
+interface and perform search queries directly from the end-user browser without going through your server.
 
-However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', params)` method. It retrieves the raw JSON answer from the API.
+However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', params)` method.
+It retrieves the raw JSON answer from the API, and accepts in `param` any
+[search parameters](https://www.algolia.com/doc/api-reference/search-api-parameters/).
 
 ```python
 from algoliasearch_django import raw_search
 
 params = { "hitsPerPage": 5 }
-raw_search(Contact, "jim", params)
+response = raw_search(Contact, "jim", params)
 ```
+
+
 
 
 # Geo-Search
@@ -163,7 +174,7 @@ raw_search(Contact, "jim", params)
 
 ## Geo-Search
 
-Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple `(latitude, longitude)` or a list of such tuples.
+Use the `geo_field` attribute to localize your record. `geo_field` should be a callable that returns a tuple (latitude, longitude).
 
 ```python
 class Contact(models.model):
@@ -182,6 +193,8 @@ algoliasearch.register(Contact, ContactIndex)
 ```
 
 
+
+
 # Tags
 
 
@@ -198,13 +211,16 @@ class ArticleIndex(AlgoliaIndex):
 At query time, specify `{ tagFilters: 'tagvalue' }` or `{ tagFilters: ['tagvalue1', 'tagvalue2'] }` as search parameters to restrict the result set to specific tags.
 
 
+
+
 # Options
 
 
 
 ## Custom `objectID`
 
-You can choose which field will be used as the `objectID `. The field should be unique and can be a string or integer. By default, we use the `pk` field of the model.
+You can choose which field will be used as the `objectID `. The field should be unique and can
+    be a string or integer. By default, we use the `pk` field of the model.
 
 ```python
 class ArticleIndex(AlgoliaIndex):
@@ -222,10 +238,12 @@ class ContactIndex(algoliaindex):
 
 ## Field Preprocessing and Related objects
 
-If you want to process a field before indexing it (e.g. capitalizing a `Contact`'s `name`), or if you want to index a [related object](https://docs.djangoproject.com/en/1.11/ref/models/relations/)'s attribute, 
-you need to define **proxy methods** for these fields.
+If you want to process a field before indexing it (e.g. capitalizing a `Contact`'s `name`),
+or if you want to index a [related object](https://docs.djangoproject.com/en/1.11/ref/models/relations/)'s
+attribute, you need to define **proxy methods** for these fields.
 
 ### Models
+
 ```python
 class Account(models.Model):
     username = models.CharField(max_length=40)
@@ -245,9 +263,9 @@ class Contact(models.Model):
 ```
 
 ### Index
+
 ```python
 from algoliasearch_django import AlgoliaIndex
-
 
 class ContactIndex(AlgoliaIndex):
     fields = ('name', 'email', 'company', 'address', 'city', 'county',
@@ -257,13 +275,16 @@ class ContactIndex(AlgoliaIndex):
         'searchableAttributes': ['name', 'email', 'company', 'city', 'county', 'account_names',
         }
 ```
+    
 - With this configuration, you can search for a `Contact` using its `Account` names
-- You can use the associated `account_ids` at search-time to fetch more data from your model (you should **only proxy the fields relevant for search** to keep your records' size as small as possible)
+- You can use the associated `account_ids` at search-time to fetch more data from your 
+model (you should **only proxy the fields relevant for search** to keep your records' size 
+as small as possible)
 
 ## Index settings
 
 We provide many ways to configure your index allowing you to tune your overall index relevancy.
-All the configuration is explained on [our doc](https://www.algolia.com/doc/api-client/python/parameters/).
+All the configuration is explained on [our doc](https://www.algolia.com/doc/api-reference/api-parameters/).
 
 ```python
 class ArticleIndex(AlgoliaIndex):
@@ -275,7 +296,8 @@ class ArticleIndex(AlgoliaIndex):
 
 ## Restrict indexing to a subset of your data
 
-You can add constraints controlling if a record must be indexed or not. `should_index` should be a callable that returns a boolean.
+You can add constraints controlling if a record must be indexed or not. `should_index` should be a
+callable that returns a boolean.
 
 ```python
 class Contact(models.model):
@@ -294,6 +316,7 @@ class ContactIndex(AlgoliaIndex):
 It is possible to have several indices for a single model.
 
 - First, define all your indices that you want for a model:
+    
 ```python
 from django.contrib.algoliasearch import AlgoliaIndex
 
@@ -307,6 +330,7 @@ class MyModelIndex2(AlgoliaIndex):
 ```
 
 - Then, define a meta model which will aggregate those indices:
+    
 ```python
 class MyModelMetaIndex(AlgoliaIndex):
     def __init__(self, model, client, settings):
@@ -347,10 +371,13 @@ class MyModelMetaIndex(AlgoliaIndex):
 ```
 
 - Finally, register this `AlgoliaIndex` with your `Model`:
+    
 ```python
 import algoliasearch_django as algoliasearch
 algoliasearch.register(MyModel, MyModelMetaIndex)
 ```
+
+
 
 
 # Tests
@@ -364,7 +391,8 @@ To run the tests, first find your Algolia application id and Admin API key (foun
 ```shell
 ALGOLIA_APPLICATION_ID={APPLICATION_ID} ALGOLIA_API_KEY={ADMIN_API_KEY} tox
 ```
-
+  
+  
 To override settings for some tests, use the [settings method](https://docs.djangoproject.com/en/1.11/topics/testing/tools/#django.test.SimpleTestCase.settings):
 ```python
 class OverrideSettingsTestCase(TestCase):
@@ -382,5 +410,6 @@ class OverrideSettingsTestCase(TestCase):
     def test_foo():
         # ...
 ```
+
 
 
