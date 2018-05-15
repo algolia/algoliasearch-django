@@ -1,5 +1,9 @@
 
 CHANGELOG
+2018-02-14 1.5.5
+  * [FIX] Settings no more shared across AlgoliaIndex instances
+  * [FIX] Save rules and synonyms over reindex
+
 2018-01-16 1.5.4
   * Shallow release to solve 1.5.3 release issue
 
