@@ -1,6 +1,7 @@
 import time
+from mock import patch, call, ANY
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import get_adapter
@@ -8,6 +9,7 @@ from algoliasearch_django import raw_search
 from algoliasearch_django import clear_index
 from algoliasearch_django import update_records
 
+from .factories import WebsiteFactory
 from .models import Website
 
 
@@ -21,25 +23,37 @@ class SignalTestCase(TestCase):
         clear_index(Website)
 
     def test_save_signal(self):
-        Website.objects.create(name='Algolia', url='https://www.algolia.com')
-        Website.objects.create(name='Google', url='https://www.google.com')
-        Website.objects.create(name='Facebook', url='https://www.facebook.com')
+        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+            websites = WebsiteFactory.create_batch(3)
 
-        time.sleep(10)  # FIXME: Expose last task's ID so we can waitTask instead of sleeping
-        self.assertEqual(raw_search(Website)['nbHits'], 3)
+        mocked_save_record.assert_has_calls(
+            [
+                call(
+                    website,
+                    created=True,
+                    raw=False,
+                    sender=ANY,
+                    signal=ANY,
+                    update_fields=None,
+                    using=ANY
+                )
+                for website in websites
+            ]
+        )
 
     def test_delete_signal(self):
-        Website.objects.create(name='Algolia', url='https://www.algolia.com')
-        Website.objects.create(name='Google', url='https://www.google.com')
-        Website.objects.create(name='Facebook', url='https://www.facebook.com')
+        websites = WebsiteFactory.create_batch(3)
 
-        Website.objects.get(name='Algolia').delete()
-        Website.objects.get(name='Facebook').delete()
+        with patch.object(algolia_engine, 'delete_record') as mocked_delete_record:
+            websites[0].delete()
+            websites[1].delete()
 
-        time.sleep(10)
-        result = raw_search(Website)
-        self.assertEqual(result['nbHits'], 1)
-        self.assertEqual(result['hits'][0]['name'], 'Google')
+        mocked_delete_record.assert_has_calls(
+            [
+                call(websites[0]),
+                call(websites[1])
+            ]
+        )
 
     def test_update_records(self):
         Website.objects.create(name='Algolia', url='https://www.algolia.com')
