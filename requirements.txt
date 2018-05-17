@@ -5,3 +5,4 @@ pypandoc
 wheel
 tox
 twine
+factory_boy
