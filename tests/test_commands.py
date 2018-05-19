@@ -89,8 +89,11 @@ class CommandsTestCase(TestCase):
             self.assertRegexpMatches(result, regex)
 
     def test_clearindex_with_args(self):
-        call_command('algolia_clearindex', stdout=self.out,
-                     model=['Website'], batchsize=3)
+        call_command(
+            'algolia_clearindex',
+            stdout=self.out,
+            model=['Website']
+        )
         result = self.out.getvalue()
 
         regex = r'Website'
