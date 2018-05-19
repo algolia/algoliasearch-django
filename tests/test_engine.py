@@ -1,5 +1,7 @@
+import six
+
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import AlgoliaIndex
@@ -26,6 +28,18 @@ class EngineTestCase(TestCase):
         with self.settings(ALGOLIA=algolia_settings):
             with self.assertRaises(AlgoliaEngineError):
                 AlgoliaEngine(settings=settings.ALGOLIA)
+
+    def test_auto_discover_indexes(self):
+        """Test that the `index` module was auto-discovered and the models registered"""
+
+        six.assertCountEqual(
+            self,
+            [
+                User,  # Registered using the `register` decorator
+                Website,  # Registered using the `register` method
+            ],
+            algolia_engine.get_registered_models()
+        )
 
     def test_is_register(self):
         self.engine.register(Website)
@@ -91,19 +105,3 @@ class EngineTestCase(TestCase):
 
         with self.assertRaises(RegistrationError):
             self.engine.unregister(Website)
-
-
-class OverrideSettingsTestCase(TestCase):
-    def setUp(self):
-        with self.settings(ALGOLIA={
-            'APPLICATION_ID': 'foo',
-            'API_KEY': 'bar',
-            'AUTO_INDEXING': False
-        }):
-            algolia_engine.reset(settings.ALGOLIA)
-
-    def tearDown(self):
-        algolia_engine.reset(settings.ALGOLIA)
-
-    def test_no_indexing(self):
-        self.assertFalse(algolia_engine.__dict__["_AlgoliaEngine__auto_indexing"], "AUTO_INDEXING should be disabled for this test.")
