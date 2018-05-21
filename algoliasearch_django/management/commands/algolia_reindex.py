@@ -25,5 +25,5 @@ class Command(BaseCommand):
                                                    options['model']):
                 continue
 
-            counts = reindex_all(model, batch_size=batch_size)
+            counts, _ = reindex_all(model, batch_size=batch_size)
             self.stdout.write('\t* {} --> {}'.format(model.__name__, counts))

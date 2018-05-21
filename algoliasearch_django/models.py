@@ -412,109 +412,103 @@ class AlgoliaIndex(object):
                 logger.warning('%s NOT WAIT: %s', self.model, e)
 
     def reindex_all(self, batch_size=1000):
-        """
-        Reindex all the records.
+        """Reindex all the records.
 
-        By default, this method use Model.objects.all() but you can implement
-        a method `get_queryset` in your subclass. This can be used to optimize
-        the performance (for example with select_related or prefetch_related).
+        :param batch_size: The size of the batch to be sent to Algolia
+        :type batch_size: int
+        :return: A tuple with two entries:
+            - counts: The number of instances reindexed
+            - task_ids: A list of task ids to wait for if needed
+        :rtype: tuple
+
+        .. note:: By default, this method use Model.objects.all() but you can implement
+            a method `get_queryset` in your subclass. This can be used to optimize
+            the performance (for example with select_related or prefetch_related).
+
         """
-        should_keep_synonyms = False
-        should_keep_rules = False
+
+        settings = {}
+        task_ids = []
+
         try:
-            if not self.settings:
-                self.settings = self.get_settings()
-                logger.debug('Got settings for index %s: %s', self.index_name, self.settings)
-            else:
-                logger.debug("index %s already has settings: %s", self.index_name, self.settings)
+            settings = self.settings or self.get_settings()
         except AlgoliaException as e:
-            if any("Index does not exist" in arg for arg in e.args):
+            if any('Index does not exist' in arg for arg in e.args):
                 pass  # Expected, let's clear and recreate from scratch
             else:
-                raise e  # Unexpected error while getting settings
-        try:
-            if self.settings:
-                replicas = self.settings.get('replicas', None)
-                slaves = self.settings.get('slaves', None)
+                raise  # Unexpected error while getting settings
 
-                should_keep_replicas = replicas is not None
-                should_keep_slaves = slaves is not None
+        # We don't want the replicas and the slaves on the temporary index
+        tmp_settings = settings.copy()
+        replicas = tmp_settings.pop('replicas', None)
+        slaves = tmp_settings.pop('slaves', None)
 
-                if should_keep_replicas:
-                    self.settings['replicas'] = []
-                    logger.debug("REMOVE REPLICAS FROM SETTINGS")
-                if should_keep_slaves:
-                    self.settings['slaves'] = []
-                    logger.debug("REMOVE SLAVES FROM SETTINGS")
+        self.__tmp_index.wait_task(self.__tmp_index.set_settings(tmp_settings)['taskID'])
+        logger.debug('Applied settings on "%s_tmp" index', self.index_name)
 
-                self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings)['taskID'])
-                logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
-            rules = []
-            synonyms = []
-            for r in self.__index.iter_rules():
-                rules.append(r)
-            for s in self.__index.iter_synonyms():
-                synonyms.append(s)
-            if len(rules):
-                logger.debug('Got rules for index %s: %s', self.index_name, rules)
-                should_keep_rules = True
-            if len(synonyms):
-                logger.debug('Got synonyms for index %s: %s', self.index_name, rules)
-                should_keep_synonyms = True
+        # Get the rules and the synonyms from the existing index
+        rules = [
+            rule
+            for rule in self.__index.iter_rules()
+        ]
+        synonyms = [
+            synonym
+            for synonym in self.__index.iter_synonyms()
+        ]
 
-            self.__tmp_index.clear_index()
-            logger.debug('CLEAR INDEX %s_tmp', self.index_name)
+        self.__tmp_index.clear_index()
+        logger.debug('Cleared the "%s_tmp" index', self.index_name)
 
-            counts = 0
-            batch = []
+        if hasattr(self, 'get_queryset'):
+            qs = self.get_queryset()
+        else:
+            qs = self.model.objects.all()
 
-            if hasattr(self, 'get_queryset'):
-                qs = self.get_queryset()
-            else:
-                qs = self.model.objects.all()
+        start = 0
+        counts = 0
+        while True:
+            batch_qs = qs[start:start+batch_size]
+            batch_counts = len(batch_qs)
 
-            for instance in qs:
-                if not self._should_index(instance):
-                    continue  # should not index
+            if not batch_counts:
+                break
 
-                batch.append(self.get_raw_record(instance))
-                if len(batch) >= batch_size:
-                    self.__tmp_index.save_objects(batch)
-                    logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
-                                self.index_name)
-                    batch = []
-                counts += 1
-            if len(batch) > 0:
-                self.__tmp_index.save_objects(batch)
-                logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
-                            self.index_name)
+            batch = [
+                self.get_raw_record(instance)
+                for instance in batch_qs
+                if self._should_index(instance)
+            ]
+            self.__tmp_index.save_objects(batch)
 
-            self.__client.move_index(self.__tmp_index.index_name,
-                                     self.__index.index_name)
-            logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
-                        self.index_name)
+            counts += batch_counts
+            start += batch_size
 
-            if self.settings:
-                if should_keep_replicas:
-                    self.settings['replicas'] = replicas
-                    logger.debug("RESTORE REPLICAS")
-                if should_keep_slaves:
-                    self.settings['slaves'] = slaves
-                    logger.debug("RESTORE SLAVES")
-                if should_keep_replicas or should_keep_slaves:
-                    self.__index.set_settings(self.settings)
-                if should_keep_rules:
-                    response = self.__index.batch_rules(rules, forward_to_replicas=True)
-                    self.__index.wait_task(response['taskID'])
-                    logger.info("Saved rules for index %s with response: {}".format(response), self.index_name)
-                if should_keep_synonyms:
-                    response = self.__index.batch_synonyms(synonyms, forward_to_replicas=True)
-                    self.__index.wait_task(response['taskID'])
-                    logger.info("Saved synonyms for index %s with response: {}".format(response), self.index_name)
-            return counts
-        except AlgoliaException as e:
-            if DEBUG:
-                raise e
-            else:
-                logger.warning('ERROR DURING REINDEXING %s: %s', self.model,
-                               e)
+        task_ids.append(
+            self.__client.move_index(
+                self.__tmp_index.index_name,
+                self.__index.index_name
+            )['taskID']
+        )
+
+        logger.info(
+            'Moved the "%s_tmp" index to "%s"',
+            self.index_name,
+            self.index_name
+        )
+
+        if replicas or slaves:
+            task_ids.append(
+                self.__index.set_settings(settings)['taskID']
+            )
+
+        if rules:
+            task_ids.append(
+                self.__index.batch_rules(rules, forward_to_replicas=True)['taskID']
+            )
+
+        if synonyms:
+            task_ids.append(
+                self.__index.batch_synonyms(synonyms, forward_to_replicas=True)['taskID']
+            )
+
+        return counts, task_ids

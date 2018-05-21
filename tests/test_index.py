@@ -1,16 +1,16 @@
 # coding=utf-8
-import time
+
 from django.conf import settings
-from django.test import TestCase
 
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django import algolia_engine
 from algoliasearch_django.models import AlgoliaIndexError
 
 from .models import User, Website, Example
+from .test_cases import AlgoliaSearchDjangoTestCase
 
 
-class IndexTestCase(TestCase):
+class IndexTestCase(AlgoliaSearchDjangoTestCase):
     def setUp(self):
         self.client = algolia_engine.client
         self.user = User(name='Algolia', username="algolia",
@@ -130,12 +130,17 @@ class IndexTestCase(TestCase):
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+        _, task_ids = self.index.reindex_all()
+
+        # Wait for all the tasks to complete
+        self.wait_for_tasks(self.index, *task_ids)
 
         # Expect the former settings to be kept across reindex
-        self.assertEqual(self.index.get_settings(), existing_settings,
-                         "An index whose model has no settings should keep its settings after reindex")
+        self.assertEqual(
+            self.index.get_settings(),
+            existing_settings,
+            "An index whose model has no settings should keep its settings after reindex"
+        )
 
     def test_reindex_with_settings(self):
         import uuid
@@ -176,8 +181,10 @@ class IndexTestCase(TestCase):
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+        _, task_ids = self.index.reindex_all()
+
+        # Wait for all the tasks to complete
+        self.wait_for_tasks(self.index, *task_ids)
 
         # Expect the settings to be reset to model definition over reindex
         former_settings = existing_settings
@@ -206,12 +213,14 @@ class IndexTestCase(TestCase):
             }
         }
         res = underlying_index.save_rule(rule)
-        self.index.wait_task(res['taskID'])
+
+        self.wait_for_tasks(self.index, res['taskID'])
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+
+        _, task_ids = self.index.reindex_all()
+        self.wait_for_tasks(self.index, *task_ids)
 
         # Expect the rules to be kept across reindex
         rules = [r for r in underlying_index.iter_rules()]
@@ -233,8 +242,9 @@ class IndexTestCase(TestCase):
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+
+        _, task_ids = self.index.reindex_all()
+        self.wait_for_tasks(self.index, *task_ids)
 
         # Expect the synonyms to be kept across reindex
         synonyms = [s for s in underlying_index.iter_synonyms()]
@@ -251,13 +261,20 @@ class IndexTestCase(TestCase):
         # When reindexing with settings on the instance
         old_hpp = index.settings['hitsPerPage'] if 'hitsPerPage' in index.settings else None
         index.settings['hitsPerPage'] = 42
-        index.reindex_all()
+
+        _, task_ids = index.reindex_all()
+        self.wait_for_tasks(self.index, *task_ids)
+
         index.settings['hitsPerPage'] = old_hpp
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
         index_settings = index.get_settings()
+
         # Expect the instance's settings to be applied at reindex
-        self.assertEqual(index_settings['hitsPerPage'], 42,
-                         "An index whose model has settings should apply those at reindex")
+        self.assertEqual(
+            index_settings['hitsPerPage'],
+            42,
+            "An index whose model has settings should apply those at reindex"
+        )
+
         return index_settings
 
     def test_custom_objectID(self):
