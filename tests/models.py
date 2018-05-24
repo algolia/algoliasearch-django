@@ -70,5 +70,8 @@ class Example(models.Model):
 
 
 class BlogPost(models.Model):
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
     text = models.TextField(default="")
