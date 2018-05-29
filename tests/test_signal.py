@@ -4,8 +4,6 @@ from django.test import TestCase
 
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import get_adapter
-from algoliasearch_django import register
-from algoliasearch_django import unregister
 from algoliasearch_django import raw_search
 from algoliasearch_django import clear_index
 from algoliasearch_django import update_records
@@ -14,14 +12,10 @@ from .models import Website
 
 
 class SignalTestCase(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        register(Website)
 
     @classmethod
     def tearDownClass(cls):
         algolia_engine.client.delete_index(get_adapter(Website).index_name)
-        unregister(Website)
 
     def tearDown(self):
         clear_index(Website)

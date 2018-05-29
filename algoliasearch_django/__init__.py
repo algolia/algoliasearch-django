@@ -3,6 +3,8 @@ AlgoliaSearch integration for Django.
 http://www.algolia.com
 """
 
+from django.utils.module_loading import autodiscover_modules
+
 from . import models
 from . import registration
 from . import settings
@@ -40,4 +42,10 @@ class NullHandler(logging.Handler):
         pass
 
 
+def autodiscover():
+    autodiscover_modules('index')
+
+
 logging.getLogger(__name__.split('.')[0]).addHandler(NullHandler())
+
+default_app_config = 'algoliasearch_django.apps.AlgoliaConfig'
