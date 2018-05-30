@@ -1,5 +1,9 @@
 
 CHANGELOG
+
+2018-05-30 1.6.0
+  * [FEAT] Auto-discover the index.py files
+
 2018-02-14 1.5.5
   * [FIX] Settings no more shared across AlgoliaIndex instances
   * [FIX] Save rules and synonyms over reindex
