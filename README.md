@@ -112,7 +112,8 @@ By default, all the fields of your model will be used. You can configure the ind
 ```python
 # index.py
 
-from algoliasearch_django import AlgoliaIndex, register
+from algoliasearch_django import AlgoliaIndex
+from algoliasearch_django.decorators import register
 
 from .models import YourModel
 
