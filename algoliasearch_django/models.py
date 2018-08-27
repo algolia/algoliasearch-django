@@ -164,13 +164,23 @@ class AlgoliaIndex(object):
         if not self.index_name:
             self.index_name = model.__name__
 
+        tmp_index_name = '{index_name}_tmp'.format(index_name=self.index_name)
+
         if 'INDEX_PREFIX' in settings:
             self.index_name = settings['INDEX_PREFIX'] + '_' + self.index_name
+            tmp_index_name = '{index_prefix}_{tmp_index_name}'.format(
+                tmp_index_name=tmp_index_name,
+                index_prefix=settings['INDEX_PREFIX']
+            )
         if 'INDEX_SUFFIX' in settings:
             self.index_name += '_' + settings['INDEX_SUFFIX']
+            tmp_index_name = '{tmp_index_name}_{index_suffix}'.format(
+                tmp_index_name=tmp_index_name,
+                index_suffix=settings['INDEX_SUFFIX']
+            )
 
         self.__index = client.init_index(self.index_name)
-        self.__tmp_index = client.init_index(self.index_name + '_tmp')
+        self.__tmp_index = client.init_index(tmp_index_name)
 
     @staticmethod
     def _validate_geolocation(geolocation):

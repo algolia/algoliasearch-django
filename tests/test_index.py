@@ -82,6 +82,54 @@ class IndexTestCase(TestCase):
             except AttributeError:
                 self.assertRegexpMatches(self.index.index_name, regex)
 
+    def test_tmp_index_name(self):
+        """Test that the temporary index name should respect suffix and prefix settings"""
+
+        algolia_settings = dict(settings.ALGOLIA)
+
+        # With no suffix nor prefix
+        del algolia_settings['INDEX_PREFIX']
+        del algolia_settings['INDEX_SUFFIX']
+
+        with self.settings(ALGOLIA=algolia_settings):
+            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.assertEqual(
+                self.index._AlgoliaIndex__tmp_index.index_name,
+                'Website_tmp'
+            )
+
+        # With only a prefix
+        algolia_settings['INDEX_PREFIX'] = 'prefix'
+
+        with self.settings(ALGOLIA=algolia_settings):
+            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.assertEqual(
+                self.index._AlgoliaIndex__tmp_index.index_name,
+                'prefix_Website_tmp'
+            )
+
+        # With only a suffix
+        del algolia_settings['INDEX_PREFIX']
+        algolia_settings['INDEX_SUFFIX'] = 'suffix'
+
+        with self.settings(ALGOLIA=algolia_settings):
+            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.assertEqual(
+                self.index._AlgoliaIndex__tmp_index.index_name,
+                'Website_tmp_suffix'
+            )
+
+        # With a prefix and a suffix
+        algolia_settings['INDEX_PREFIX'] = 'prefix'
+        algolia_settings['INDEX_SUFFIX'] = 'suffix'
+
+        with self.settings(ALGOLIA=algolia_settings):
+            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.assertEqual(
+                self.index._AlgoliaIndex__tmp_index.index_name,
+                'prefix_Website_tmp_suffix'
+            )
+
     def test_reindex_with_replicas(self):
         self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
