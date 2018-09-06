@@ -48,6 +48,7 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
     * [Index settings](#index-settings)
     * [Restrict indexing to a subset of your data](#restrict-indexing-to-a-subset-of-your-data)
     * [Multiple indices per model](#multiple-indices-per-model)
+    * [Temporarily disable the auto-indexing](#temporarily-disable-the-auto-indexing)
 
 1. **[Tests](#tests)**
     * [Run Tests](#run-tests)
@@ -373,6 +374,28 @@ class MyModelMetaIndex(AlgoliaIndex):
 ```python
 import algoliasearch_django as algoliasearch
 algoliasearch.register(MyModel, MyModelMetaIndex)
+```
+
+## Temporarily disable the auto-indexing
+
+It is possible to temporarily disable the auto-indexing feature using the `disable_auto_indexing` context decorator:
+
+```python
+from algoliasearch_django.decorators import disable_auto_indexing
+
+# Used as a context manager
+with disable_auto_indexing():
+    MyModel.save()
+
+# Used as a decorator
+@disable_auto_indexing():
+my_method()
+
+# You can also specifiy for which model you want to disable the auto-indexing
+with disable_auto_indexing(MyModel):
+    MyModel.save()
+    MyOtherModel.save()
+
 ```
 
 
