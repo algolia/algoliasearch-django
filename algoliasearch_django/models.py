@@ -8,6 +8,7 @@ import logging
 import sys
 from algoliasearch.helpers import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
+from django.utils.inspect import func_supports_parameter
 
 from .settings import DEBUG
 
@@ -60,6 +61,9 @@ class AlgoliaIndex(object):
 
     # Use to specify the settings of the index.
     settings = None
+
+    # User to specify a duplication method
+    duplication_method = None
 
     # Used to specify if the instance should be indexed.
     # The attribute should be either:
@@ -144,6 +148,16 @@ class AlgoliaIndex(object):
         # Check geo_field
         if self.geo_field:
             self.geo_field = check_and_get_attr(model, self.geo_field)
+
+        # Check duplication_method
+        if self.duplication_method:
+            self.duplication_method = check_and_get_attr(model, self.duplication_method)
+            if not func_supports_parameter(self.duplication_method, 'raw_record'):
+                raise AlgoliaIndexError('{} doesnt accept a `raw_record` parameter.'.format(
+                    self.duplication_method
+                ))
+            if not self.settings.get('attributeForDistinct'):
+                raise AlgoliaIndexError('Missing attributeForDistinct setting.')
 
         # Check should_index + get the callable or attribute/field name
         if self.should_index:
