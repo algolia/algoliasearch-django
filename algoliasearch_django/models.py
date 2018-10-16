@@ -251,7 +251,33 @@ class AlgoliaIndex(object):
                     tmp['_tags'] = list(tmp['_tags'])
 
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
+        if self._has_duplication_method():
+            logger.debug('DUPLICATING MODEL %s', self.model)
+            records = self.duplication_method(instance, raw_record=tmp)
+            if isinstance(records, (list, tuple, types.GeneratorType)):
+                return records
+
+            # unsupported type
+            raise TypeError(
+                '{} should return a list, tuple or generator.'.format(
+                    self.duplication_method
+                )
+            )
+
         return tmp
+
+    def _get_duplicated_raw_records(self, *args, **kwargs):
+        """
+        Return a list of records, possibly duplicated if
+        `_has_duplication_method()` returns True.
+        It is an internal helper.
+        """
+        objs = self.get_raw_record(*args, **kwargs)
+        return objs if self._has_duplication_method() else [objs]
+
+    def _has_duplication_method(self):
+        """Return True if this AlgoliaIndex has a duplication_method method"""
+        return self.duplication_method is not None
 
     def _has_should_index(self):
         """Return True if this AlgoliaIndex has a should_index method or attribute"""
@@ -315,32 +341,44 @@ class AlgoliaIndex(object):
 
         try:
             if update_fields:
-                obj = self.get_raw_record(instance,
-                                          update_fields=update_fields)
-                result = self.__index.partial_update_object(obj)
+                index_method = self.__index.partial_update_objects
             else:
-                obj = self.get_raw_record(instance)
-                result = self.__index.save_object(obj)
-            logger.info('SAVE %s FROM %s', obj['objectID'], self.model)
+                index_method = self.__index.save_objects
+
+            objs = self._get_duplicated_raw_records(instance, update_fields=update_fields)
+            batch = AlgoliaIndexBatch(
+                index_method, self.DEFAULT_BATCH_SIZE, objs
+            )
+            result = batch.flush()
+            logger.info('SAVE %s FROM %s', instance.pk, self.model)
             return result
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
-                logger.warning('%s FROM %s NOT SAVED: %s', obj['objectID'],
+                logger.warning('%s FROM %s NOT SAVED: %s', instance.pk,
                                self.model, e)
 
     def delete_record(self, instance):
         """Deletes the record."""
-        objectID = self.objectID(instance)
+        if self._has_duplication_method():
+            object_ids = [
+                obj['objectID'] for obj in self.get_raw_record(instance)
+            ]
+        else:
+            object_ids = [self.objectID(instance)]
         try:
-            self.__index.delete_object(objectID)
-            logger.info('DELETE %s FROM %s', objectID, self.model)
+            batch = AlgoliaIndexBatch(
+                self.__index.delete_objects,
+                self.DEFAULT_BATCH_SIZE, object_ids
+            )
+            batch.flush()
+            logger.info('DELETE %s FROM %s', instance.pk, self.model)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
-                logger.warning('%s FROM %s NOT DELETED: %s', objectID,
+                logger.warning('%s FROM %s NOT DELETED: %s', instance.pk,
                                self.model, e)
 
     def update_records(self, qs, batch_size=DEFAULT_BATCH_SIZE, **kwargs):
@@ -497,7 +535,7 @@ class AlgoliaIndex(object):
             logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
             counts = 0
-            batch = []
+            batch = AlgoliaIndexBatch(self.__tmp_index.save_objects, batch_size)
 
             if hasattr(self, 'get_queryset'):
                 qs = self.get_queryset()
@@ -508,17 +546,14 @@ class AlgoliaIndex(object):
                 if not self._should_index(instance):
                     continue  # should not index
 
-                batch.append(self.get_raw_record(instance))
-                if len(batch) >= batch_size:
-                    self.__tmp_index.save_objects(batch)
-                    logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
-                                self.index_name)
-                    batch = []
+
+                objs = self._get_duplicated_raw_records(instance)
+                batch.add(objs)
                 counts += 1
-            if len(batch) > 0:
-                self.__tmp_index.save_objects(batch)
-                logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
-                            self.index_name)
+
+            logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
+                        self.index_name)
+            batch.flush()
 
             self.__client.move_index(self.__tmp_index.index_name,
                                      self.__index.index_name)
