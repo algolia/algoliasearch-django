@@ -8,7 +8,6 @@ import logging
 import sys
 from algoliasearch.helpers import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
-from django.utils.inspect import func_supports_parameter
 
 from .settings import DEBUG
 
@@ -154,7 +153,7 @@ class AlgoliaIndex(object):
         # Check duplication_method
         if self.duplication_method:
             self.duplication_method = check_and_get_attr(model, self.duplication_method)
-            if not func_supports_parameter(self.duplication_method, 'raw_record'):
+            if 'raw_record' not in inspect.signature(self.duplication_method).parameters:
                 raise AlgoliaIndexError('{} doesnt accept a `raw_record` parameter.'.format(
                     self.duplication_method
                 ))
