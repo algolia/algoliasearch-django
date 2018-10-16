@@ -655,7 +655,7 @@ class IndexTestCase(TestCase):
         self.user.bio = "крупнейших"
         self.user.save()
         self.index = CyrillicIndex(User, self.client, settings.ALGOLIA)
-        self.index.wait_task(self.index.save_record(self.user)["taskID"])
+        self.index.wait_task(self.index.save_record(self.user)[0]["taskID"])
         result = self.index.raw_search("крупнейших")
         self.assertEqual(result['nbHits'], 1, "Search should return one result")
         self.assertEqual(result['hits'][0]['name'], 'Algolia', "The result should be self.user")
