@@ -349,13 +349,13 @@ class AlgoliaIndex(object):
                 index_method, self.DEFAULT_BATCH_SIZE, objs
             )
             result = batch.flush()
-            logger.info('SAVE %s FROM %s', instance.pk, self.model)
+            logger.info('SAVE %s FROM %s', self.objectID(instance), self.model)
             return result
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
-                logger.warning('%s FROM %s NOT SAVED: %s', instance.pk,
+                logger.warning('%s FROM %s NOT SAVED: %s', self.objectID(instance),
                                self.model, e)
 
     def delete_record(self, instance):
@@ -372,12 +372,12 @@ class AlgoliaIndex(object):
                 self.DEFAULT_BATCH_SIZE, object_ids
             )
             batch.flush()
-            logger.info('DELETE %s FROM %s', instance.pk, self.model)
+            logger.info('DELETE %s FROM %s', self.objectID(instance), self.model)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
-                logger.warning('%s FROM %s NOT DELETED: %s', instance.pk,
+                logger.warning('%s FROM %s NOT DELETED: %s', self.objectID(instance),
                                self.model, e)
 
     def update_records(self, qs, batch_size=DEFAULT_BATCH_SIZE, **kwargs):
