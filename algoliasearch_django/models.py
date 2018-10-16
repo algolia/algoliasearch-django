@@ -528,3 +528,39 @@ class AlgoliaIndex(object):
             else:
                 logger.warning('ERROR DURING REINDEXING %s: %s', self.model,
                                e)
+
+
+class AlgoliaIndexBatch(object):
+    """Helper to construct batches of requests and send them."""
+
+    def __init__(self, method, size, queue=None):
+        """
+        Initialize the batch.
+
+        :param method:       the method used to flush the batch
+        :param size:         the batch size
+        :param queue:        optional queue to initialize the batch
+        """
+        self.method = method
+        self.size = size
+        self._queue = queue or []
+
+    def __len__(self):
+        """Return the length of the batch."""
+        return len(self._queue)
+
+    def add(self, objs):
+        """Add objects to the batch."""
+        self._queue.extend(objs)
+
+    def flush(self):
+        """
+        Flush the batch, i.e. perform the requests, by ensuring that
+        each batched request doesn't contain more than `self.size` operations.
+        """
+        results = []
+        with self._queue:
+            results.append(self.method(self._queue[:self.size]))
+            self._queue = self._queue[self.size:]
+
+        return results
