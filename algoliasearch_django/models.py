@@ -75,6 +75,8 @@ class AlgoliaIndex(object):
     # Name of the attribute to check on instances if should_index is not a callable
     _should_index_is_method = False
 
+    DEFAULT_BATCH_SIZE = 1000
+
     def __init__(self, model, client, settings):
         """Initializes the index."""
         self.__init_index(client, model, settings)
@@ -341,7 +343,7 @@ class AlgoliaIndex(object):
                 logger.warning('%s FROM %s NOT DELETED: %s', objectID,
                                self.model, e)
 
-    def update_records(self, qs, batch_size=1000, **kwargs):
+    def update_records(self, qs, batch_size=DEFAULT_BATCH_SIZE, **kwargs):
         """
         Updates multiple records.
 
@@ -435,7 +437,7 @@ class AlgoliaIndex(object):
             else:
                 logger.warning('%s NOT WAIT: %s', self.model, e)
 
-    def reindex_all(self, batch_size=1000):
+    def reindex_all(self, batch_size=DEFAULT_BATCH_SIZE):
         """
         Reindex all the records.
 
