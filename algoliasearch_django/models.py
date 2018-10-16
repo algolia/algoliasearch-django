@@ -614,7 +614,7 @@ class AlgoliaIndexBatch(object):
         each batched request doesn't contain more than `self.size` operations.
         """
         results = []
-        with self._queue:
+        while self._queue:
             results.append(self.method(self._queue[:self.size]))
             self._queue = self._queue[self.size:]
 
