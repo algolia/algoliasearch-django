@@ -356,6 +356,11 @@ class AlgoliaIndex(object):
         >>> update_records(MyModel, qs, myField=True)
         >>> qs.update(myField=True)
         """
+        if self._has_duplication_method():
+            raise AlgoliaIndexError(
+                'update_records() with record duplication is not supported yet'
+            )
+
         tmp = {}
         for key, value in kwargs.items():
             name = self.__translate_fields.get(key, None)
