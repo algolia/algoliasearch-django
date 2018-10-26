@@ -69,6 +69,15 @@ class Example(models.Model):
         return "foo"
 
 
+class ProxyExample(Example):
+
+    class Meta:
+        proxy = True
+
+    def location(self):
+        return {'lng': self.lng, 'lat': self.lat}
+
+
 class BlogPost(models.Model):
     author = models.ForeignKey(
         User,
