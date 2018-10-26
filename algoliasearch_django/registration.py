@@ -69,9 +69,10 @@ class AlgoliaEngine(object):
         if (isinstance(auto_indexing, bool) and
                 auto_indexing) or self.__auto_indexing:
             # Connect to the signalling framework.
-            post_save.connect(self.__post_save_receiver, model)
-            pre_delete.connect(self.__pre_delete_receiver, model)
-            logger.info('REGISTER %s', model)
+            auto_index_model = self.auto_index_model(model, register=True)
+            post_save.connect(self.__post_save_receiver, auto_index_model)
+            pre_delete.connect(self.__pre_delete_receiver, auto_index_model)
+            logger.info('REGISTER %s', auto_index_model)
 
     def unregister(self, model):
         """
@@ -87,9 +88,21 @@ class AlgoliaEngine(object):
         del self.__registered_models[model]
 
         # Disconnect from the signalling framework.
-        post_save.disconnect(self.__post_save_receiver, model)
-        pre_delete.disconnect(self.__pre_delete_receiver, model)
-        logger.info('UNREGISTER %s', model)
+        auto_index_model = self.auto_index_model(model)
+        post_save.disconnect(self.__post_save_receiver, auto_index_model)
+        pre_delete.disconnect(self.__pre_delete_receiver, auto_index_model)
+        logger.info('UNREGISTER %s', auto_index_model)
+
+    def auto_index_model(self, model, register=False):
+        """
+        Get the concrete model to connect the auto-indexing signals.
+
+        If the given model is a proxy model, we connect signals to the
+        concrete model rather than the proxy model.
+        """
+        if model._meta.proxy:
+            return model._meta.proxy_for_model
+        return model
 
     def get_registered_models(self):
         """
