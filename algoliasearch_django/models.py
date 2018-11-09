@@ -221,13 +221,16 @@ class AlgoliaIndex(object):
                 )
             )
 
-    def get_raw_record(self, instance, update_fields=None):
+    def get_raw_record(self, instance, update_fields=None, only_duplicated_ids=None):
         """
         Gets the raw record.
 
         If `update_fields` is set, the raw record will be build with only
         the objectID and the given fields. Also, `_geoloc` and `_tags` will
         not be included.
+
+        If `only_duplicated_ids` is set, it needs to be a list of duplicated data
+        that was added to a record.
         """
         tmp = {'objectID': self.objectID(instance)}
 
@@ -264,7 +267,10 @@ class AlgoliaIndex(object):
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         if self._has_duplication_method():
             logger.debug('DUPLICATING MODEL %s', self.model)
-            records = self.duplication_method(instance, raw_record=tmp)
+            records = self.duplication_method(
+                instance, raw_record=tmp,
+                only_duplicated_ids=only_duplicated_ids
+            )
             if isinstance(records, (list, tuple, types.GeneratorType)):
                 return records
 
@@ -330,7 +336,7 @@ class AlgoliaIndex(object):
                     instance.__class__.__name__, self.should_index))
             return attr_value
 
-    def save_record(self, instance, update_fields=None, **kwargs):
+    def save_record(self, instance, update_fields=None, only_duplicated_ids=None, **kwargs):
         """Saves the record.
 
         If `update_fields` is set, this method will use partial_update_object()
@@ -338,6 +344,9 @@ class AlgoliaIndex(object):
 
         For more information about partial_update_object:
         https://github.com/algolia/algoliasearch-client-python#update-an-existing-object-in-the-index
+
+        If `only_duplicated_ids` is set, it needs to be a list
+        of duplicated data that was added to the record.
         """
         if not self._should_index(instance):
             # Should not index, but since we don't now the state of the
@@ -352,7 +361,10 @@ class AlgoliaIndex(object):
             else:
                 index_method = self.__index.save_objects
 
-            objs = self._get_duplicated_raw_records(instance, update_fields=update_fields)
+            objs = self._get_duplicated_raw_records(
+                instance, update_fields=update_fields,
+                only_duplicated_ids=only_duplicated_ids
+            )
             batch = AlgoliaIndexBatch(
                 index_method, self.DEFAULT_BATCH_SIZE, objs
             )
@@ -366,12 +378,16 @@ class AlgoliaIndex(object):
                 logger.warning('%s FROM %s NOT SAVED: %s', self.objectID(instance),
                                self.model, e)
 
-    def delete_record(self, instance):
+    def delete_record(self, instance, only_duplicated_ids=None):
         """Deletes the record."""
         if self._has_duplication_method():
-            object_ids = [
-                obj['objectID'] for obj in self.get_raw_record(instance)
-            ]
+            if only_duplicated_ids:
+                object_ids = only_duplicated_ids
+            else:
+                object_ids = [
+                    obj['objectID']
+                    for obj in self.get_raw_record(instance)
+                ]
         else:
             object_ids = [self.objectID(instance)]
         try:
@@ -379,8 +395,9 @@ class AlgoliaIndex(object):
                 self.__index.delete_objects,
                 self.DEFAULT_BATCH_SIZE, object_ids
             )
-            batch.flush()
+            result = batch.flush()
             logger.info('DELETE %s FROM %s', self.objectID(instance), self.model)
+            return result
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -606,7 +623,8 @@ class AlgoliaIndexBatch(object):
         """
         self.method = method
         self.size = size
-        self._queue = queue or []
+        # casting the queue to a list here
+        self._queue = list(queue) if queue else []
 
     def __len__(self):
         """Return the length of the batch."""

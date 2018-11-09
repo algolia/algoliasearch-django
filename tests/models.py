@@ -68,6 +68,24 @@ class Example(models.Model):
     def property_string(self):
         return "foo"
 
+    def duplication_get_locations(self):
+        return [
+            {'id': '1', 'name': 'Paris'},
+            {'id': '2', 'name': 'San Francisco'},
+            {'id': '3', 'name': 'Berlin'}
+        ]
+
+    def duplication_get_records_per_location(self, raw_record, only_duplicated_ids=None):
+        for loc in self.duplication_get_locations():
+            lang_record = raw_record.copy()
+            lang_record['objectID'] = '{}-{}'.format(lang_record['objectID'], loc['id'])
+            lang_record['location'] = loc['name']
+            if not only_duplicated_ids or lang_record['objectID'] in only_duplicated_ids:
+                yield lang_record
+
+    def duplication_get_records_per_location_wrong_type(self, **kwargs):
+        return 'oups'
+
 
 class BlogPost(models.Model):
     author = models.ForeignKey(
