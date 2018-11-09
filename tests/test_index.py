@@ -565,9 +565,11 @@ class IndexTestCase(TestCase):
                 'attributesToIndex': ['name', 'location'],
             }
 
-        ex = Example(uid=42, name='Algolia')
-        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        algolia_engine.register(Example, ExampleIndex)
+        self.index = algolia_engine.get_adapter(Example)
         self.index.set_settings()
+
+        ex = Example(uid=42, name='Algolia')
         results = self.index.save_record(ex, only_duplicated_ids=['42-1'])
         for result in results:
             self.index.wait_task(result['taskID'])
@@ -581,6 +583,16 @@ class IndexTestCase(TestCase):
         # nothing
         data_sf = self.index.raw_search('san fran', {'distinct': 1})
         self.assertEqual(data_sf['nbHits'], 0)
+        data_berlin = self.index.raw_search('berlin', {'distinct': 1})
+        self.assertEqual(data_berlin['nbHits'], 0)
+
+        # adding new records
+        results = algolia_engine.add_duplicated_records(ex, ['42-2'])
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data_sf = self.index.raw_search('san fran', {'distinct': 1})
+        self.assertEqual(data_sf['nbHits'], 1)
         data_berlin = self.index.raw_search('berlin', {'distinct': 1})
         self.assertEqual(data_berlin['nbHits'], 0)
 
@@ -622,10 +634,11 @@ class IndexTestCase(TestCase):
                 'attributesToIndex': ['name', 'location'],
             }
 
-        ex = Example(uid=42, name='Algolia')
-        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        algolia_engine.register(Example, ExampleIndex)
+        self.index = algolia_engine.get_adapter(Example)
         self.index.set_settings()
 
+        ex = Example(uid=42, name='Algolia')
         results = self.index.save_record(ex)
         for result in results:
             self.index.wait_task(result['taskID'])
@@ -633,7 +646,7 @@ class IndexTestCase(TestCase):
         data = self.index.raw_search('algolia', {'distinct': 1})
         self.assertEqual(data['nbHits'], 1)  # distinct works
         # deleting
-        results = self.index.delete_record(ex, only_duplicated_ids=['42-1', '42-2'])
+        results = algolia_engine.delete_duplicated_records(ex, ['42-1', '42-2'])
         for result in results:
             self.index.wait_task(result['taskID'])
 
