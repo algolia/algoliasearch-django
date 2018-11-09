@@ -41,10 +41,17 @@ class IndexTestCase(TestCase):
             {'lat': 10.3, 'lng': -20.0},
             {'lat': 22.3, 'lng': 10.0},
         ]
+        self._registrations = []
 
     def tearDown(self):
         if hasattr(self, 'index') and hasattr(self.index, 'index_name'):
             self.client.delete_index(self.index.index_name)
+        for model in self._registrations:
+            algolia_engine.unregister(model)
+
+    def register(self, model, index):
+        algolia_engine.register(model, index)
+        self._registrations.append(model)
 
     def test_default_index_name(self):
         self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
@@ -565,7 +572,7 @@ class IndexTestCase(TestCase):
                 'attributesToIndex': ['name', 'location'],
             }
 
-        algolia_engine.register(Example, ExampleIndex)
+        self.register(Example, ExampleIndex)
         self.index = algolia_engine.get_adapter(Example)
         self.index.set_settings()
 
@@ -634,7 +641,7 @@ class IndexTestCase(TestCase):
                 'attributesToIndex': ['name', 'location'],
             }
 
-        algolia_engine.register(Example, ExampleIndex)
+        self.register(Example, ExampleIndex)
         self.index = algolia_engine.get_adapter(Example)
         self.index.set_settings()
 
