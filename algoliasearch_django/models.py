@@ -9,7 +9,10 @@ import types
 import sys
 from algoliasearch.helpers import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
-from django.utils.inspect import func_supports_parameter, func_accepts_kwargs
+try:
+    from django.utils.inspect import func_supports_parameter, func_accepts_kwargs
+except ImportError:  # Django 1.7
+    from .utils import func_supports_parameter, func_accepts_kwargs
 
 from .settings import DEBUG
 
