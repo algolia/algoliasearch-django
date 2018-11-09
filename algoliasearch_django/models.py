@@ -9,10 +9,7 @@ import types
 import sys
 from algoliasearch.helpers import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
-from django.utils.inspect import (
-    get_func_args, func_supports_parameter,
-    func_accepts_kwargs
-)
+from django.utils.inspect import func_supports_parameter, func_accepts_kwargs
 
 from .settings import DEBUG
 
@@ -311,9 +308,13 @@ class AlgoliaIndex(object):
         """Return True if according to should_index the object should be indexed."""
         if self._should_index_is_method:
             is_method = inspect.ismethod(self.should_index)
-            count_args = len(get_func_args(self.should_index))
+            try:
+                count_args = len(inspect.signature(self.should_index).parameters)
+            except AttributeError:
+                # noinspection PyDeprecation
+                count_args = len(inspect.getargspec(self.should_index).args)
 
-            if is_method or count_args == 0:
+            if is_method or count_args is 1:
                 # bound method, call with instance
                 return self.should_index(instance)
             else:
