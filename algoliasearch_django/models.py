@@ -4,6 +4,7 @@ import inspect
 from functools import partial
 from itertools import chain
 import logging
+import types
 
 import sys
 from algoliasearch.helpers import AlgoliaException
