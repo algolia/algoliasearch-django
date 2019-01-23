@@ -1,8 +1,7 @@
 
 # Algolia Search API Client for Django
 
-[Algolia Search](https://www.algolia.com) is a hosted full-text, numerical,
-and faceted search engine capable of delivering realtime results from the first keystroke.
+[Algolia Search](https://www.algolia.com) is a hosted search engine capable of delivering real-time results from the first keystroke.
 
 [![Build Status](https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master)](https://travis-ci.org/algolia/algoliasearch-django)
 [![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master)](https://coveralls.io/r/algolia/algoliasearch-django)
@@ -19,7 +18,7 @@ Compatible with **Python 2.7**, **Python 3.4+** and **Django 1.7+**
 
 ## API Documentation
 
-You can find the full reference on [Algolia's website](https://www.algolia.com/doc/api-client/django/).
+You can find the full reference on [Algolia's website](https://www.algolia.com/doc/framework-integration/django/).
 
 
 
@@ -56,7 +55,6 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
 
 
 
-
 # Setup
 
 
@@ -88,8 +86,8 @@ ALGOLIA = {
 
 There are several optional settings:
 
-* `INDEX_PREFIX`: prefix all indexes. Use it to separate different applications, like `site1_Products` and `site2_Products`.
-* `INDEX_SUFFIX`: suffix all indexes. Use it to differentiate development and production environments, like `Location_dev` and `Location_prod`.
+* `INDEX_PREFIX`: prefix all indices. Use it to separate different applications, like `site1_Products` and `site2_Products`.
+* `INDEX_SUFFIX`: suffix all indices. Use it to differentiate development and production environments, like `Location_dev` and `Location_prod`.
 * `AUTO_INDEXING`: automatically synchronize the models with Algolia (default to **True**).
 * `RAISE_EXCEPTIONS`: raise exceptions on network errors instead of logging them (default to **settings.DEBUG**).
 
@@ -129,7 +127,6 @@ class YourModelIndex(AlgoliaIndex):
 
 
 
-
 # Commands
 
 
@@ -143,14 +140,13 @@ class YourModelIndex(AlgoliaIndex):
 
 
 
-
 # Search
 
 
 
 ## Search
 
-We recommend using our [InstantSearch.js library](https://community.algolia.com/instantsearch.js) to build your search
+We recommend using our [InstantSearch.js library](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) to build your search
 interface and perform search queries directly from the end-user browser without going through your server.
 
 However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', params)` method.
@@ -163,7 +159,6 @@ from algoliasearch_django import raw_search
 params = { "hitsPerPage": 5 }
 response = raw_search(Contact, "jim", params)
 ```
-
 
 
 
@@ -193,7 +188,6 @@ algoliasearch.register(Contact, ContactIndex)
 
 
 
-
 # Tags
 
 
@@ -208,7 +202,6 @@ class ArticleIndex(AlgoliaIndex):
 ```
 
 At query time, specify `{ tagFilters: 'tagvalue' }` or `{ tagFilters: ['tagvalue1', 'tagvalue2'] }` as search parameters to restrict the result set to specific tags.
-
 
 
 
@@ -300,7 +293,7 @@ callable that returns a boolean.
 
 ```python
 class Contact(models.model):
-    name = models.CharField(max_lenght=20)
+    name = models.CharField(max_length=20)
     age = models.IntegerField()
 
     def is_adult(self):
@@ -397,7 +390,6 @@ with disable_auto_indexing(MyModel):
     MyOtherModel.save()
 
 ```
-
 
 
 
