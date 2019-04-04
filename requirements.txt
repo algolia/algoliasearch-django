@@ -1,5 +1,5 @@
 django>=1.7
-algoliasearch
+algoliasearch>=1.0,<2.0
 # dev dependencies
 pypandoc
 wheel

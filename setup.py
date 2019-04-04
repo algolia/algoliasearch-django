@@ -31,7 +31,7 @@ setup(
     version=VERSION,
     license='MIT License',
     packages=find_packages(exclude=['tests']),
-    install_requires=['django>=1.7', 'algoliasearch'],
+    install_requires=['django>=1.7', 'algoliasearch>=1.0,<2.0'],
     description='Algolia Search integration for Django',
     long_description=README,
     author='Algolia Team',
