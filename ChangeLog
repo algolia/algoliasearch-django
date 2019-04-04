@@ -1,7 +1,7 @@
 
 CHANGELOG
 
-Unreleased
+2019-04-04 1.7.1
   * [FIX] Fixes non specified version of algoliasearch in requirements (#281)
 
 2018-08-27 1.7.0
