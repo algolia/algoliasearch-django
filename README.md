@@ -1,20 +1,25 @@
+<p align="center">
+  <a href="https://www.algolia.com">
+    <img alt="Algolia for Django" src="https://raw.githubusercontent.com/algolia/algoliasearch-client-common/master/banners/django.png" >
+  </a>
 
-# Algolia Search API Client for Django
+  <h4 align="center">The perfect starting point to integrate <a href="https://algolia.com" target="_blank">Algolia</a> within your Django project</h4>
 
-[Algolia Search](https://www.algolia.com) is a hosted search engine capable of delivering real-time results from the first keystroke.
-
-[![Build Status](https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master)](https://travis-ci.org/algolia/algoliasearch-django)
-[![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master)](https://coveralls.io/r/algolia/algoliasearch-django)
-[![PyPI version](https://badge.fury.io/py/algoliasearch-django.svg?branch=master)](http://badge.fury.io/py/algoliasearch-django)
-
-
-This package lets you easily integrate the Algolia Search API to your [Django](https://www.djangoproject.com/) project. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
-
-You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
-
-Compatible with **Python 2.7**, **Python 3.4+** and **Django 1.7+**
+  <p align="center">
+    <a href="https://travis-ci.org/algolia/algoliasearch-django"><img src="https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master" alt="Build Status"></img></a>
+    <a href="https://coveralls.io/r/algolia/algoliasearch-django"><img src="https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master" alt="Coverage Status"></img></a>
+    <a href="http://badge.fury.io/py/algoliasearch-django"><img src="https://badge.fury.io/py/algoliasearch-django.svg?branch=master" alt="PyPi Version"></img></a>
+  </p>
+</p>
 
 
+<p align="center">
+  <a href="https://www.algolia.com/doc/api-client/getting-started/install/go/" target="_blank">Documentation</a>  •
+  <a href="https://discourse.algolia.com" target="_blank">Community Forum</a>  •
+  <a href="http://stackoverflow.com/questions/tagged/algolia" target="_blank">Stack Overflow</a>  •
+  <a href="https://github.com/algolia/algoliasearch-django/issues" target="_blank">Report a bug</a>  •
+  <a href="https://www.algolia.com/support" target="_blank">Support</a>
+</p>
 
 ## API Documentation
 
@@ -267,10 +272,10 @@ class ContactIndex(AlgoliaIndex):
         'searchableAttributes': ['name', 'email', 'company', 'city', 'county', 'account_names',
         }
 ```
-    
+
 - With this configuration, you can search for a `Contact` using its `Account` names
-- You can use the associated `account_ids` at search-time to fetch more data from your 
-model (you should **only proxy the fields relevant for search** to keep your records' size 
+- You can use the associated `account_ids` at search-time to fetch more data from your
+model (you should **only proxy the fields relevant for search** to keep your records' size
 as small as possible)
 
 ## Index settings
@@ -308,7 +313,7 @@ class ContactIndex(AlgoliaIndex):
 It is possible to have several indices for a single model.
 
 - First, define all your indices that you want for a model:
-    
+
 ```python
 from django.contrib.algoliasearch import AlgoliaIndex
 
@@ -322,7 +327,7 @@ class MyModelIndex2(AlgoliaIndex):
 ```
 
 - Then, define a meta model which will aggregate those indices:
-    
+
 ```python
 class MyModelMetaIndex(AlgoliaIndex):
     def __init__(self, model, client, settings):
@@ -363,7 +368,7 @@ class MyModelMetaIndex(AlgoliaIndex):
 ```
 
 - Finally, register this `AlgoliaIndex` with your `Model`:
-    
+
 ```python
 import algoliasearch_django as algoliasearch
 algoliasearch.register(MyModel, MyModelMetaIndex)
@@ -404,8 +409,8 @@ To run the tests, first find your Algolia application id and Admin API key (foun
 ```shell
 ALGOLIA_APPLICATION_ID={APPLICATION_ID} ALGOLIA_API_KEY={ADMIN_API_KEY} tox
 ```
-  
-  
+
+
 To override settings for some tests, use the [settings method](https://docs.djangoproject.com/en/1.11/topics/testing/tools/#django.test.SimpleTestCase.settings):
 ```python
 class OverrideSettingsTestCase(TestCase):
