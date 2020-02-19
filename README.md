@@ -177,7 +177,7 @@ Use the `geo_field` attribute to localize your record. `geo_field` should be a c
 
 ```python
 class Contact(models.model):
-    name = models.CharField(max_lenght=20)
+    name = models.CharField(max_length=20)
     lat = models.FloatField()
     lng = models.FloatField()
 
