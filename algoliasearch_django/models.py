@@ -457,7 +457,7 @@ class AlgoliaIndex(object):
                     self.settings['slaves'] = []
                     logger.debug("REMOVE SLAVES FROM SETTINGS")
 
-                self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings)['taskID'])
+                self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings.copy())['taskID'])
                 logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
             rules = []
             synonyms = []
