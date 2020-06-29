@@ -83,10 +83,7 @@ class AlgoliaIndex(object):
         if self.settings is None:  # Only set settings if the actual index class does not define some
             self.settings = {}
 
-        try:
-            all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
-        except AttributeError:  # get_fields requires Django >= 1.8
-            all_model_fields = [f.name for f in model._meta.local_fields]
+        all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
 
         if isinstance(self.fields, str):
             self.fields = (self.fields,)

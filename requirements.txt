@@ -7,3 +7,4 @@ tox
 twine
 factory_boy
 mock
+six
