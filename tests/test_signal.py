@@ -15,18 +15,11 @@ from .models import Website
 
 class SignalTestCase(TestCase):
 
-    @classmethod
-    def tearDownClass(cls):
-        algolia_engine.client.delete_index(get_adapter(Website).index_name)
-
-    def tearDown(self):
-        clear_index(Website)
-
     def test_save_signal(self):
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, 'save_record') as mock_save_record:
             websites = WebsiteFactory.create_batch(3)
 
-        mocked_save_record.assert_has_calls(
+        mock_save_record.assert_has_calls(
             [
                 call(
                     website,
@@ -42,32 +35,36 @@ class SignalTestCase(TestCase):
         )
 
     def test_delete_signal(self):
-        websites = WebsiteFactory.create_batch(3)
+        with patch.object(algolia_engine, 'save_record'):
+            websites = WebsiteFactory.create_batch(3)
 
-        with patch.object(algolia_engine, 'delete_record') as mocked_delete_record:
+        with patch.object(algolia_engine, 'delete_record') as mock_delete_record:
             websites[0].delete()
             websites[1].delete()
 
-        mocked_delete_record.assert_has_calls(
+        mock_delete_record.assert_has_calls(
             [
                 call(websites[0]),
                 call(websites[1])
             ]
         )
 
-    def test_update_records(self):
-        Website.objects.create(name='Algolia', url='https://www.algolia.com')
-        Website.objects.create(name='Google', url='https://www.google.com')
-        Website.objects.create(name='Facebook', url='https://www.facebook.com')
-        Website.objects.create(name='Facebook', url='https://www.facebook.fr')
-        Website.objects.create(name='Facebook', url='https://fb.com')
+    def test_unregistered_save_signal(self):
+        algolia_engine.unregister(Website)
 
-        qs = Website.objects.filter(name='Facebook')
-        update_records(Website, qs, url='https://facebook.com')
-        qs.update(url='https://facebook.com')
+        with patch.object(algolia_engine, 'save_record') as mock_save_record:
+            websites = WebsiteFactory.create_batch(3)
+            mock_save_record.assert_not_called()
 
-        time.sleep(10)
-        result = raw_search(Website, 'Facebook')
-        self.assertEqual(result['nbHits'], qs.count())
-        for res, url in zip(result['hits'], qs.values_list('url', flat=True)):
-            self.assertEqual(res['url'], url)
+        algolia_engine.register(Website)
+
+    def test_unregistered_delete_signal(self):
+        algolia_engine.unregister(Website)
+
+        websites = WebsiteFactory.create_batch(3)
+        with patch.object(algolia_engine, 'delete_record') as mock_delete_record:
+            websites[0].delete()
+            websites[1].delete()
+            mock_delete_record.assert_not_called()
+
+        algolia_engine.register(Website)

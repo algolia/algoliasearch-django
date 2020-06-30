@@ -1,5 +1,6 @@
 # coding=utf-8
-import time
+from mock import patch, call, MagicMock
+
 from django.conf import settings
 from django.test import TestCase
 
@@ -12,7 +13,7 @@ from .models import User, Website, Example
 
 class IndexTestCase(TestCase):
     def setUp(self):
-        self.client = algolia_engine.client
+        self.client = MagicMock()
         self.user = User(name='Algolia', username="algolia",
                          bio='Milliseconds matter', followers_count=42001,
                          following_count=42, _lat=123, _lng=-42.24,
@@ -41,33 +42,28 @@ class IndexTestCase(TestCase):
             {'lat': 22.3, 'lng': 10.0},
         ]
 
-    def tearDown(self):
-        if hasattr(self, 'index') and hasattr(self.index, 'index_name'):
-            self.client.delete_index(self.index.index_name)
-
     def test_default_index_name(self):
-        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+        index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
         regex = r'^test_Website_django(_travis-\d+.\d+)?$'
         try:
-            self.assertRegex(self.index.index_name, regex)
+            self.assertRegex(index.index_name, regex)
         except AttributeError:
-            self.assertRegexpMatches(self.index.index_name, regex)
+            self.assertRegexpMatches(index.index_name, regex)
 
     def test_custom_index_name(self):
         class WebsiteIndex(AlgoliaIndex):
             index_name = 'customName'
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         regex = r'^test_customName_django(_travis-\d+.\d+)?$'
         try:
-            self.assertRegex(self.index.index_name, regex)
+            self.assertRegex(index.index_name, regex)
         except AttributeError:
-            self.assertRegexpMatches(self.index.index_name, regex)
+            self.assertRegexpMatches(index.index_name, regex)
 
     def test_index_model_with_foreign_key_reference(self):
-        self.index = AlgoliaIndex(User, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        self.assertFalse("blogpost" in self.index.fields)
+        index = AlgoliaIndex(User, self.client, settings.ALGOLIA)
+        self.assertFalse("blogpost" in index.fields)
 
     def test_index_name_settings(self):
         algolia_settings = dict(settings.ALGOLIA)
@@ -75,12 +71,12 @@ class IndexTestCase(TestCase):
         del algolia_settings['INDEX_SUFFIX']
 
         with self.settings(ALGOLIA=algolia_settings):
-            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
             regex = r'^Website$'
             try:
-                self.assertRegex(self.index.index_name, regex)
+                self.assertRegex(index.index_name, regex)
             except AttributeError:
-                self.assertRegexpMatches(self.index.index_name, regex)
+                self.assertRegexpMatches(index.index_name, regex)
 
     def test_tmp_index_name(self):
         """Test that the temporary index name should respect suffix and prefix settings"""
@@ -92,103 +88,94 @@ class IndexTestCase(TestCase):
         del algolia_settings['INDEX_SUFFIX']
 
         with self.settings(ALGOLIA=algolia_settings):
-            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
-            self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
-                'Website_tmp'
-            )
+            index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.client.init_index.assert_called_with('Website_tmp')
+
+        self.client.reset_mock()
 
         # With only a prefix
         algolia_settings['INDEX_PREFIX'] = 'prefix'
 
         with self.settings(ALGOLIA=algolia_settings):
-            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
-            self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
-                'prefix_Website_tmp'
-            )
+            index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.client.init_index.assert_called_with('prefix_Website_tmp')
+
+        self.client.reset_mock()
 
         # With only a suffix
         del algolia_settings['INDEX_PREFIX']
         algolia_settings['INDEX_SUFFIX'] = 'suffix'
 
         with self.settings(ALGOLIA=algolia_settings):
-            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
-            self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
-                'Website_tmp_suffix'
-            )
+            index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.client.init_index.assert_called_with('Website_tmp_suffix')
+
+        self.client.reset_mock()
 
         # With a prefix and a suffix
         algolia_settings['INDEX_PREFIX'] = 'prefix'
         algolia_settings['INDEX_SUFFIX'] = 'suffix'
 
         with self.settings(ALGOLIA=algolia_settings):
-            self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
-            self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
-                'prefix_Website_tmp_suffix'
-            )
+            index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
+            self.client.init_index.assert_called_with('prefix_Website_tmp_suffix')
 
     def test_reindex_with_replicas(self):
-        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
-                    self.index.index_name + '_name_asc',
-                    self.index.index_name + '_name_desc'
+                    'test_name_asc',
+                    'test_name_desc'
                 ]
             }
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
 
-    def test_reindex_with_should_index_boolean(self):
+        self.client.init_index().set_settings.assert_has_calls([
+            call({'replicas': []}),
+            call({'replicas': ['test_name_asc', 'test_name_desc']})
+        ], any_order=True)
+
+    @patch.object(algolia_engine, "save_record")
+    def test_reindex_with_should_index_boolean(self, _):
+
         Website.objects.create(
             name='Algolia',
             url='https://algolia.com',
             is_online=True
         )
-        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
-                    self.index.index_name + '_name_asc',
-                    self.index.index_name + '_name_desc'
+                    'test_name_asc',
+                    'test_name_desc'
                 ]
             }
             should_index = 'is_online'
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+
+        self.client.init_index().save_objects.assert_called_with([{'objectID': 1, 'url': 'https://algolia.com', 'name': 'Algolia', 'is_online': True}])
 
     def test_reindex_no_settings(self):
-        self.maxDiff = None
-
         # Given an existing index defined without settings
         class WebsiteIndex(AlgoliaIndex):
-            pass
+            settings = None
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        mock_settings = MagicMock()
+        self.client.init_index.return_value.get_settings.return_value = mock_settings
 
-        # Given some existing settings on the index
-        existing_settings = self.apply_some_settings(self.index)
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
 
-        # When reindexing with no settings on the instance
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
-
-        # Expect the former settings to be kept across reindex
-        self.assertEqual(self.index.get_settings(), existing_settings,
-                         "An index whose model has no settings should keep its settings after reindex")
+        self.client.init_index().get_settings.assert_called_once()
+        self.assertEqual(mock_settings, index.settings)
 
     def test_reindex_with_settings(self):
-        import uuid
-        id = str(uuid.uuid4())
-        self.maxDiff = None
         index_settings = {'searchableAttributes': ['name', 'email', 'company', 'city', 'county', 'account_names',
                                                    'unordered(address)', 'state', 'zip_code', 'phone', 'fax',
                                                    'unordered(web)'], 'attributesForFaceting': ['city', 'company'],
@@ -206,42 +193,25 @@ class IndexTestCase(TestCase):
                               'exact',
                               'custom'
                           ],
-                          'replicas': ['WebsiteIndexReplica_' + id + '_name_asc',
-                                       'WebsiteIndexReplica_' + id + '_name_desc'],
+                          'replicas': ['WebsiteIndexReplica_name_asc',
+                                       'WebsiteIndexReplica_name_desc'],
                           'highlightPostTag': '</mark>', 'hitsPerPage': 15}
 
         # Given an existing index defined with settings
         class WebsiteIndex(AlgoliaIndex):
             settings = index_settings
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-
-        # Given some existing query rules on the index
-        # index.__index.save_rule()  # TODO: Check query rules are kept
-
-        # Given some existing settings on the index
-        existing_settings = self.apply_some_settings(self.index)
-
-        # When reindexing with no settings on the instance
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
-
-        # Expect the settings to be reset to model definition over reindex
-        former_settings = existing_settings
-        former_settings["hitsPerPage"] = 15
-        self.assertDictEqual(self.index.get_settings(), former_settings)
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+        self.client.init_index().set_settings.assert_called_with(index_settings)
 
     def test_reindex_with_rules(self):
         # Given an existing index defined with settings
         class WebsiteIndex(AlgoliaIndex):
             settings = {'hitsPerPage': 42}
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        underlying_index = self.index._AlgoliaIndex__index
-
         # Given some existing query rules on the index
-        rule = {
+        rules = [{
             'objectID': 'my-rule',
             'condition': {
                 'pattern': 'some text',
@@ -252,61 +222,31 @@ class IndexTestCase(TestCase):
                     'query': 'other text'
                 }
             }
-        }
-        res = underlying_index.save_rule(rule)
-        self.index.wait_task(res['taskID'])
+        }]
 
-        # When reindexing with no settings on the instance
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+        self.client.init_index.return_value.iter_rules.return_value = rules
 
-        # Expect the rules to be kept across reindex
-        rules = [r for r in underlying_index.iter_rules()]
-        self.assertEqual(len(rules), 1, "There should only be one rule")
-        self.assertIn(rule, rules, "The existing rule should be kept over reindex")
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.reindex_all()
+
+        self.client.init_index().iter_rules.assert_called_once()
+        self.client.init_index().batch_rules.assert_called_once_with(rules, forward_to_replicas=True)
 
     def test_reindex_with_synonyms(self):
         # Given an existing index defined with settings
         class WebsiteIndex(AlgoliaIndex):
             settings = {'hitsPerPage': 42}
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        underlying_index = self.index._AlgoliaIndex__index
-
         # Given some existing synonyms on the index
-        synonym = {'objectID': 'street', 'type': 'altCorrection1', 'word': 'Street', 'corrections': ['St']}
-        task = underlying_index.batch_synonyms([synonym])
-        underlying_index.wait_task(task['taskID'])
+        synonyms = [{'objectID': 'street', 'type': 'altCorrection1', 'word': 'Street', 'corrections': ['St']}]
 
-        # When reindexing with no settings on the instance
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
+        self.client.init_index.return_value.iter_synonyms.return_value = synonyms
 
-        # Expect the synonyms to be kept across reindex
-        synonyms = [s for s in underlying_index.iter_synonyms()]
-        self.assertEqual(len(synonyms), 1, "There should only be one synonym")
-        self.assertIn(synonym, synonyms, "The existing synonym should be kept over reindex")
-
-    def apply_some_settings(self, index):
-        """
-        Applies a sample setting to the index.
-
-        :param index: an AlgoliaIndex that will be updated
-        :return: the new settings
-        """
-        # When reindexing with settings on the instance
-        old_hpp = index.settings['hitsPerPage'] if 'hitsPerPage' in index.settings else None
-        index.settings['hitsPerPage'] = 42
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         index.reindex_all()
-        index.settings['hitsPerPage'] = old_hpp
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
-        index_settings = index.get_settings()
-        # Expect the instance's settings to be applied at reindex
-        self.assertEqual(index_settings['hitsPerPage'], 42,
-                         "An index whose model has settings should apply those at reindex")
-        return index_settings
+
+        self.client.init_index().iter_synonyms.assert_called_once()
+        self.client.init_index().batch_synonyms.assert_called_once_with(synonyms, forward_to_replicas=True)
 
     def test_custom_objectID(self):
         class UserIndex(AlgoliaIndex):
@@ -624,38 +564,24 @@ class IndexTestCase(TestCase):
         with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index property is not boolean"):
             self.index._should_index(self.example)
 
-    def test_save_record_should_index_boolean(self):
+    @patch.object(algolia_engine, "save_record")
+    def test_save_record_should_index_boolean(self, _):
         website = Website.objects.create(
             name='Algolia',
             url='https://algolia.com',
             is_online=True
         )
-        self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 'replicas': [
-                    self.index.index_name + '_name_asc',
-                    self.index.index_name + '_name_desc'
+                    'test_name_asc',
+                    'test_name_desc'
                 ]
             }
             should_index = 'is_online'
 
-        self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.save_record(website)
+        index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
+        index.save_record(website)
 
-    def test_cyrillic(self):
-        class CyrillicIndex(AlgoliaIndex):
-            fields = ['bio', 'name']
-            settings = {
-                'searchableAttributes': ['name', 'bio'],
-            }
-            index_name = "test_cyrillic"
-
-        self.user.bio = "крупнейших"
-        self.user.save()
-        self.index = CyrillicIndex(User, self.client, settings.ALGOLIA)
-        self.index.wait_task(self.index.save_record(self.user)["taskID"])
-        result = self.index.raw_search("крупнейших")
-        self.assertEqual(result['nbHits'], 1, "Search should return one result")
-        self.assertEqual(result['hits'][0]['name'], 'Algolia', "The result should be self.user")
+        self.client.init_index().save_object.assert_called_with({'objectID': 1, 'url': 'https://algolia.com', 'name': 'Algolia', 'is_online': True})
