@@ -79,8 +79,8 @@ def safe_index_name(name):
 
 # AlgoliaSearch settings
 ALGOLIA = {
-    'APPLICATION_ID': os.getenv('ALGOLIA_APPLICATION_ID'),
-    'API_KEY': os.getenv('ALGOLIA_API_KEY'),
+    'APPLICATION_ID': 'XXX',
+    'API_KEY': 'YYY',
     'INDEX_PREFIX': 'test',
     'INDEX_SUFFIX': safe_index_name('django'),
     'RAISE_EXCEPTIONS': True
