@@ -14,8 +14,10 @@ __version__ = version.VERSION
 ALGOLIA_SETTINGS = settings.SETTINGS
 
 AlgoliaIndex = models.AlgoliaIndex
+Aggregator = models.Aggregator
 AlgoliaEngine = registration.AlgoliaEngine
 algolia_engine = registration.algolia_engine
+
 
 # Algolia Engine functions
 
