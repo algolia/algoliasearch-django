@@ -22,6 +22,7 @@ algolia_engine = registration.algolia_engine
 # Algolia Engine functions
 
 register = algolia_engine.register
+register_aggregator = algolia_engine.register_aggregator
 unregister = algolia_engine.unregister
 get_registered_model = algolia_engine.get_registered_models
 

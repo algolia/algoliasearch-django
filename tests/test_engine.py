@@ -105,3 +105,10 @@ class EngineTestCase(TestCase):
 
         with self.assertRaises(RegistrationError):
             self.engine.unregister(Website)
+
+    def test_register_aggregator(self):
+        self.engine.register_aggregator([Website, User])
+        self.assertIn(Website, self.engine.get_registered_models())
+        self.assertIn(User, self.engine.get_registered_models())
+        with self.assertRaises(RegistrationError):
+            self.engine.register(Website)
