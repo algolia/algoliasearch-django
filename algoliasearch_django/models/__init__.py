@@ -1,1 +1,2 @@
-from .index import AlgoliaIndex, AlgoliaIndexError
+from .base import AlgoliaIndexError
+from .index import AlgoliaIndex
