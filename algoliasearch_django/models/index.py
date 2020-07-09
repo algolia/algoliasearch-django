@@ -9,7 +9,7 @@ import sys
 from algoliasearch.helpers import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
 
-from .settings import DEBUG
+from ..settings import DEBUG
 
 logger = logging.getLogger(__name__)
 
