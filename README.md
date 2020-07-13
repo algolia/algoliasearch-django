@@ -139,7 +139,7 @@ class YourModelIndex(AlgoliaIndex):
 ## Commands
 
 * `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
-    * you can pass ``--model`` parameter to reindex a given model
+    * you can pass ``--index`` parameter to reindex a given index
 * `python manage.py algolia_applysettings`: (re)apply the index settings.
 * `python manage.py algolia_clearindex`: clear the index
 

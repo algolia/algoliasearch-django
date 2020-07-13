@@ -38,6 +38,8 @@ class AlgoliaEngine(object):
         self.__settings = settings
 
         self.__registered_models = {}
+        self.__registered_adapters = []
+
         self.client = algoliasearch.Client(app_id, api_key)
         self.client.set_extra_header('User-Agent',
                                      'Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)'
@@ -65,6 +67,7 @@ class AlgoliaEngine(object):
                 '{} should be a subclass of AlgoliaIndex'.format(index_cls))
         index_obj = index_cls(model, self.client, self.__settings)
         self.__registered_models[model] = index_obj
+        self.__registered_adapters.append(index_obj)
 
         if (isinstance(auto_indexing, bool) and
                 auto_indexing) or self.__auto_indexing:
@@ -86,6 +89,7 @@ class AlgoliaEngine(object):
                 '{} should be a subclass of Aggregator'.format(index_cls))
 
         index_obj = index_cls(models, self.client, self.__settings)
+        self.__registered_adapters.append(index_obj)
 
         for model in models:
             self.__registered_models[model] = index_obj
@@ -95,7 +99,6 @@ class AlgoliaEngine(object):
                 post_save.connect(self.__post_save_receiver, model)
                 pre_delete.connect(self.__pre_delete_receiver, model)
                 logger.info('REGISTER %s', model)
-
 
     def unregister(self, model):
         """
@@ -121,6 +124,13 @@ class AlgoliaEngine(object):
         engine.
         """
         return list(self.__registered_models.keys())
+
+    def get_registered_adapters(self):
+        """
+        Returns a list of adapters that have been registered with Algolia
+        engine.
+        """
+        return self.__registered_adapters
 
     def get_adapter(self, model):
         """Returns the adapter associated with the given model."""

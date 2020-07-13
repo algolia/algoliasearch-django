@@ -1,4 +1,4 @@
-from mock import patch, call, Mock
+from mock import patch, call, Mock, MagicMock
 
 from django.test import TestCase
 from six import StringIO
@@ -10,57 +10,54 @@ from .models import User
 
 class CommandsTestCase(TestCase):
 
+    def setUp(self):
+        self.mock_website_adapter = MagicMock()
+        self.mock_website_adapter.index_name = "Website"
+        self.mock_example_adapter = MagicMock()
+        self.mock_example_adapter.index_name = "Example"
+
     def test_reindex(self):
-        with patch("algoliasearch_django.management.commands.algolia_reindex.reindex_all") as mock_reindex:
+        with patch("algoliasearch_django.management.commands.algolia_reindex.get_registered_adapters") as mock_iter:
+            mock_iter.return_value.__iter__.return_value  = [self.mock_website_adapter, self.mock_example_adapter]
             call_command('algolia_reindex', stdout=StringIO())
-        mock_reindex.assert_has_calls([
-            call(Website, batch_size=1000),
-            call(User, batch_size=1000)
-        ], any_order=True)
+        self.mock_website_adapter.reindex_all.assert_called_once_with(batch_size=1000)
+        self.mock_example_adapter.reindex_all.assert_called_once_with(batch_size=1000)
 
     def test_reindex_with_args(self):
-        with patch("algoliasearch_django.management.commands.algolia_reindex.reindex_all") as mock_reindex:
-            call_command('algolia_reindex', stdout=StringIO(), model=['Website'])
-        mock_reindex.assert_called_once_with(Website, batch_size=1000)
+        with patch("algoliasearch_django.management.commands.algolia_reindex.get_registered_adapters") as mock_iter:
+            mock_iter.return_value.__iter__.return_value  = [self.mock_website_adapter, self.mock_example_adapter]
+            call_command('algolia_reindex', stdout=StringIO(), index=['Website'])
+        self.mock_website_adapter.reindex_all.assert_called_once_with(batch_size=1000)
+        self.mock_example_adapter.reindex_all.assert_not_called()
 
     def test_clearindex(self):
-        with patch("algoliasearch_django.management.commands.algolia_clearindex.clear_index") as mock_clear:
+        with patch("algoliasearch_django.management.commands.algolia_clearindex.get_registered_adapters") as mock_iter:
+            mock_iter.return_value.__iter__.return_value  = [self.mock_website_adapter, self.mock_example_adapter]
             call_command('algolia_clearindex', stdout=StringIO())
-        mock_clear.assert_has_calls([
-            call(Website),
-            call(User)
-        ], any_order=True)
+        self.mock_website_adapter.clear_index.assert_called_once()
+        self.mock_example_adapter.clear_index.assert_called_once()
 
     def test_clearindex_with_args(self):
-        with patch("algoliasearch_django.management.commands.algolia_clearindex.clear_index") as mock_clear:
+        with patch("algoliasearch_django.management.commands.algolia_clearindex.get_registered_adapters") as mock_iter:
+            mock_iter.return_value.__iter__.return_value  = [self.mock_website_adapter, self.mock_example_adapter]
             call_command(
                 'algolia_clearindex',
                 stdout=StringIO(),
-                model=['Website']
+                index=['Website']
             )
-        mock_clear.assert_called_once_with(Website)
+        self.mock_website_adapter.clear_index.assert_called_once()
+        self.mock_example_adapter.clear_index.assert_not_called()
 
     def test_applysettings(self):
-        with patch("algoliasearch_django.management.commands.algolia_applysettings.get_adapter") as mock_get_adapter:
-            mock_adapter = Mock()
-            mock_get_adapter.return_value = mock_adapter
+        with patch("algoliasearch_django.management.commands.algolia_applysettings.get_registered_adapters") as mock_iter:
+            mock_iter.return_value.__iter__.return_value  = [self.mock_website_adapter, self.mock_example_adapter]
             call_command('algolia_applysettings', stdout=StringIO())
-
-        mock_get_adapter.assert_has_calls([
-            call(Website),
-            call(User)
-        ], any_order=True)
-
-        mock_adapter.set_settings.assert_has_calls([
-            call(),
-            call()
-        ])
+        self.mock_website_adapter.set_settings.assert_called_once()
+        self.mock_example_adapter.set_settings.assert_called_once()
 
     def test_applysettings_with_args(self):
-        with patch("algoliasearch_django.management.commands.algolia_applysettings.get_adapter") as mock_get_adapter:
-            mock_adapter = Mock()
-            mock_get_adapter.return_value = mock_adapter
-            call_command('algolia_applysettings', stdout=StringIO(), model=['Website'])
-
-        mock_get_adapter.assert_called_once_with(Website)
-        mock_adapter.set_settings.assert_called_once()
+        with patch("algoliasearch_django.management.commands.algolia_applysettings.get_registered_adapters") as mock_iter:
+            mock_iter.return_value.__iter__.return_value  = [self.mock_website_adapter, self.mock_example_adapter]
+            call_command('algolia_applysettings', stdout=StringIO(), index=['Website'])
+        self.mock_website_adapter.set_settings.assert_called_once()
+        self.mock_example_adapter.set_settings.assert_not_called()
