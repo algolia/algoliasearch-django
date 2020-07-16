@@ -54,6 +54,9 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
     * [Multiple indices per model](#multiple-indices-per-model)
     * [Temporarily disable the auto-indexing](#temporarily-disable-the-auto-indexing)
 
+1. **[Aggregators](#aggregators)**
+    * [Aggregators](#aggregators)
+
 1. **[Tests](#tests)**
     * [Run Tests](#run-tests)
 
@@ -396,7 +399,28 @@ with disable_auto_indexing(MyModel):
 
 ```
 
+# Aggregators
 
+Aggregators allow multiple models to be included in a single index.
+
+```python
+import algoliasearch_django as algoliasearch
+models = [...]
+algoliasearch.register_aggregator(models)
+```
+
+For more control, `Aggregator` can be subclassed in the same way as `AlgoliaIndex`:
+
+```py
+from algoliasearch_django import Aggregator
+
+class CustomAggregator(Aggregator)
+    index_name = "MyAggregatorIndex"
+    ...
+
+models = [...]
+algoliasearch.register_aggregator(models, CustomAggregator)
+```
 
 # Tests
 
