@@ -1,49 +1,18 @@
-from __future__ import unicode_literals
-
-import inspect
-from functools import partial
-from itertools import chain
 import logging
 
-import sys
 from algoliasearch.helpers import AlgoliaException
-from django.db.models.query_utils import DeferredAttribute
 
-from .settings import DEBUG
+from ..settings import DEBUG
+
 
 logger = logging.getLogger(__name__)
-
-
-def _getattr(obj, name):
-    return getattr(obj, name)
-
-
-def check_and_get_attr(model, name):
-    try:
-        attr = getattr(model, name)
-        if callable(attr):
-            return attr
-        else:
-            return get_model_attr(name)
-    except AttributeError:
-        raise AlgoliaIndexError(
-            '{} is not an attribute of {}'.format(name, model))
-
-
-def get_model_attr(name):
-    return partial(_getattr, name=name)
 
 
 class AlgoliaIndexError(Exception):
     """Something went wrong with an Algolia Index."""
 
 
-class AlgoliaIndex(object):
-    """An index in the Algolia backend."""
-
-    # Use to specify a custom field that will be used for the objectID.
-    # This field should be unique.
-    custom_objectID = 'pk'
+class BaseAlgoliaIndex(object):
 
     # Use to specify the fields that should be included in the index.
     fields = ()
@@ -68,22 +37,13 @@ class AlgoliaIndex(object):
     # - a boolean property or attribute
     should_index = None
 
-    # Name of the attribute to check on instances if should_index is not a callable
-    _should_index_is_method = False
-
-    def __init__(self, model, client, settings):
-        """Initializes the index."""
-        self.__init_index(client, model, settings)
-
-        self.model = model
+    def __init__(self, client, settings):
         self.__client = client
-        self.__named_fields = {}
-        self.__translate_fields = {}
+        self._named_fields = {}
+        self._translate_fields = {}
 
         if self.settings is None:  # Only set settings if the actual index class does not define some
             self.settings = {}
-
-        all_model_fields = [f.name for f in model._meta.get_fields() if not f.is_relation]
 
         if isinstance(self.fields, str):
             self.fields = (self.fields,)
@@ -92,74 +52,7 @@ class AlgoliaIndex(object):
         else:
             raise AlgoliaIndexError('Fields must be a str, list, tuple or set')
 
-        # Check fields
-        for field in self.fields:
-            # unicode is a type in python < 3.0, which we need to support (e.g. dev uses unicode_literals)
-            # noinspection PyUnresolvedReferences
-            if sys.version_info < (3, 0) and isinstance(field, unicode) or isinstance(field, str):
-                attr = field
-                name = field
-            elif isinstance(field, (list, tuple)) and len(field) == 2:
-                attr = field[0]
-                name = field[1]
-            else:
-                raise AlgoliaIndexError(
-                    'Invalid fields syntax: {} (type: {})'.format(field, type(field)))
-
-            self.__translate_fields[attr] = name
-            if attr in all_model_fields:
-                self.__named_fields[name] = get_model_attr(attr)
-            else:
-                self.__named_fields[name] = check_and_get_attr(model, attr)
-
-        # If no fields are specified, index all the fields of the model
-        if not self.fields:
-            self.fields = set(all_model_fields)
-            for elt in ('pk', 'id', 'objectID'):
-                try:
-                    self.fields.remove(elt)
-                except KeyError:
-                    continue
-            self.__translate_fields = dict(zip(self.fields, self.fields))
-            self.__named_fields = dict(zip(self.fields, map(get_model_attr,
-                                                            self.fields)))
-
-        # Check custom_objectID
-        if self.custom_objectID in chain(['pk'], all_model_fields) or hasattr(model, self.custom_objectID):
-            self.objectID = get_model_attr(self.custom_objectID)
-        else:
-            raise AlgoliaIndexError('{} is not a model field of {}'.format(
-                self.custom_objectID, model))
-
-        # Check tags
-        if self.tags:
-            if self.tags in all_model_fields:
-                self.tags = get_model_attr(self.tags)
-            else:
-                self.tags = check_and_get_attr(model, self.tags)
-
-        # Check geo_field
-        if self.geo_field:
-            self.geo_field = check_and_get_attr(model, self.geo_field)
-
-        # Check should_index + get the callable or attribute/field name
-        if self.should_index:
-            if hasattr(model, self.should_index):
-                attr = getattr(model, self.should_index)
-                if type(attr) is not bool:  # if attr is a bool, we keep attr=name to getattr on instance
-                    self.should_index = attr
-                if callable(self.should_index):
-                    self._should_index_is_method = True
-            else:
-                try:
-                    model._meta.get_field_by_name(self.should_index)
-                except:
-                    raise AlgoliaIndexError('{} is not an attribute nor a field of {}.'.format(
-                        self.should_index, model))
-
-    def __init_index(self, client, model, settings):
-        if not self.index_name:
-            self.index_name = model.__name__
+    def _init_index(self, client, settings):
 
         tmp_index_name = '{index_name}_tmp'.format(index_name=self.index_name)
 
@@ -206,11 +99,11 @@ class AlgoliaIndex(object):
                 update_fields = (update_fields,)
 
             for elt in update_fields:
-                key = self.__translate_fields.get(elt, None)
+                key = self._translate_fields.get(elt, None)
                 if key:
-                    tmp[key] = self.__named_fields[key](instance)
+                    tmp[key] = self._named_fields[key](instance)
         else:
-            for key, value in self.__named_fields.items():
+            for key, value in self._named_fields.items():
                 tmp[key] = value(instance)
 
             if self.geo_field:
@@ -231,7 +124,6 @@ class AlgoliaIndex(object):
                 if not isinstance(tmp['_tags'], list):
                     tmp['_tags'] = list(tmp['_tags'])
 
-        logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp
 
     def _has_should_index(self):
@@ -246,37 +138,7 @@ class AlgoliaIndex(object):
             return True
 
     def _should_really_index(self, instance):
-        """Return True if according to should_index the object should be indexed."""
-        if self._should_index_is_method:
-            is_method = inspect.ismethod(self.should_index)
-            try:
-                count_args = len(inspect.signature(self.should_index).parameters)
-            except AttributeError:
-                # noinspection PyDeprecation
-                count_args = len(inspect.getargspec(self.should_index).args)
-
-            if is_method or count_args is 1:
-                # bound method, call with instance
-                return self.should_index(instance)
-            else:
-                # unbound method, simply call without arguments
-                return self.should_index()
-        else:
-            # property/attribute/Field, evaluate as bool
-            attr_type = type(self.should_index)
-            if attr_type is DeferredAttribute:
-                attr_value = self.should_index.__get__(instance, None)
-            elif attr_type is str:
-                attr_value = getattr(instance, self.should_index)
-            elif attr_type is property:
-                attr_value = self.should_index.__get__(instance)
-            else:
-                raise AlgoliaIndexError('{} should be a boolean attribute or a method that returns a boolean.'.format(
-                    self.should_index))
-            if type(attr_value) is not bool:
-                raise AlgoliaIndexError("%s's should_index (%s) should be a boolean" % (
-                    instance.__class__.__name__, self.should_index))
-            return attr_value
+        raise NotImplementedError
 
     def save_record(self, instance, update_fields=None, **kwargs):
         """Saves the record.
@@ -302,27 +164,27 @@ class AlgoliaIndex(object):
             else:
                 obj = self.get_raw_record(instance)
                 result = self.__index.save_object(obj)
-            logger.info('SAVE %s FROM %s', obj['objectID'], self.model)
+            logger.info('SAVE %s FROM %s', obj['objectID'], instance._meta.label)
             return result
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
                 logger.warning('%s FROM %s NOT SAVED: %s', obj['objectID'],
-                               self.model, e)
+                               instance._meta.label, e)
 
     def delete_record(self, instance):
         """Deletes the record."""
         objectID = self.objectID(instance)
         try:
             self.__index.delete_object(objectID)
-            logger.info('DELETE %s FROM %s', objectID, self.model)
+            logger.info('DELETE %s FROM %s', objectID, instance._meta.label)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
                 logger.warning('%s FROM %s NOT DELETED: %s', objectID,
-                               self.model, e)
+                               instance._meta.label, e)
 
     def update_records(self, qs, batch_size=1000, **kwargs):
         """
@@ -339,7 +201,7 @@ class AlgoliaIndex(object):
         """
         tmp = {}
         for key, value in kwargs.items():
-            name = self.__translate_fields.get(key, None)
+            name = self._translate_fields.get(key, None)
             if name:
                 tmp[name] = value
 
@@ -380,7 +242,7 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('ERROR DURING GET_SETTINGS ON %s: %s',
-                               self.model, e)
+                               self.index_name, e)
 
     def set_settings(self):
         """Applies the settings to the index."""
@@ -395,7 +257,7 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('SETTINGS NOT APPLIED ON %s: %s',
-                               self.model, e)
+                               self.index_name, e)
 
     def clear_index(self):
         """Clears the index."""
@@ -406,7 +268,7 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('%s NOT CLEARED: %s', self.model, e)
+                logger.warning('%s NOT CLEARED: %s', self.index_name, e)
 
     def wait_task(self, task_id):
         try:
@@ -416,7 +278,7 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('%s NOT WAIT: %s', self.model, e)
+                logger.warning('%s NOT WAIT: %s', self.index_name, e)
 
     def reindex_all(self, batch_size=1000):
         """
@@ -475,12 +337,7 @@ class AlgoliaIndex(object):
             counts = 0
             batch = []
 
-            if hasattr(self, 'get_queryset'):
-                qs = self.get_queryset()
-            else:
-                qs = self.model.objects.all()
-
-            for instance in qs:
+            for instance in self.get_queryset():
                 if not self._should_index(instance):
                     continue  # should not index
 
@@ -523,5 +380,5 @@ class AlgoliaIndex(object):
             if DEBUG:
                 raise e
             else:
-                logger.warning('ERROR DURING REINDEXING %s: %s', self.model,
+                logger.warning('ERROR DURING REINDEXING %s: %s', self.index_name,
                                e)
