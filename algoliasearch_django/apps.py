@@ -7,5 +7,5 @@ class AlgoliaConfig(AppConfig):
     name = 'algoliasearch_django'
 
     def ready(self):
-        super(AlgoliaConfig, self).ready()
+        super().ready()
         self.module.autodiscover()

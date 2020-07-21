@@ -12,7 +12,7 @@ class AlgoliaIndexError(Exception):
     """Something went wrong with an Algolia Index."""
 
 
-class BaseAlgoliaIndex(object):
+class BaseAlgoliaIndex:
 
     # Use to specify the fields that should be included in the index.
     fields = ()
