@@ -54,6 +54,9 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
     * [Multiple indices per model](#multiple-indices-per-model)
     * [Temporarily disable the auto-indexing](#temporarily-disable-the-auto-indexing)
 
+1. **[Aggregators](#aggregators)**
+    * [Aggregators](#aggregators)
+
 1. **[Tests](#tests)**
     * [Run Tests](#run-tests)
 
@@ -139,7 +142,7 @@ class YourModelIndex(AlgoliaIndex):
 ## Commands
 
 * `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
-    * you can pass ``--model`` parameter to reindex a given model
+    * you can pass ``--index`` parameter to reindex a given index
 * `python manage.py algolia_applysettings`: (re)apply the index settings.
 * `python manage.py algolia_clearindex`: clear the index
 
@@ -396,7 +399,28 @@ with disable_auto_indexing(MyModel):
 
 ```
 
+# Aggregators
 
+Aggregators allow multiple models to be included in a single index.
+
+```python
+import algoliasearch_django as algoliasearch
+models = [...]
+algoliasearch.register_aggregator(models)
+```
+
+For more control, `Aggregator` can be subclassed in the same way as `AlgoliaIndex`:
+
+```py
+from algoliasearch_django import Aggregator
+
+class CustomAggregator(Aggregator)
+    index_name = "MyAggregatorIndex"
+    ...
+
+models = [...]
+algoliasearch.register_aggregator(models, CustomAggregator)
+```
 
 # Tests
 
