@@ -1,5 +1,3 @@
-import six
-
 from django.conf import settings
 from django.test import TestCase
 
@@ -32,8 +30,7 @@ class EngineTestCase(TestCase):
     def test_auto_discover_indexes(self):
         """Test that the `index` module was auto-discovered and the models registered"""
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             [
                 User,  # Registered using the `register` decorator
                 Website,  # Registered using the `register` method

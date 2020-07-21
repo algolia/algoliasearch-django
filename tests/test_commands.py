@@ -1,7 +1,7 @@
 from mock import patch, call, Mock, MagicMock
+from io import StringIO
 
 from django.test import TestCase
-from six import StringIO
 from django.core.management import call_command
 
 from .models import Website
