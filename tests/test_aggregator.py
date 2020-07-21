@@ -14,19 +14,19 @@ from .factories import WebsiteFactory, ExampleFactory, UserFactory
 class AggregatorTestCase(TestCase):
 
     def setUp(self):
-        self.client = MagicMock()
+        self.algolia_client = MagicMock()
 
     def test_default_index_name(self):
-        index = Aggregator([], self.client, settings.ALGOLIA)
+        index = Aggregator([], self.algolia_client, settings.ALGOLIA)
         self.assertEqual(index.index_name, "test_Aggregator_django")
 
     def test_fields(self):
-        index = Aggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = Aggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         self.assertEqual(index.fields, {'name', 'url', 'is_online', 'lng', 'is_admin', 'address',  'lat', 'uid'})
 
     @patch.object(algolia_engine, "save_record")
     def test_object_id(self, _):
-        index = Aggregator([Website], self.client, settings.ALGOLIA)
+        index = Aggregator([Website], self.algolia_client, settings.ALGOLIA)
         website = WebsiteFactory()
         self.assertEqual(index.objectID(website), "tests.Website:1")
 
@@ -38,15 +38,15 @@ class AggregatorTestCase(TestCase):
                 "_objectModel": "web.Job"
             }]
         }
-        self.client.init_index.return_value.search.return_value = mock_results
+        self.algolia_client.init_index.return_value.search.return_value = mock_results
 
-        index = Aggregator([Website], self.client, settings.ALGOLIA)
+        index = Aggregator([Website], self.algolia_client, settings.ALGOLIA)
         results = index.raw_search('example')
         self.assertDictEqual(results, mock_results)
 
     @patch.object(algolia_engine, "save_record")
     def test_get_raw_record(self, _):
-        index = Aggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = Aggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         website = WebsiteFactory()
         record = index.get_raw_record(website)
         self.assertEqual(record['objectID'], "tests.Website:1")
@@ -57,7 +57,7 @@ class AggregatorTestCase(TestCase):
     def test_get_raw_record_explicit_fields(self, _):
         class CustomAggregator(Aggregator):
             fields = ("name", "url", "has_name", "property_string")
-        index = CustomAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = CustomAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory(name="example")
         record = index.get_raw_record(example)
         self.assertEqual(record['objectID'], "tests.Example:1")
@@ -69,7 +69,7 @@ class AggregatorTestCase(TestCase):
     def test_should_index_attr(self, _):
         class CustomAggregator(Aggregator):
             should_index = "index_me"
-        index = CustomAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = CustomAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory()
         self.assertTrue(index._should_index(example))
         example.index_me = False
@@ -81,7 +81,7 @@ class AggregatorTestCase(TestCase):
             fields = 'name'
             should_index = 'static_should_index'
 
-        index = ShouldIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = ShouldIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory()
         self.assertTrue(index._should_index(example))
 
@@ -89,7 +89,7 @@ class AggregatorTestCase(TestCase):
             fields = 'name'
             should_index = 'static_should_not_index'
 
-        index = ShouldNotIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = ShouldNotIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         self.assertFalse(index._should_index(example))
 
     def test_should_index_method(self):
@@ -97,7 +97,7 @@ class AggregatorTestCase(TestCase):
             fields = 'name'
             should_index = 'has_name'
 
-        index = ShouldIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = ShouldIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory()
         self.assertTrue(index._should_index(example))
 
@@ -109,7 +109,7 @@ class AggregatorTestCase(TestCase):
             fields = 'name'
             should_index = 'is_admin'
 
-        index = ShouldIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = ShouldIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory(is_admin=True)
         self.assertTrue(index._should_index(example))
 
@@ -120,7 +120,7 @@ class AggregatorTestCase(TestCase):
             fields = 'name'
             should_index = 'name'
 
-        index = IncorrectShouldIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = IncorrectShouldIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory(name="text")
         with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index field is not boolean"):
             index._should_index(example)
@@ -131,7 +131,7 @@ class AggregatorTestCase(TestCase):
             fields = 'name'
             should_index = 'property_should_index'
 
-        index = PropertyShouldIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = PropertyShouldIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory()
         self.assertTrue(index._should_index(example))
 
@@ -139,14 +139,14 @@ class AggregatorTestCase(TestCase):
             fields = 'name'
             should_index = 'property_should_not_index'
 
-        index = PropertyShouldNotIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = PropertyShouldNotIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         self.assertFalse(index._should_index(example))
 
         class PropertyStringShouldIndexAggregator(Aggregator):
             fields = 'name'
             should_index = 'property_string'
 
-        index = PropertyStringShouldIndexAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = PropertyStringShouldIndexAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         with self.assertRaises(AlgoliaIndexError, msg="We should raise when the should_index property is not boolean"):
             index._should_index(example)
 
@@ -154,7 +154,7 @@ class AggregatorTestCase(TestCase):
         class CustomAggregator(Aggregator):
             geo_field = 'location'
 
-        index = CustomAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = CustomAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory(lat=123, lng=-42.24)
         self.assertTrue(index._should_index(example))
         obj = index.get_raw_record(example)
@@ -164,7 +164,7 @@ class AggregatorTestCase(TestCase):
         class CustomAggregator(Aggregator):
             geo_field = 'geolocations'
 
-        index = CustomAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = CustomAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
         example = ExampleFactory()
         example.locations = [
             {'lat': 10.3, 'lng': -20.0},
@@ -181,7 +181,7 @@ class AggregatorTestCase(TestCase):
         class CustomAggregator(Aggregator):
             tags = 'permissions'
 
-        index = CustomAggregator([Website, Example], self.client, settings.ALGOLIA)
+        index = CustomAggregator([Website, Example], self.algolia_client, settings.ALGOLIA)
 
         # Test the users' tag individually
         user = UserFactory(_permissions='read,write,admin')
@@ -193,7 +193,7 @@ class AggregatorTestCase(TestCase):
         class CustomAggregator(Aggregator):
             custom_objectID = 'username'
 
-        index = CustomAggregator([Website, User], self.client, settings.ALGOLIA)
+        index = CustomAggregator([Website, User], self.algolia_client, settings.ALGOLIA)
         obj = index.get_raw_record(UserFactory(username="algolia"))
         self.assertEqual(obj['objectID'], 'algolia')
 
@@ -202,6 +202,6 @@ class AggregatorTestCase(TestCase):
         class CustomAggregator(Aggregator):
             custom_objectID = 'reverse_username'
 
-        index = CustomAggregator([Website, User], self.client, settings.ALGOLIA)
+        index = CustomAggregator([Website, User], self.algolia_client, settings.ALGOLIA)
         obj = index.get_raw_record(UserFactory(username="algolia"))
         self.assertEqual(obj['objectID'], 'ailogla')
