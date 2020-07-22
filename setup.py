@@ -20,18 +20,15 @@ except (IOError, ImportError):
 
 path_version = os.path.join(os.path.dirname(__file__),
                             'algoliasearch_django/version.py')
-if sys.version_info[0] == 3:
-    exec(open(path_version).read())
-else:
-    execfile(path_version)
 
+exec(open(path_version).read())
 
 setup(
     name='algoliasearch-django',
     version=VERSION,
     license='MIT License',
     packages=find_packages(exclude=['tests']),
-    install_requires=['django>=1.7', 'algoliasearch>=1.0,<2.0'],
+    install_requires=['django>=2.2', 'algoliasearch>=1.0,<2.0'],
     description='Algolia Search integration for Django',
     long_description=README,
     author='Algolia Team',
@@ -46,7 +43,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Internet :: WWW/HTTP',
     ]

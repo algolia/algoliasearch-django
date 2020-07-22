@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import logging
 
 from django.db.models.signals import post_save
@@ -23,7 +22,7 @@ class RegistrationError(AlgoliaEngineError):
     """Something went wrong when registering a model."""
 
 
-class AlgoliaEngine(object):
+class AlgoliaEngine:
     def __init__(self, settings=SETTINGS):
         """Initializes the Algolia engine."""
 

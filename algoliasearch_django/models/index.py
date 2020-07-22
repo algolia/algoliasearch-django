@@ -51,7 +51,7 @@ class AlgoliaIndex(BaseAlgoliaIndex):
 
         self._init_index(client, settings)
 
-        super(AlgoliaIndex, self).__init__(client, settings)
+        super().__init__(client, settings)
 
         self.model = model
 
@@ -59,9 +59,7 @@ class AlgoliaIndex(BaseAlgoliaIndex):
 
         # Check fields
         for field in self.fields:
-            # unicode is a type in python < 3.0, which we need to support (e.g. dev uses unicode_literals)
-            # noinspection PyUnresolvedReferences
-            if sys.version_info < (3, 0) and isinstance(field, unicode) or isinstance(field, str):
+            if isinstance(field, str):
                 attr = field
                 name = field
             elif isinstance(field, (list, tuple)) and len(field) == 2:
@@ -126,7 +124,7 @@ class AlgoliaIndex(BaseAlgoliaIndex):
         return self.model.objects.all()
 
     def get_raw_record(self, instance, update_fields=None):
-        tmp = super(AlgoliaIndex, self).get_raw_record(instance, update_fields)
+        tmp = super().get_raw_record(instance, update_fields)
         logger.debug('BUILD %s FROM %s', tmp['objectID'], self.model)
         return tmp
 

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import sys
 
 from functools import partial
@@ -30,7 +28,7 @@ class Aggregator(BaseAlgoliaIndex):
 
         self._init_index(client, settings)
 
-        super(Aggregator, self).__init__(client, settings)
+        super().__init__(client, settings)
 
         self.models = models
         all_model_fields = chain.from_iterable(
@@ -39,9 +37,7 @@ class Aggregator(BaseAlgoliaIndex):
 
         # Check fields
         for field in self.fields:
-            # unicode is a type in python < 3.0, which we need to support (e.g. dev uses unicode_literals)
-            # noinspection PyUnresolvedReferences
-            if sys.version_info < (3, 0) and isinstance(field, unicode) or isinstance(field, str):
+            if isinstance(field, str):
                 attr = field
                 name = field
             elif isinstance(field, (list, tuple)) and len(field) == 2:
