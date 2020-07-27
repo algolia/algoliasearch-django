@@ -20,7 +20,7 @@ path_version = os.path.join(os.path.dirname(__file__),
 exec(open(path_version).read())
 
 setup(
-    name='algoliasearch-django',
+    name='brightnetwork-algoliasearch-django',
     version=VERSION,
     license='MIT License',
     packages=find_packages(exclude=['tests']),
@@ -30,7 +30,7 @@ setup(
     long_description_content_type="text/markdown",
     author='Algolia Team',
     author_email='support@algolia.com',
-    url='https://github.com/algolia/algoliasearch-django',
+    url='https://github.com/brightnetwork/algoliasearch-django',
     keywords=['algolia', 'pyalgolia', 'search', 'backend', 'hosted', 'cloud',
               'full-text search', 'faceted search', 'django'],
     classifiers=[
