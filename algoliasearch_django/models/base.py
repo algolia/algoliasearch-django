@@ -1,6 +1,6 @@
 import logging
 
-from algoliasearch.helpers import AlgoliaException
+from algoliasearch.exceptions import AlgoliaException
 
 from ..settings import DEBUG
 
