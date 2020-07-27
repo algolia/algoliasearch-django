@@ -187,10 +187,10 @@ class AlgoliaEngine:
         adapter = self.get_adapter(model)
         return adapter.raw_search(query, params)
 
-    def clear_index(self, model):
+    def clear_objects(self, model):
         """Clears the index."""
         adapter = self.get_adapter(model)
-        adapter.clear_index()
+        adapter.clear_objects()
 
     def reindex_all(self, model, batch_size=1000):
         """

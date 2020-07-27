@@ -357,9 +357,9 @@ class MyModelMetaIndex(AlgoliaIndex):
         for index in self.indices:
             index.set_settings()
 
-    def clear_index(self):
+    def clear_objects(self):
         for index in self.indices:
-            index.clear_index()
+            index.clear_objects()
 
     def save_record(self, instance, update_fields=None, **kwargs):
         for index in self.indices:

@@ -259,10 +259,10 @@ class BaseAlgoliaIndex:
                 logger.warning('SETTINGS NOT APPLIED ON %s: %s',
                                self.index_name, e)
 
-    def clear_index(self):
+    def clear_objects(self):
         """Clears the index."""
         try:
-            self.__index.clear_index()
+            self.__index.clear_objects()
             logger.info('CLEAR INDEX %s', self.index_name)
         except AlgoliaException as e:
             if DEBUG:
@@ -331,7 +331,7 @@ class BaseAlgoliaIndex:
                 logger.debug('Got synonyms for index %s: %s', self.index_name, rules)
                 should_keep_synonyms = True
 
-            self.__tmp_index.clear_index()
+            self.__tmp_index.clear_objects()
             logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
             counts = 0

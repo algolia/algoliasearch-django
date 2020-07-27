@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from algoliasearch_django import get_registered_adapters
-from algoliasearch_django import clear_index
+from algoliasearch_django import clear_objects
 
 
 class Command(BaseCommand):
@@ -18,5 +18,5 @@ class Command(BaseCommand):
                 if (adapter.index_name not in options['index']):
                     continue
 
-            adapter.clear_index()
+            adapter.clear_objects()
             self.stdout.write('\t* {}'.format(adapter.index_name))
