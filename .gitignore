@@ -63,6 +63,8 @@ target/
 # IDE files
 .idea/*
 *.iml
+.vim/
+.vscode/
 
 # PyENV
 .python-version
