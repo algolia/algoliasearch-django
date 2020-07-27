@@ -133,46 +133,34 @@ class YourModelIndex(AlgoliaIndex):
 
 ```
 
-
-
 # Commands
-
-
 
 ## Commands
 
-* `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
-    * you can pass ``--index`` parameter to reindex a given index
-* `python manage.py algolia_applysettings`: (re)apply the index settings.
-* `python manage.py algolia_clearindex`: clear the index
-
-
+-   `python manage.py algolia_reindex`: reindex all the registered models. This command will first send all the record to a temporary index and then moves it.
+    -   you can pass `--index` parameter to reindex a given index
+-   `python manage.py algolia_applysettings`: (re)apply the index settings.
+-   `python manage.py algolia_clearindex`: clear the index
 
 # Search
-
-
 
 ## Search
 
 We recommend using our [InstantSearch.js library](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) to build your search
 interface and perform search queries directly from the end-user browser without going through your server.
 
-However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', params)` method.
-It retrieves the raw JSON answer from the API, and accepts in `param` any
+However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', request_options)` method.
+It retrieves the raw JSON answer from the API, and accepts in `request_options` any
 [search parameters](https://www.algolia.com/doc/api-reference/search-api-parameters/).
 
 ```python
 from algoliasearch_django import raw_search
 
-params = { "hitsPerPage": 5 }
-response = raw_search(Contact, "jim", params)
+request_options = { "hitsPerPage": 5 }
+response = raw_search(Contact, "jim", request_options)
 ```
 
-
-
 # Geo-Search
-
-
 
 ## Geo-Search
 
@@ -339,10 +327,10 @@ class MyModelMetaIndex(AlgoliaIndex):
             MyModelIndex2(model, client, settings),
         ]
 
-    def raw_search(self, query='', params=None):
+    def raw_search(self, query='', request_options=None):
         res = {}
         for index in self.indices:
-            res[index.name] = index.raw_search(query, params)
+            res[index.name] = index.raw_search(query, request_options)
         return res
 
     def update_records(self, qs, batch_size=1000, **kwargs):

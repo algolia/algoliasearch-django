@@ -179,13 +179,13 @@ class AlgoliaEngine:
         adapter = self.get_adapter(model)
         adapter.update_records(qs, batch_size=batch_size, **kwargs)
 
-    def raw_search(self, model, query='', params=None):
+    def raw_search(self, model, query='', request_options=None):
         """Performs a search query and returns the parsed JSON."""
-        if params is None:
-            params = {}
+        if request_options is None:
+            request_options = {}
 
         adapter = self.get_adapter(model)
-        return adapter.raw_search(query, params)
+        return adapter.raw_search(query, request_options)
 
     def clear_objects(self, model):
         """Clears the index."""
