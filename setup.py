@@ -11,12 +11,8 @@ from setuptools import find_packages
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 path_readme = os.path.join(os.path.dirname(__file__), 'README.md')
-try:
-    import pypandoc
-    README = pypandoc.convert(path_readme, 'rst')
-except (IOError, ImportError):
-    with open(path_readme) as readme:
-        README = readme.read()
+with open(path_readme) as readme:
+    README = readme.read()
 
 path_version = os.path.join(os.path.dirname(__file__),
                             'algoliasearch_django/version.py')
@@ -24,16 +20,17 @@ path_version = os.path.join(os.path.dirname(__file__),
 exec(open(path_version).read())
 
 setup(
-    name='algoliasearch-django',
+    name='brightnetwork-algoliasearch-django',
     version=VERSION,
     license='MIT License',
     packages=find_packages(exclude=['tests']),
     install_requires=['django>=2.2', 'algoliasearch>=1.0,<2.0'],
     description='Algolia Search integration for Django',
     long_description=README,
+    long_description_content_type="text/markdown",
     author='Algolia Team',
     author_email='support@algolia.com',
-    url='https://github.com/algolia/algoliasearch-django',
+    url='https://github.com/brightnetwork/algoliasearch-django',
     keywords=['algolia', 'pyalgolia', 'search', 'backend', 'hosted', 'cloud',
               'full-text search', 'faceted search', 'django'],
     classifiers=[
