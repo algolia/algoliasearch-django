@@ -230,7 +230,10 @@ class IndexTestCase(TestCase):
         index.reindex_all()
 
         self.client.init_index().iter_rules.assert_called_once()
-        self.client.init_index().batch_rules.assert_called_once_with(rules, forward_to_replicas=True)
+        self.client.init_index().save_rules.assert_called_once_with(
+                rules,
+                {"forwardToReplicas": True},
+            )
 
     def test_reindex_with_synonyms(self):
         # Given an existing index defined with settings
@@ -246,7 +249,10 @@ class IndexTestCase(TestCase):
         index.reindex_all()
 
         self.client.init_index().iter_synonyms.assert_called_once()
-        self.client.init_index().batch_synonyms.assert_called_once_with(synonyms, forward_to_replicas=True)
+        self.client.init_index().save_synonyms.assert_called_once_with(
+                synonyms,
+                {"forwardToReplicas": True},
+            )
 
     def test_custom_objectID(self):
         class UserIndex(AlgoliaIndex):

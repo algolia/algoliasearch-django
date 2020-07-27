@@ -368,11 +368,17 @@ class BaseAlgoliaIndex:
                 if should_keep_replicas or should_keep_slaves:
                     self.__index.set_settings(self.settings)
                 if should_keep_rules:
-                    response = self.__index.batch_rules(rules, forward_to_replicas=True)
+                    response = self.__index.save_rules(
+                            rules,
+                            {"forwardToReplicas": True},
+                        )
                     self.__index.wait_task(response['taskID'])
                     logger.info("Saved rules for index %s with response: {}".format(response), self.index_name)
                 if should_keep_synonyms:
-                    response = self.__index.batch_synonyms(synonyms, forward_to_replicas=True)
+                    response = self.__index.save_synonyms(
+                            synonyms,
+                            {"forwardToReplicas": True},
+                        )
                     self.__index.wait_task(response['taskID'])
                     logger.info("Saved synonyms for index %s with response: {}".format(response), self.index_name)
             return counts
