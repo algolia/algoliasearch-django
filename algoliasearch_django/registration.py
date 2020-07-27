@@ -2,7 +2,7 @@ import logging
 
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
-from algoliasearch import algoliasearch
+from algoliasearch.search_client import SearchClient, SearchConfig
 
 from .models import AlgoliaIndex, Aggregator
 from .settings import SETTINGS
@@ -39,10 +39,10 @@ class AlgoliaEngine:
         self.__registered_models = {}
         self.__registered_adapters = []
 
-        self.client = algoliasearch.Client(app_id, api_key)
-        self.client.set_extra_header('User-Agent',
-                                     'Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)'
-                                     % (CLIENT_VERSION, python_version(), VERSION, django_version))
+        config = SearchConfig(app_id, api_key)
+        config.headers['User-Agent'] = 'Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)' \
+                                       % (CLIENT_VERSION, python_version(), VERSION, django_version)
+        self.client = SearchClient.create_with_config(config)
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""
