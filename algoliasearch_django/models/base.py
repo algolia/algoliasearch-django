@@ -320,9 +320,9 @@ class BaseAlgoliaIndex:
                 logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
             rules = []
             synonyms = []
-            for r in self.__index.iter_rules():
+            for r in self.__index.browse_rules():
                 rules.append(r)
-            for s in self.__index.iter_synonyms():
+            for s in self.__index.browse_synonyms():
                 synonyms.append(s)
             if len(rules):
                 logger.debug('Got rules for index %s: %s', self.index_name, rules)

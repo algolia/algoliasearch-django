@@ -224,12 +224,12 @@ class IndexTestCase(TestCase):
             }
         }]
 
-        self.client.init_index.return_value.iter_rules.return_value = rules
+        self.client.init_index.return_value.browse_rules.return_value = rules
 
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         index.reindex_all()
 
-        self.client.init_index().iter_rules.assert_called_once()
+        self.client.init_index().browse_rules.assert_called_once()
         self.client.init_index().save_rules.assert_called_once_with(
                 rules,
                 {"forwardToReplicas": True},
@@ -243,12 +243,12 @@ class IndexTestCase(TestCase):
         # Given some existing synonyms on the index
         synonyms = [{'objectID': 'street', 'type': 'altCorrection1', 'word': 'Street', 'corrections': ['St']}]
 
-        self.client.init_index.return_value.iter_synonyms.return_value = synonyms
+        self.client.init_index.return_value.browse_synonyms.return_value = synonyms
 
         index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         index.reindex_all()
 
-        self.client.init_index().iter_synonyms.assert_called_once()
+        self.client.init_index().browse_synonyms.assert_called_once()
         self.client.init_index().save_synonyms.assert_called_once_with(
                 synonyms,
                 {"forwardToReplicas": True},
