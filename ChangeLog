@@ -1,6 +1,12 @@
 
 CHANGELOG
 
+2020-07-27 1.9.0
+  * [FIX] Drops support for Python 2 and Django 1.11 (#6)
+
+2020-07-21 1.8.0
+  * [FEAT] Adds Aggregator feature (#5)
+
 2019-04-04 1.7.1
   * [FIX] Fixes non specified version of algoliasearch in requirements (#281)
 
