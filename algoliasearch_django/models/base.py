@@ -1,6 +1,6 @@
 import logging
 
-from algoliasearch.helpers import AlgoliaException
+from algoliasearch.exceptions import AlgoliaException
 
 from ..settings import DEBUG
 
@@ -219,13 +219,13 @@ class BaseAlgoliaIndex:
         if len(batch) > 0:
             self.__index.partial_update_objects(batch)
 
-    def raw_search(self, query='', params=None):
+    def raw_search(self, query='', request_options=None):
         """Performs a search query and returns the parsed JSON."""
-        if params is None:
-            params = {}
+        if request_options is None:
+            request_options = {}
 
         try:
-            return self.__index.search(query, params)
+            return self.__index.search(query, request_options=request_options)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -259,10 +259,10 @@ class BaseAlgoliaIndex:
                 logger.warning('SETTINGS NOT APPLIED ON %s: %s',
                                self.index_name, e)
 
-    def clear_index(self):
+    def clear_objects(self):
         """Clears the index."""
         try:
-            self.__index.clear_index()
+            self.__index.clear_objects()
             logger.info('CLEAR INDEX %s', self.index_name)
         except AlgoliaException as e:
             if DEBUG:
@@ -316,13 +316,14 @@ class BaseAlgoliaIndex:
                     self.settings['slaves'] = []
                     logger.debug("REMOVE SLAVES FROM SETTINGS")
 
-                self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings.copy())['taskID'])
+                response = self.__tmp_index.set_settings(self.settings.copy())
+                response.wait()
                 logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
             rules = []
             synonyms = []
-            for r in self.__index.iter_rules():
+            for r in self.__index.browse_rules():
                 rules.append(r)
-            for s in self.__index.iter_synonyms():
+            for s in self.__index.browse_synonyms():
                 synonyms.append(s)
             if len(rules):
                 logger.debug('Got rules for index %s: %s', self.index_name, rules)
@@ -331,7 +332,7 @@ class BaseAlgoliaIndex:
                 logger.debug('Got synonyms for index %s: %s', self.index_name, rules)
                 should_keep_synonyms = True
 
-            self.__tmp_index.clear_index()
+            self.__tmp_index.clear_objects()
             logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
             counts = 0
@@ -353,8 +354,8 @@ class BaseAlgoliaIndex:
                 logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
                             self.index_name)
 
-            self.__client.move_index(self.__tmp_index.index_name,
-                                     self.__index.index_name)
+            self.__client.move_index(self.__tmp_index.name,
+                                     self.__index.name)
             logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
                         self.index_name)
 
@@ -368,12 +369,18 @@ class BaseAlgoliaIndex:
                 if should_keep_replicas or should_keep_slaves:
                     self.__index.set_settings(self.settings)
                 if should_keep_rules:
-                    response = self.__index.batch_rules(rules, forward_to_replicas=True)
-                    self.__index.wait_task(response['taskID'])
+                    response = self.__index.save_rules(
+                            rules,
+                            {"forwardToReplicas": True},
+                        )
+                    response.wait()
                     logger.info("Saved rules for index %s with response: {}".format(response), self.index_name)
                 if should_keep_synonyms:
-                    response = self.__index.batch_synonyms(synonyms, forward_to_replicas=True)
-                    self.__index.wait_task(response['taskID'])
+                    response = self.__index.save_synonyms(
+                            synonyms,
+                            {"forwardToReplicas": True},
+                        )
+                    response.wait()
                     logger.info("Saved synonyms for index %s with response: {}".format(response), self.index_name)
             return counts
         except AlgoliaException as e:

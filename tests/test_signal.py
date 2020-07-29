@@ -6,7 +6,7 @@ from django.test import TestCase, override_settings
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import get_adapter
 from algoliasearch_django import raw_search
-from algoliasearch_django import clear_index
+from algoliasearch_django import clear_objects
 from algoliasearch_django import update_records
 
 from .factories import WebsiteFactory

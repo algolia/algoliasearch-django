@@ -2,7 +2,7 @@ import logging
 
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
-from algoliasearch import algoliasearch
+from algoliasearch.search_client import SearchClient, SearchConfig
 
 from .models import AlgoliaIndex, Aggregator
 from .settings import SETTINGS
@@ -39,10 +39,10 @@ class AlgoliaEngine:
         self.__registered_models = {}
         self.__registered_adapters = []
 
-        self.client = algoliasearch.Client(app_id, api_key)
-        self.client.set_extra_header('User-Agent',
-                                     'Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)'
-                                     % (CLIENT_VERSION, python_version(), VERSION, django_version))
+        config = SearchConfig(app_id, api_key)
+        config.headers['User-Agent'] = 'Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)' \
+                                       % (CLIENT_VERSION, python_version(), VERSION, django_version)
+        self.client = SearchClient.create_with_config(config)
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""
@@ -179,18 +179,18 @@ class AlgoliaEngine:
         adapter = self.get_adapter(model)
         adapter.update_records(qs, batch_size=batch_size, **kwargs)
 
-    def raw_search(self, model, query='', params=None):
+    def raw_search(self, model, query='', request_options=None):
         """Performs a search query and returns the parsed JSON."""
-        if params is None:
-            params = {}
+        if request_options is None:
+            request_options = {}
 
         adapter = self.get_adapter(model)
-        return adapter.raw_search(query, params)
+        return adapter.raw_search(query, request_options)
 
-    def clear_index(self, model):
+    def clear_objects(self, model):
         """Clears the index."""
         adapter = self.get_adapter(model)
-        adapter.clear_index()
+        adapter.clear_objects()
 
     def reindex_all(self, model, batch_size=1000):
         """

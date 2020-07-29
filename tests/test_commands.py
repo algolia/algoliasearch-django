@@ -34,8 +34,8 @@ class CommandsTestCase(TestCase):
         with patch("algoliasearch_django.management.commands.algolia_clearindex.get_registered_adapters") as mock_iter:
             mock_iter.return_value.__iter__.return_value  = [self.mock_website_adapter, self.mock_example_adapter]
             call_command('algolia_clearindex', stdout=StringIO())
-        self.mock_website_adapter.clear_index.assert_called_once()
-        self.mock_example_adapter.clear_index.assert_called_once()
+        self.mock_website_adapter.clear_objects.assert_called_once()
+        self.mock_example_adapter.clear_objects.assert_called_once()
 
     def test_clearindex_with_args(self):
         with patch("algoliasearch_django.management.commands.algolia_clearindex.get_registered_adapters") as mock_iter:
@@ -45,8 +45,8 @@ class CommandsTestCase(TestCase):
                 stdout=StringIO(),
                 index=['Website']
             )
-        self.mock_website_adapter.clear_index.assert_called_once()
-        self.mock_example_adapter.clear_index.assert_not_called()
+        self.mock_website_adapter.clear_objects.assert_called_once()
+        self.mock_example_adapter.clear_objects.assert_not_called()
 
     def test_applysettings(self):
         with patch("algoliasearch_django.management.commands.algolia_applysettings.get_registered_adapters") as mock_iter:
