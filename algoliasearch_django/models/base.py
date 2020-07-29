@@ -316,7 +316,8 @@ class BaseAlgoliaIndex:
                     self.settings['slaves'] = []
                     logger.debug("REMOVE SLAVES FROM SETTINGS")
 
-                self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings.copy())['taskID'])
+                response = self.__tmp_index.set_settings(self.settings.copy())
+                response.wait()
                 logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
             rules = []
             synonyms = []
@@ -372,14 +373,14 @@ class BaseAlgoliaIndex:
                             rules,
                             {"forwardToReplicas": True},
                         )
-                    self.__index.wait_task(response['taskID'])
+                    response.wait()
                     logger.info("Saved rules for index %s with response: {}".format(response), self.index_name)
                 if should_keep_synonyms:
                     response = self.__index.save_synonyms(
                             synonyms,
                             {"forwardToReplicas": True},
                         )
-                    self.__index.wait_task(response['taskID'])
+                    response.wait()
                     logger.info("Saved synonyms for index %s with response: {}".format(response), self.index_name)
             return counts
         except AlgoliaException as e:
