@@ -354,8 +354,8 @@ class BaseAlgoliaIndex:
                 logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
                             self.index_name)
 
-            self.__client.move_index(self.__tmp_index.index_name,
-                                     self.__index.index_name)
+            self.__client.move_index(self.__tmp_index.name,
+                                     self.__index.name)
             logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
                         self.index_name)
 
