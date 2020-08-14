@@ -262,7 +262,13 @@ class IndexTestCase(TestCase):
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the rules to be kept across reindex
+        def remove_metadata(rule):
+            copy = dict(rule)
+            del copy["_metadata"]
+            return copy
+
         rules = [r for r in underlying_index.iter_rules()]
+        rules = list(map(remove_metadata, rules))
         self.assertEqual(len(rules), 1, "There should only be one rule")
         self.assertIn(rule, rules, "The existing rule should be kept over reindex")
 
