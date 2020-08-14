@@ -39,9 +39,12 @@ class AlgoliaEngine(object):
 
         self.__registered_models = {}
         self.client = algoliasearch.Client(app_id, api_key)
-        self.client.set_extra_header('User-Agent',
-                                     'Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)'
-                                     % (CLIENT_VERSION, python_version(), VERSION, django_version))
+        self.client.set_extra_headers(
+            **{
+                "User-Agent": "Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)"
+                % (CLIENT_VERSION, python_version(), VERSION, django_version)
+            }
+        )
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""
