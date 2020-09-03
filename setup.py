@@ -34,6 +34,7 @@ setup(
     install_requires=['django>=1.7', 'algoliasearch>=1.0,<2.0'],
     description='Algolia Search integration for Django',
     long_description=README,
+    long_description_content_type='text/markdown',
     author='Algolia Team',
     author_email='support@algolia.com',
     url='https://github.com/algolia/algoliasearch-django',
