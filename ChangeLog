@@ -1,6 +1,9 @@
 
 CHANGELOG
 
+2020-09-03 1.7.2
+  * [FIX] Prevent deprecation warning by removing deprecated call to set_extra_header (#297)
+
 2019-04-04 1.7.1
   * [FIX] Fixes non specified version of algoliasearch in requirements (#281)
 
