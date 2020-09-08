@@ -132,13 +132,9 @@ class AlgoliaIndex(BaseAlgoliaIndex):
         """Return True if according to should_index the object should be indexed."""
         if self._should_index_is_method:
             is_method = inspect.ismethod(self.should_index)
-            try:
-                count_args = len(inspect.signature(self.should_index).parameters)
-            except AttributeError:
-                # noinspection PyDeprecation
-                count_args = len(inspect.getargspec(self.should_index).args)
+            count_args = len(inspect.signature(self.should_index).parameters)
 
-            if is_method or count_args is 1:
+            if is_method or count_args == 1:
                 # bound method, call with instance
                 return self.should_index(instance)
             else:
