@@ -24,7 +24,8 @@ algolia_engine = registration.algolia_engine
 register = algolia_engine.register
 register_aggregator = algolia_engine.register_aggregator
 unregister = algolia_engine.unregister
-get_registered_model = algolia_engine.get_registered_models
+get_registered_model = algolia_engine.get_registered_models  # Deprecated
+get_registered_models = algolia_engine.get_registered_models
 
 get_registered_adapters = algolia_engine.get_registered_adapters
 get_adapter = algolia_engine.get_adapter
