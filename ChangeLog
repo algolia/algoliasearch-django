@@ -1,6 +1,9 @@
 
 CHANGELOG
 
+2020-11-19 2.0.4
+  * [CHANGE] Update REGISTER log level: info -> debug (#13) 
+
 2020-08-04 2.0.3
   * [FIX] Fixed syntax error and corrected name of exposed function (#12)
 
