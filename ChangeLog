@@ -1,6 +1,11 @@
 
 CHANGELOG
 
+2021-01-19 1.7.3
+  * [CHORE] adds tests for django 2.2LTS and django 3.x (#303)
+  * [CHORE] introduces the migration changes required to move from 1.x to 2.0, namely introduction of API: `MIDDLEWARES` and `Templates` (#303)
+  * [CHORE] updates algoliasearch to latest major (#303)
+
 2020-09-03 1.7.2
   * [FIX] Prevent deprecation warning by removing deprecated call to set_extra_header (#297)
 
