@@ -318,7 +318,7 @@ It is possible to have several indices for a single model.
 - First, define all your indices that you want for a model:
 
 ```python
-from django.contrib.algoliasearch import AlgoliaIndex
+from algoliasearch_django import AlgoliaIndex
 
 class MyModelIndex1(AlgoliaIndex):
     name = 'MyModelIndex1'
