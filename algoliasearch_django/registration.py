@@ -3,7 +3,8 @@ import logging
 
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
-from algoliasearch import algoliasearch
+from algoliasearch.search_client import SearchClient
+from algoliasearch.user_agent import UserAgent
 
 from .models import AlgoliaIndex
 from .settings import SETTINGS
@@ -38,13 +39,14 @@ class AlgoliaEngine(object):
         self.__settings = settings
 
         self.__registered_models = {}
-        self.client = algoliasearch.Client(app_id, api_key)
-        self.client.set_extra_headers(
-            **{
-                "User-Agent": "Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)"
-                % (CLIENT_VERSION, python_version(), VERSION, django_version)
-            }
-        )
+        self.client = SearchClient.create(app_id, api_key)
+        # UserAgent.add()
+        # self.client.set_extra_headers(
+        #     **{
+        #         "User-Agent": "Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)"
+        #         % (CLIENT_VERSION, python_version(), VERSION, django_version)
+        #     }
+        # )
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""
@@ -70,7 +72,7 @@ class AlgoliaEngine(object):
         self.__registered_models[model] = index_obj
 
         if (isinstance(auto_indexing, bool) and
-                auto_indexing) or self.__auto_indexing:
+            auto_indexing) or self.__auto_indexing:
             # Connect to the signalling framework.
             post_save.connect(self.__post_save_receiver, model)
             pre_delete.connect(self.__pre_delete_receiver, model)
@@ -157,10 +159,14 @@ class AlgoliaEngine(object):
         adapter = self.get_adapter(model)
         return adapter.raw_search(query, params)
 
-    def clear_index(self, model):
+    def clear_objects(self, model):
         """Clears the index."""
         adapter = self.get_adapter(model)
-        adapter.clear_index()
+        adapter.clear_objects()
+
+    def clear_index(self, model):
+        # TODO: add deprecatd warning
+        self.clear_objects(model)
 
     def reindex_all(self, model, batch_size=1000):
         """

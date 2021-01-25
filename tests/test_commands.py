@@ -13,8 +13,11 @@ from .models import User
 class CommandsTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
-        algolia_engine.client.delete_index(get_adapter(User).index_name)
-        algolia_engine.client.delete_index(get_adapter(Website).index_name)
+        user_index_name = get_adapter(User).index_name
+        website_index_name = get_adapter(Website).index_name
+
+        algolia_engine.client.init_index(user_index_name).delete()
+        algolia_engine.client.init_index(website_index_name).delete()
 
     def setUp(self):
         # Create some records

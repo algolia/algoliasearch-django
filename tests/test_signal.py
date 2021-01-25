@@ -17,7 +17,7 @@ class SignalTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        algolia_engine.client.delete_index(get_adapter(Website).index_name)
+        get_adapter(Website).delete()
 
     def tearDown(self):
         clear_index(Website)

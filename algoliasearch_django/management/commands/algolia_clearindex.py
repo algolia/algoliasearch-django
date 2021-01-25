@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from algoliasearch_django import get_registered_model
-from algoliasearch_django import clear_index
+from algoliasearch_django import clear_objects
 
 
 class Command(BaseCommand):
@@ -18,5 +18,5 @@ class Command(BaseCommand):
                                                    options['model']):
                 continue
 
-            clear_index(model)
+            clear_objects(model)
             self.stdout.write('\t* {}'.format(model.__name__))
