@@ -45,7 +45,7 @@ docker build -t algoliasearch-django .
 You need to provide a few environment variables at runtime to be able to run the image and the test suite.
 
 ```bash
-docker run -it --rm --env ALGOLIA_APP_ID=XXXXXX \
+docker run -it --rm --env ALGOLIA_APPLICATION_ID=XXXXXX \
                     --env ALGOLIA_API_KEY=XXXXXXXXXXXXXX \
                     -v $PWD:/code -w /app algoliasearch-django bash
 ```
@@ -53,11 +53,10 @@ docker run -it --rm --env ALGOLIA_APP_ID=XXXXXX \
 However, we advise you to export them. That way, you can use [Docker's shorten syntax](https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file) to set your variables.
 
 ```bash
-export ALGOLIA_APP_ID=XXXXXX 
+export ALGOLIA_APPLICATION_ID=XXXXXX 
 export ALGOLIA_API_KEY=XXX 
-export ALGOLIA_SEARCH_API_KEY=XXXX 
 
-docker run -it --rm --env ALGOLIA_APP_ID --env ALGOLIA_API_KEY -v $PWD:/code -w /code algolia-scout-extended bash
+docker run -it --rm --env ALGOLIA_APPLICATION_ID --env ALGOLIA_API_KEY -v $PWD:/code -w /code algoliasearch-django bash
 ```
 
 Once your container is running, any changes you make in your IDE are directly reflected in the container.
