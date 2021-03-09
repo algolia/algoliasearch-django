@@ -9,11 +9,12 @@ from algoliasearch.user_agent import UserAgent
 from .models import AlgoliaIndex
 from .settings import SETTINGS
 from .version import VERSION
-from algoliasearch.version import VERSION as CLIENT_VERSION
-from platform import python_version
 from django import get_version as django_version
 
 logger = logging.getLogger(__name__)
+
+UserAgent.add("Algolia for Django", VERSION)
+UserAgent.add("Django", django_version())
 
 
 class AlgoliaEngineError(Exception):
@@ -40,13 +41,6 @@ class AlgoliaEngine(object):
 
         self.__registered_models = {}
         self.client = SearchClient.create(app_id, api_key)
-        # UserAgent.add()
-        # self.client.set_extra_headers(
-        #     **{
-        #         "User-Agent": "Algolia for Python (%s); Python (%s); Algolia for Django (%s); Django (%s)"
-        #         % (CLIENT_VERSION, python_version(), VERSION, django_version)
-        #     }
-        # )
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""
