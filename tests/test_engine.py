@@ -1,6 +1,7 @@
 import six
 
 from django.conf import settings
+from mock import patch
 from django.test import TestCase
 
 from algoliasearch_django import algolia_engine
@@ -8,6 +9,7 @@ from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django import AlgoliaEngine
 from algoliasearch_django.registration import AlgoliaEngineError
 from algoliasearch_django.registration import RegistrationError
+from django.db.models import signals
 
 from .models import Website, User
 
@@ -82,6 +84,42 @@ class EngineTestCase(TestCase):
         self.engine.register(Website, WebsiteIndex)
         self.assertEqual(WebsiteIndex.__name__,
                          self.engine.get_adapter(Website).__class__.__name__)
+
+    @patch.object(signals.post_save, 'connect')
+    @patch.object(signals.pre_delete, 'connect')
+    def test_register_with_implicit_autoindexing(self, mock_pre_delete_connect, mock_post_save_connect):
+        class WebsiteIndex(AlgoliaIndex):
+            pass
+
+        engine = AlgoliaEngine()
+        engine.register(Website, WebsiteIndex)
+
+        self.assertTrue(mock_post_save_connect.called)
+        self.assertTrue(mock_pre_delete_connect.called)
+
+    @patch.object(signals.post_save, 'connect')
+    @patch.object(signals.pre_delete, 'connect')
+    def test_register_with_autoindexing(self, mock_pre_delete_connect, mock_post_save_connect):
+        class WebsiteIndex(AlgoliaIndex):
+            pass
+
+        engine = AlgoliaEngine()
+        engine.register(Website, WebsiteIndex, auto_indexing=True)
+
+        self.assertTrue(mock_post_save_connect.called)
+        self.assertTrue(mock_pre_delete_connect.called)
+
+    @patch.object(signals.post_save, 'connect')
+    @patch.object(signals.pre_delete, 'connect')
+    def test_register_without_autoindexing(self, mock_pre_delete_connect, mock_post_save_connect):
+        class WebsiteIndex(AlgoliaIndex):
+            pass
+
+        engine = AlgoliaEngine()
+        engine.register(Website, WebsiteIndex, auto_indexing=False)
+
+        self.assertFalse(mock_post_save_connect.called)
+        self.assertFalse(mock_pre_delete_connect.called)
 
     def test_register_with_custom_index_exception(self):
         class WebsiteIndex(object):

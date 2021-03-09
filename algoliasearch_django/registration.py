@@ -75,7 +75,8 @@ class AlgoliaEngine(object):
             # Connect to the signalling framework.
             post_save.connect(self.__post_save_receiver, model)
             pre_delete.connect(self.__pre_delete_receiver, model)
-            logger.info('REGISTER %s', model)
+
+        logger.info('REGISTER %s', model)
 
     def unregister(self, model):
         """
