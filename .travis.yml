@@ -1,57 +1,19 @@
 language: python
 sudo: false
+services:
+  - docker
 cache: pip
 install:
 - pip install --upgrade pip
 - pip install tox
+
 script:
 - tox
+- docker build -t algoliasearch_django .
+- docker run -it --rm --env ALGOLIA_APPLICATION_ID --env ALGOLIA_API_KEY --env ALGOLIA_SEARCH_API_KEY --env TOXENV -v $PWD:/code -w /code algoliasearch_django tox
+
 matrix:
   include:
-  - python: 2.7
-    env: TOXENV=py27-django17
-  - python: 2.7
-    env: TOXENV=py27-django18
-  - python: 2.7
-    env: TOXENV=py27-django19
-  - python: 2.7
-    env: TOXENV=py27-django110
-  - python: 2.7
-    env: TOXENV=py27-django111
-  - python: 3.4
-    env: TOXENV=py34-django17
-  - python: 3.4
-    env: TOXENV=py34-django18
-  - python: 3.4
-    env: TOXENV=py34-django19
-  - python: 3.4
-    env: TOXENV=py34-django110
-  - python: 3.4
-    env: TOXENV=py34-django111
-  - python: 3.4
-    env: TOXENV=py34-django20
-  - python: 3.5
-    env: TOXENV=py35-django18
-  - python: 3.5
-    env: TOXENV=py35-django19
-  - python: 3.5
-    env: TOXENV=py35-django110
-  - python: 3.5
-    env: TOXENV=py35-django111
-  - python: 3.5
-    env: TOXENV=py35-django20
-  - python: 3.6
-    env: TOXENV=py36-django18
-  - python: 3.6
-    env: TOXENV=py36-django19
-  - python: 3.6
-    env: TOXENV=py36-django110
-  - python: 3.6
-    env: TOXENV=py36-django111
-  - python: 3.6
-    env: TOXENV=py36-django20
-  - python: 3.6
-    env: TOXENV=py36-django22LTS
   - python: 3.6
     env: TOXENV=py36-django31
 env:
