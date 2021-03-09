@@ -71,9 +71,10 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
 
 This package lets you easily integrate the Algolia Search API to your [Django](https://www.djangoproject.com/) project. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
 
-You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
+You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example).
 
-Compatible with **Python 2.7**, **Python 3.4+** and **Django 1.7+**
+- Compatible with **Python 2.7** and **Python 3.4+**.
+- Supports **Django 1.7+**, **2.x** and **3.x**.
 
 ## Install
 
