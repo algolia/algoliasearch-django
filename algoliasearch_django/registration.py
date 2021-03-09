@@ -66,7 +66,7 @@ class AlgoliaEngine(object):
         self.__registered_models[model] = index_obj
 
         if (isinstance(auto_indexing, bool) and
-            auto_indexing) or self.__auto_indexing:
+                auto_indexing) or self.__auto_indexing:
             # Connect to the signalling framework.
             post_save.connect(self.__post_save_receiver, model)
             pre_delete.connect(self.__pre_delete_receiver, model)
