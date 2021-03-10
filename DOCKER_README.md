@@ -64,7 +64,8 @@ Once your container is running, any changes you make in your IDE are directly re
 To launch the tests, you can use this command
 
 ```bash
-tox
+tox -e py36-django31
 ```
 
+If you'd like to sue an env other that `py36-django31`, run `tox --listenvs` to see the list of available envs.
 Feel free to contact us if you have any questions.
