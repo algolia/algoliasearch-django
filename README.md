@@ -437,6 +437,8 @@ class OverrideSettingsTestCase(TestCase):
 
 # Troubleshooting
 
+# Use the Dockerfile
+If you want to contribute to this project without installing all its dependencies, you can use our Docker image. Please check our [dedicated guide](DOCKER_README.md) to learn more.
 
 ## Frequently asked questions
 
