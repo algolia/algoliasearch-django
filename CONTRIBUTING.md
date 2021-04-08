@@ -16,7 +16,13 @@ please consider submitting them as separate pull requests unless they are relate
 
 Here are a few tips to increase the likelihood of being merged:
 
-- [ ] Write tests.
+- [ ] Write tests & run them
+  ```sh
+  $ python3 -m venv venv
+  $ source venv/bin/activate
+  $ pip install -r requirements.txt
+  $ ALGOLIA_APPLICATION_ID=*** ALGOLIA_API_KEY=*** tox
+  ```
 - [ ] Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 - [ ] Allow [edits from maintainers](https://blog.github.com/2016-09-07-improving-collaboration-with-forks/).
 
