@@ -260,7 +260,7 @@ class AlgoliaIndex(object):
                 # noinspection PyDeprecation
                 count_args = len(inspect.getargspec(self.should_index).args)
 
-            if is_method or count_args is 1:
+            if is_method or count_args == 1:
                 # bound method, call with instance
                 return self.should_index(instance)
             else:
