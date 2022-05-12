@@ -1,8 +1,12 @@
 import six
+import re
 
 from django.conf import settings
 from django.test import TestCase
 
+from algoliasearch.user_agent import UserAgent
+from django import get_version as django_version
+from algoliasearch_django.version import VERSION
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django import AlgoliaEngine
@@ -28,6 +32,14 @@ class EngineTestCase(TestCase):
         with self.settings(ALGOLIA=algolia_settings):
             with self.assertRaises(AlgoliaEngineError):
                 AlgoliaEngine(settings=settings.ALGOLIA)
+
+    def test_user_agent(self):
+        user_agent = UserAgent.get()
+
+        parts = re.split('\s*;\s*', user_agent)
+
+        self.assertIn('Django (%s)' % django_version(), parts)
+        self.assertIn('Algolia for Django (%s)' % VERSION, parts)
 
     def test_auto_discover_indexes(self):
         """Test that the `index` module was auto-discovered and the models registered"""

@@ -1,25 +1,30 @@
+<p align="center">
+  <a href="https://www.algolia.com">
+    <img alt="Algolia for Django" src="https://raw.githubusercontent.com/algolia/algoliasearch-client-common/master/banners/django.png" >
+  </a>
 
-# Algolia Search API Client for Django
+  <h4 align="center">The perfect starting point to integrate <a href="https://algolia.com" target="_blank">Algolia</a> within your Django project</h4>
 
-[Algolia Search](https://www.algolia.com) is a hosted full-text, numerical,
-and faceted search engine capable of delivering realtime results from the first keystroke.
-
-[![Build Status](https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master)](https://travis-ci.org/algolia/algoliasearch-django)
-[![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master)](https://coveralls.io/r/algolia/algoliasearch-django)
-[![PyPI version](https://badge.fury.io/py/algoliasearch-django.svg?branch=master)](http://badge.fury.io/py/algoliasearch-django)
-
-
-This package lets you easily integrate the Algolia Search API to your [Django](https://www.djangoproject.com/) project. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
-
-You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
-
-Compatible with **Python 2.7**, **Python 3.4+** and **Django 1.7+**
+  <p align="center">
+    <a href="https://travis-ci.org/algolia/algoliasearch-django"><img src="https://travis-ci.org/algolia/algoliasearch-django.svg?branch=master" alt="Build Status"></img></a>
+    <a href="https://coveralls.io/r/algolia/algoliasearch-django"><img src="https://coveralls.io/repos/algolia/algoliasearch-django/badge.svg?branch=master" alt="Coverage Status"></img></a>
+    <a href="http://badge.fury.io/py/algoliasearch-django"><img src="https://badge.fury.io/py/algoliasearch-django.svg?branch=master" alt="PyPi Version"></img></a>
+  </p>
+</p>
 
 
+<p align="center">
+  <a href="https://www.algolia.com/doc/framework-integration/django/options/?language=python" target="_blank">Documentation</a>  •
+  <a href="https://discourse.algolia.com" target="_blank">Community Forum</a>  •
+  <a href="http://stackoverflow.com/questions/tagged/algolia" target="_blank">Stack Overflow</a>  •
+  <a href="https://github.com/algolia/algoliasearch-django/issues" target="_blank">Report a bug</a>  •
+  <a href="https://www.algolia.com/doc/framework-integration/django/faq/" target="_blank">FAQ</a>  •
+  <a href="https://www.algolia.com/support" target="_blank">Support</a>
+</p>
 
 ## API Documentation
 
-You can find the full reference on [Algolia's website](https://www.algolia.com/doc/api-client/django/).
+You can find the full reference on [Algolia's website](https://www.algolia.com/doc/framework-integration/django/).
 
 
 
@@ -53,7 +58,8 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
 1. **[Tests](#tests)**
     * [Run Tests](#run-tests)
 
-
+1. **[Troubleshooting](#troubleshooting)**
+    * [Frequently asked questions](#frequently-asked-questions)
 
 
 
@@ -65,9 +71,10 @@ You can find the full reference on [Algolia's website](https://www.algolia.com/d
 
 This package lets you easily integrate the Algolia Search API to your [Django](https://www.djangoproject.com/) project. It's based on the [algoliasearch-client-python](https://github.com/algolia/algoliasearch-client-python) package.
 
-You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example)
+You might be interested in this sample Django application providing a typeahead.js based auto-completion and Google-like instant search: [algoliasearch-django-example](https://github.com/algolia/algoliasearch-django-example).
 
-Compatible with **Python 2.7**, **Python 3.4+** and **Django 1.7+**
+- Compatible with **Python 2.7** and **Python 3.4+**.
+- Supports **Django 1.7+**, **2.x** and **3.x**.
 
 ## Install
 
@@ -88,8 +95,8 @@ ALGOLIA = {
 
 There are several optional settings:
 
-* `INDEX_PREFIX`: prefix all indexes. Use it to separate different applications, like `site1_Products` and `site2_Products`.
-* `INDEX_SUFFIX`: suffix all indexes. Use it to differentiate development and production environments, like `Location_dev` and `Location_prod`.
+* `INDEX_PREFIX`: prefix all indices. Use it to separate different applications, like `site1_Products` and `site2_Products`.
+* `INDEX_SUFFIX`: suffix all indices. Use it to differentiate development and production environments, like `Location_dev` and `Location_prod`.
 * `AUTO_INDEXING`: automatically synchronize the models with Algolia (default to **True**).
 * `RAISE_EXCEPTIONS`: raise exceptions on network errors instead of logging them (default to **settings.DEBUG**).
 
@@ -129,7 +136,6 @@ class YourModelIndex(AlgoliaIndex):
 
 
 
-
 # Commands
 
 
@@ -143,14 +149,13 @@ class YourModelIndex(AlgoliaIndex):
 
 
 
-
 # Search
 
 
 
 ## Search
 
-We recommend using our [InstantSearch.js library](https://community.algolia.com/instantsearch.js) to build your search
+We recommend using our [InstantSearch.js library](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) to build your search
 interface and perform search queries directly from the end-user browser without going through your server.
 
 However, if you want to search from your backend you can use the `raw_search(YourModel, 'yourQuery', params)` method.
@@ -166,7 +171,6 @@ response = raw_search(Contact, "jim", params)
 
 
 
-
 # Geo-Search
 
 
@@ -177,7 +181,7 @@ Use the `geo_field` attribute to localize your record. `geo_field` should be a c
 
 ```python
 class Contact(models.model):
-    name = models.CharField(max_lenght=20)
+    name = models.CharField(max_length=20)
     lat = models.FloatField()
     lng = models.FloatField()
 
@@ -190,7 +194,6 @@ class ContactIndex(AlgoliaIndex):
 
 algoliasearch.register(Contact, ContactIndex)
 ```
-
 
 
 
@@ -208,7 +211,6 @@ class ArticleIndex(AlgoliaIndex):
 ```
 
 At query time, specify `{ tagFilters: 'tagvalue' }` or `{ tagFilters: ['tagvalue1', 'tagvalue2'] }` as search parameters to restrict the result set to specific tags.
-
 
 
 
@@ -274,10 +276,10 @@ class ContactIndex(AlgoliaIndex):
         'searchableAttributes': ['name', 'email', 'company', 'city', 'county', 'account_names',
         }
 ```
-    
+
 - With this configuration, you can search for a `Contact` using its `Account` names
-- You can use the associated `account_ids` at search-time to fetch more data from your 
-model (you should **only proxy the fields relevant for search** to keep your records' size 
+- You can use the associated `account_ids` at search-time to fetch more data from your
+model (you should **only proxy the fields relevant for search** to keep your records' size
 as small as possible)
 
 ## Index settings
@@ -300,7 +302,7 @@ callable that returns a boolean.
 
 ```python
 class Contact(models.model):
-    name = models.CharField(max_lenght=20)
+    name = models.CharField(max_length=20)
     age = models.IntegerField()
 
     def is_adult(self):
@@ -315,9 +317,9 @@ class ContactIndex(AlgoliaIndex):
 It is possible to have several indices for a single model.
 
 - First, define all your indices that you want for a model:
-    
+
 ```python
-from django.contrib.algoliasearch import AlgoliaIndex
+from algoliasearch_django import AlgoliaIndex
 
 class MyModelIndex1(AlgoliaIndex):
     name = 'MyModelIndex1'
@@ -329,7 +331,7 @@ class MyModelIndex2(AlgoliaIndex):
 ```
 
 - Then, define a meta model which will aggregate those indices:
-    
+
 ```python
 class MyModelMetaIndex(AlgoliaIndex):
     def __init__(self, model, client, settings):
@@ -370,7 +372,7 @@ class MyModelMetaIndex(AlgoliaIndex):
 ```
 
 - Finally, register this `AlgoliaIndex` with your `Model`:
-    
+
 ```python
 import algoliasearch_django as algoliasearch
 algoliasearch.register(MyModel, MyModelMetaIndex)
@@ -400,7 +402,6 @@ with disable_auto_indexing(MyModel):
 
 
 
-
 # Tests
 
 
@@ -412,8 +413,8 @@ To run the tests, first find your Algolia application id and Admin API key (foun
 ```shell
 ALGOLIA_APPLICATION_ID={APPLICATION_ID} ALGOLIA_API_KEY={ADMIN_API_KEY} tox
 ```
-  
-  
+
+
 To override settings for some tests, use the [settings method](https://docs.djangoproject.com/en/1.11/topics/testing/tools/#django.test.SimpleTestCase.settings):
 ```python
 class OverrideSettingsTestCase(TestCase):
@@ -432,5 +433,15 @@ class OverrideSettingsTestCase(TestCase):
         # ...
 ```
 
+
+
+# Troubleshooting
+
+# Use the Dockerfile
+If you want to contribute to this project without installing all its dependencies, you can use our Docker image. Please check our [dedicated guide](DOCKER_README.md) to learn more.
+
+## Frequently asked questions
+
+Encountering an issue? Before reaching out to support, we recommend heading to our [FAQ](https://www.algolia.com/doc/framework-integration/django/faq/) where you will find answers for the most common issues and gotchas with the package.
 
 

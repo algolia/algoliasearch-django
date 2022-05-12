@@ -1,11 +1,15 @@
 language: python
 sudo: false
+services:
+  - docker
 cache: pip
 install:
 - pip install --upgrade pip
 - pip install tox
+
 script:
 - tox
+
 matrix:
   include:
   - python: 2.7
@@ -50,6 +54,24 @@ matrix:
     env: TOXENV=py36-django111
   - python: 3.6
     env: TOXENV=py36-django20
+  - python: 3.6
+    env: TOXENV=py36-django22LTS
+  - python: 3.6
+    env: TOXENV=py36-django30
+  - python: 3.6
+    env: TOXENV=py36-django31
+  - python: 3.6
+    env: TOXENV=py36-django32
+  - python: 3.8
+    env: TOXENV=py38-django30
+  - python: 3.8
+    env: TOXENV=py38-django31
+  - python: 3.8
+    env: TOXENV=py38-django32
+    script:
+      - docker build -t algoliasearch_django .
+      - docker run -it --rm --env ALGOLIA_APPLICATION_ID --env ALGOLIA_API_KEY --env ALGOLIA_SEARCH_API_KEY --env TOXENV -v $PWD:/code -w /code algoliasearch_django tox
+
 env:
   global:
   - secure: BvefwB7dAyxeVeIwaDoklOwE04DkuP4xqj18awneFYJdln2qWUB/AcchVGrp6Toi1XnL+4e/CkSRbj/XLr3FBceARknfgzT3zp7BQyJLREAXFXV75dcCtcN9Jxh4IMpNlLTcZcB8OvU+edrRulmsOR0hXIie8rLg3pt+2LfGxhVzaUBq6F9vv+Db7tdZ+DNnciA+geJQZ+ThtxxUzVcNqCgTvQSrPYMGx07ScEG6MuEakHopEVuTE3n7hiOZW/17sS4uBfj+JwL3RX1gg/lnobbicYxBJ+WzuIP2cpVGLDJDwnclqlAezPMEG0AymeOrM9/5fYRkyawOyeaJZFmcd4cqnKurG/lDmidABzB3LXYWnAYVMOsQ5R9JqRRa+AVHt8u1wJZu4VXMoI7AtLHaMCVBO0iAGkH7dD41oy/aMzN63bIp+ANo7seIouxRfCX62H5+1unUbYYExsKvUhwb7uSLLq67QcbkudklIpb/xsNkueqFgJ9APBH3/K7MYjRjPrCA8pjOgnWXyzJRty+fZctrJZTbWg9ubky7t/48enDmFzDOgMjnEtkKAXYO7lHDEsA2HceLtYx08VI9Hfry579AhdqZSRaXZejSN8ZUIOHJLXT+2Md35IuySTpqkQiEjDYWwhLooEFvrirVB+3YCw6Sw6kAoT7P5FS2hOOZtKw=

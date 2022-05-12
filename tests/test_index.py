@@ -44,8 +44,8 @@ class IndexTestCase(TestCase):
         self._registrations = []
 
     def tearDown(self):
-        if hasattr(self, 'index') and hasattr(self.index, 'index_name'):
-            self.client.delete_index(self.index.index_name)
+        if hasattr(self, 'index'):
+            self.index.delete()
         for model in self._registrations:
             algolia_engine.unregister(model)
 
@@ -102,7 +102,7 @@ class IndexTestCase(TestCase):
         with self.settings(ALGOLIA=algolia_settings):
             self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
             self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
+                self.index.tmp_index_name,
                 'Website_tmp'
             )
 
@@ -112,7 +112,7 @@ class IndexTestCase(TestCase):
         with self.settings(ALGOLIA=algolia_settings):
             self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
             self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
+                self.index.tmp_index_name,
                 'prefix_Website_tmp'
             )
 
@@ -123,7 +123,7 @@ class IndexTestCase(TestCase):
         with self.settings(ALGOLIA=algolia_settings):
             self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
             self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
+                self.index.tmp_index_name,
                 'Website_tmp_suffix'
             )
 
@@ -134,7 +134,7 @@ class IndexTestCase(TestCase):
         with self.settings(ALGOLIA=algolia_settings):
             self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
             self.assertEqual(
-                self.index._AlgoliaIndex__tmp_index.index_name,
+                self.index.tmp_index_name,
                 'prefix_Website_tmp_suffix'
             )
 
@@ -261,8 +261,8 @@ class IndexTestCase(TestCase):
                 }
             }
         }
-        res = underlying_index.save_rule(rule)
-        self.index.wait_task(res['taskID'])
+
+        underlying_index.save_rule(rule).wait()
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
@@ -270,7 +270,13 @@ class IndexTestCase(TestCase):
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the rules to be kept across reindex
-        rules = [r for r in underlying_index.iter_rules()]
+        def remove_metadata(rule):
+            copy = dict(rule)
+            del copy["_metadata"]
+            return copy
+
+        rules = [r for r in underlying_index.browse_rules()]
+        rules = list(map(remove_metadata, rules))
         self.assertEqual(len(rules), 1, "There should only be one rule")
         self.assertIn(rule, rules, "The existing rule should be kept over reindex")
 
@@ -284,8 +290,7 @@ class IndexTestCase(TestCase):
 
         # Given some existing synonyms on the index
         synonym = {'objectID': 'street', 'type': 'altCorrection1', 'word': 'Street', 'corrections': ['St']}
-        task = underlying_index.batch_synonyms([synonym])
-        underlying_index.wait_task(task['taskID'])
+        underlying_index.save_synonyms([synonym]).wait()
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
@@ -293,7 +298,7 @@ class IndexTestCase(TestCase):
         time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the synonyms to be kept across reindex
-        synonyms = [s for s in underlying_index.iter_synonyms()]
+        synonyms = [s for s in underlying_index.browse_synonyms()]
         self.assertEqual(len(synonyms), 1, "There should only be one synonym")
         self.assertIn(synonym, synonyms, "The existing synonym should be kept over reindex")
 
@@ -895,7 +900,7 @@ class IndexTestCase(TestCase):
         self.user.bio = "крупнейших"
         self.user.save()
         self.index = CyrillicIndex(User, self.client, settings.ALGOLIA)
-        self.index.wait_task(self.index.save_record(self.user)[0]["taskID"])
+        self.index.save_record(self.user).wait()
         result = self.index.raw_search("крупнейших")
         self.assertEqual(result['nbHits'], 1, "Search should return one result")
         self.assertEqual(result['hits'][0]['name'], 'Algolia', "The result should be self.user")

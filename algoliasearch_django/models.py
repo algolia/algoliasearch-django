@@ -7,7 +7,7 @@ import logging
 import types
 
 import sys
-from algoliasearch.helpers import AlgoliaException
+from algoliasearch.exceptions import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
 try:
     from django.utils.inspect import func_supports_parameter, func_accepts_kwargs
@@ -206,8 +206,10 @@ class AlgoliaIndex(object):
                 index_suffix=settings['INDEX_SUFFIX']
             )
 
+        self.tmp_index_name = tmp_index_name
+
         self.__index = client.init_index(self.index_name)
-        self.__tmp_index = client.init_index(tmp_index_name)
+        self.__tmp_index = client.init_index(self.tmp_index_name)
 
     @staticmethod
     def _validate_geolocation(geolocation):
@@ -317,7 +319,7 @@ class AlgoliaIndex(object):
                 # noinspection PyDeprecation
                 count_args = len(inspect.getargspec(self.should_index).args)
 
-            if is_method or count_args is 1:
+            if is_method or count_args == 1:
                 # bound method, call with instance
                 return self.should_index(instance)
             else:
@@ -487,16 +489,20 @@ class AlgoliaIndex(object):
                 logger.warning('SETTINGS NOT APPLIED ON %s: %s',
                                self.model, e)
 
-    def clear_index(self):
-        """Clears the index."""
+    def clear_objects(self):
+        """Clears all objects of an index."""
         try:
-            self.__index.clear_index()
+            self.__index.clear_objects()
             logger.info('CLEAR INDEX %s', self.index_name)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
                 logger.warning('%s NOT CLEARED: %s', self.model, e)
+
+    def clear_index(self):
+        # TODO: add deprecated warning
+        self.clear_objects()
 
     def wait_task(self, task_id):
         try:
@@ -507,6 +513,11 @@ class AlgoliaIndex(object):
                 raise e
             else:
                 logger.warning('%s NOT WAIT: %s', self.model, e)
+
+    def delete(self):
+        self.__index.delete()
+        if self.__tmp_index:
+            self.__tmp_index.delete()
 
     def reindex_all(self, batch_size=DEFAULT_BATCH_SIZE):
         """
@@ -544,13 +555,13 @@ class AlgoliaIndex(object):
                     self.settings['slaves'] = []
                     logger.debug("REMOVE SLAVES FROM SETTINGS")
 
-                self.__tmp_index.wait_task(self.__tmp_index.set_settings(self.settings)['taskID'])
+                self.__tmp_index.set_settings(self.settings).wait()
                 logger.debug('APPLY SETTINGS ON %s_tmp', self.index_name)
             rules = []
             synonyms = []
-            for r in self.__index.iter_rules():
+            for r in self.__index.browse_rules():
                 rules.append(r)
-            for s in self.__index.iter_synonyms():
+            for s in self.__index.browse_synonyms():
                 synonyms.append(s)
             if len(rules):
                 logger.debug('Got rules for index %s: %s', self.index_name, rules)
@@ -559,7 +570,7 @@ class AlgoliaIndex(object):
                 logger.debug('Got synonyms for index %s: %s', self.index_name, rules)
                 should_keep_synonyms = True
 
-            self.__tmp_index.clear_index()
+            self.__tmp_index.clear_objects()
             logger.debug('CLEAR INDEX %s_tmp', self.index_name)
 
             counts = 0
@@ -583,8 +594,8 @@ class AlgoliaIndex(object):
                         self.index_name)
             batch.flush()
 
-            self.__client.move_index(self.__tmp_index.index_name,
-                                     self.__index.index_name)
+            self.__client.move_index(self.tmp_index_name,
+                                     self.index_name)
             logger.info('MOVE INDEX %s_tmp TO %s', self.index_name,
                         self.index_name)
 
@@ -598,12 +609,12 @@ class AlgoliaIndex(object):
                 if should_keep_replicas or should_keep_slaves:
                     self.__index.set_settings(self.settings)
                 if should_keep_rules:
-                    response = self.__index.batch_rules(rules, forward_to_replicas=True)
-                    self.__index.wait_task(response['taskID'])
+                    response = self.__index.save_rules(rules, {'forwardToReplicas': True})
+                    response.wait()
                     logger.info("Saved rules for index %s with response: {}".format(response), self.index_name)
                 if should_keep_synonyms:
-                    response = self.__index.batch_synonyms(synonyms, forward_to_replicas=True)
-                    self.__index.wait_task(response['taskID'])
+                    response = self.__index.save_synonyms(synonyms, {'forwardToReplicas': True})
+                    response.wait()
                     logger.info("Saved synonyms for index %s with response: {}".format(response), self.index_name)
             return counts
         except AlgoliaException as e:
