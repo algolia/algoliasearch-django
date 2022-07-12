@@ -293,7 +293,7 @@ class AlgoliaIndex(object):
         https://github.com/algolia/algoliasearch-client-python#update-an-existing-object-in-the-index
         """
         if not self._should_index(instance):
-            # Should not index, but since we don't now the state of the
+            # Should not index, but since we don't know the state of the
             # instance, we need to send a DELETE request to ensure that if
             # the instance was previously indexed, it will be removed.
             self.delete_record(instance)
