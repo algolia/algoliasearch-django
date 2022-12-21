@@ -8,6 +8,7 @@ import logging
 import sys
 from algoliasearch.exceptions import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
+from django.core.paginator import Paginator
 
 from .settings import DEBUG
 
@@ -494,17 +495,21 @@ class AlgoliaIndex(object):
             else:
                 qs = self.model.objects.all()
 
-            for instance in qs:
-                if not self._should_index(instance):
-                    continue  # should not index
+            paginator = Paginator(qs, batch_size)
+            pages = range(1, paginator.num_pages + 1)
+            for page_number in pages:
+                instances = list(paginator.page(page_number).object_list)
+                for instance in instances:
+                    if not self._should_index(instance):
+                        continue  # should not index
 
-                batch.append(self.get_raw_record(instance))
-                if len(batch) >= batch_size:
-                    self.__tmp_index.save_objects(batch)
-                    logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
-                                self.index_name)
-                    batch = []
-                counts += 1
+                    batch.append(self.get_raw_record(instance))
+                    if len(batch) >= batch_size:
+                        self.__tmp_index.save_objects(batch)
+                        logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
+                                    self.index_name)
+                        batch = []
+                    counts += 1
             if len(batch) > 0:
                 self.__tmp_index.save_objects(batch)
                 logger.info('SAVE %d OBJECTS TO %s_tmp', len(batch),
