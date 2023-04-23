@@ -13,7 +13,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 path_readme = os.path.join(os.path.dirname(__file__), 'README.md')
 try:
     import pypandoc
-    README = pypandoc.convert(path_readme, 'rst')
+    README = pypandoc.convert_file(path_readme, 'rst')
 except (IOError, ImportError):
     with open(path_readme) as readme:
         README = readme.read()
