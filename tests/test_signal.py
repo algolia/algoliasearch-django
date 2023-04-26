@@ -64,6 +64,7 @@ class SignalTestCase(TestCase):
 
         qs = Website.objects.filter(name='Facebook')
         update_records(Website, qs, url='https://facebook.com')
+        time.sleep(10)
         qs.update(url='https://facebook.com')
 
         time.sleep(10)
