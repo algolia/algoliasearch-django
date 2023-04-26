@@ -13,7 +13,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 path_readme = os.path.join(os.path.dirname(__file__), 'README.md')
 try:
     import pypandoc
-    README = pypandoc.convert(path_readme, 'rst')
+    README = pypandoc.convert_file(path_readme, 'rst')
 except (IOError, ImportError):
     with open(path_readme) as readme:
         README = readme.read()
@@ -31,7 +31,7 @@ setup(
     version=VERSION,
     license='MIT License',
     packages=find_packages(exclude=['tests']),
-    install_requires=['django>=1.7', 'algoliasearch>=2.0,<3.0'],
+    install_requires=['django>=1.7', 'algoliasearch>=3.0,<4.0'],
     description='Algolia Search integration for Django',
     long_description=README,
     long_description_content_type='text/markdown',
