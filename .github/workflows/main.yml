@@ -1,0 +1,81 @@
+name: algoliasearch-django
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - version: "3.5.4"
+            toxenv: py35-django20
+            os: ubuntu-20.04
+          - version: "3.6.7"
+            toxenv: py36-django32
+            os: ubuntu-20.04
+          - version: "3.7.5"
+            toxenv: py37-django32
+            os: ubuntu-20.04
+          - version: "3.8.15"
+            toxenv: py38-django32
+            os: ubuntu-20.04
+          - version: "3.9"
+            toxenv: py39-django30
+            os: ubuntu-latest
+          - version: "3.9"
+            toxenv: py39-django31
+            os: ubuntu-latest
+          - version: "3.9"
+            toxenv: py39-django32
+            os: ubuntu-latest
+          - version: "3.9"
+            toxenv: py39-django40
+            os: ubuntu-latest
+          - version: "3.9"
+            toxenv: py39-django41
+            os: ubuntu-latest
+          - version: "3.9"
+            toxenv: py39-django42
+            os: ubuntu-latest
+          - version: "3.10"
+            toxenv: py310-django40
+            os: ubuntu-latest
+          - version: "3.10"
+            toxenv: py310-django41
+            os: ubuntu-latest
+          - version: "3.10"
+            toxenv: py310-django42
+            os: ubuntu-latest
+          - version: "3.11"
+            toxenv: py311-django41
+            os: ubuntu-latest
+          - version: "3.11"
+            toxenv: py311-django42
+            os: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.version }}
+
+    - name: Install dependencies and run tests
+      run: |
+        python -m venv python-ci-run
+        source python-ci-run/bin/activate
+        python -m pip install --upgrade pip
+        python -m pip install tox
+        python -m pip install -r requirements.txt
+        TOXENV=${{ matrix.toxenv }} ALGOLIA_APPLICATION_ID=${{ secrets.ALGOLIA_APPLICATION_ID }} ALGOLIA_API_KEY=${{ secrets.ALGOLIA_API_KEY }} tox

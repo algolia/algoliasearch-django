@@ -1,4 +1,4 @@
-FROM python:3.6-slim
+FROM python:3.8-slim
 
 # Force the stdout and stderr streams to be unbuffered.
 # Ensure python output goes to your terminal

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 import os
+import time
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -75,10 +76,7 @@ USE_TZ = True
 
 
 def safe_index_name(name):
-    if 'TRAVIS' not in os.environ:
-        return name
-    job = os.environ['TRAVIS_JOB_NUMBER']
-    return '{}_travis-{}'.format(name, job)
+    return '{}_ci-{}'.format(name, time.time())
 
 # AlgoliaSearch settings
 ALGOLIA = {
