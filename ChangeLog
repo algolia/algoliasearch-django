@@ -1,6 +1,10 @@
 
 CHANGELOG
 
+2023-04-27 3.0.0
+  * [MAJOR] drop python 2.7, update tox and CI run env  (#331)
+  * [FEAT] Add support for Python 3.9, 3.10 and 3.11 (#329)
+
 2021-04-08 2.0.0
   * [MAJOR] Updates the python client used to the latest major (>= 2.0) (#306)
 
