@@ -179,6 +179,28 @@ class AlgoliaEngine(object):
         """
         self.__init__(settings=settings if settings is not None else SETTINGS)
 
+    # Record duplication specifics
+
+    def add_duplicated_records(self, instance, new_record_ids):
+        """
+        Add new duplicated records to an instance.
+
+        See documentation here:
+        https://www.algolia.com/doc/guides/ranking/distinct/#distinct-to-index-large-records
+        """
+        adapter = self.get_adapter_from_instance(instance)
+        return adapter.save_record(instance, only_duplicated_ids=new_record_ids)
+
+    def delete_duplicated_records(self, instance, old_record_ids, **kwargs):
+        """
+        Delete old duplicated records from an instance.
+
+        See documentation here:
+        https://www.algolia.com/doc/guides/ranking/distinct/#distinct-to-index-large-records
+        """
+        adapter = self.get_adapter_from_instance(instance)
+        return adapter.delete_record(instance, only_duplicated_ids=old_record_ids, **kwargs)
+
     # Signalling hooks.
 
     def __post_save_receiver(self, instance, **kwargs):

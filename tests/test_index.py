@@ -1,5 +1,6 @@
 # coding=utf-8
 import time
+import types
 from django.conf import settings
 from django.test import TestCase
 
@@ -42,10 +43,17 @@ class IndexTestCase(TestCase):
             {'lat': 10.3, 'lng': -20.0},
             {'lat': 22.3, 'lng': 10.0},
         ]
+        self._registrations = []
 
     def tearDown(self):
         if hasattr(self, 'index'):
             self.index.delete()
+        for model in self._registrations:
+            algolia_engine.unregister(model)
+
+    def register(self, model, index):
+        algolia_engine.register(model, index)
+        self._registrations.append(model)
 
     def test_default_index_name(self):
         self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
@@ -534,6 +542,238 @@ class IndexTestCase(TestCase):
         self.assertNotIn('permissions', obj)
         self.assertNotIn('_tags', obj)
         self.assertEqual(len(obj), 3)
+
+    def test_save_record_with_duplication_method(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location'
+            settings = {
+                'attributeForDistinct': 'name',
+                'attributesToIndex': ['name', 'location'],
+            }
+
+        ex = Example(uid=42, name='Algolia')
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index.set_settings()
+        results = self.index.save_record(ex)
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data = self.index.raw_search('algolia', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 1)  # distinct works
+        # matches are correct
+        data_paris = self.index.raw_search('paris', {'distinct': 1})
+        self.assertEqual(data_paris['nbHits'], 1)
+        self.assertEqual(data_paris['hits'][0]['objectID'], '42-1')
+        data_sf = self.index.raw_search('san fran', {'distinct': 1})
+        self.assertEqual(data_sf['nbHits'], 1)
+        self.assertEqual(data_sf['hits'][0]['objectID'], '42-2')
+        data_berlin = self.index.raw_search('berlin', {'distinct': 1})
+        self.assertEqual(data_berlin['nbHits'], 1)
+        self.assertEqual(data_berlin['hits'][0]['objectID'], '42-3')
+
+    def test_save_record_with_duplication_method_only_some_ids(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location'
+            settings = {
+                'attributeForDistinct': 'name',
+                'attributesToIndex': ['name', 'location'],
+            }
+
+        self.register(Example, ExampleIndex)
+        self.index = algolia_engine.get_adapter(Example)
+        self.index.set_settings()
+
+        ex = Example(uid=42, name='Algolia')
+        results = self.index.save_record(ex, only_duplicated_ids=['42-1'])
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data = self.index.raw_search('algolia', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 1)  # distinct works
+        # matches are correct
+        data_paris = self.index.raw_search('paris', {'distinct': 1})
+        self.assertEqual(data_paris['nbHits'], 1)
+        self.assertEqual(data_paris['hits'][0]['objectID'], '42-1')
+        # nothing
+        data_sf = self.index.raw_search('san fran', {'distinct': 1})
+        self.assertEqual(data_sf['nbHits'], 0)
+        data_berlin = self.index.raw_search('berlin', {'distinct': 1})
+        self.assertEqual(data_berlin['nbHits'], 0)
+
+        # adding new records
+        results = algolia_engine.add_duplicated_records(ex, ['42-2'])
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data_sf = self.index.raw_search('san fran', {'distinct': 1})
+        self.assertEqual(data_sf['nbHits'], 1)
+        data_berlin = self.index.raw_search('berlin', {'distinct': 1})
+        self.assertEqual(data_berlin['nbHits'], 0)
+
+    def test_delete_record_with_duplication_method(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location'
+            settings = {
+                'attributeForDistinct': 'name',
+                'attributesToIndex': ['name', 'location'],
+            }
+
+        ex = Example(uid=42, name='Algolia')
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index.set_settings()
+
+        results = self.index.save_record(ex)
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data = self.index.raw_search('algolia', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 1)  # distinct works
+        # deleting
+        results = self.index.delete_record(ex)
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data = self.index.raw_search('algolia', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 0)  # nothing!
+
+    def test_delete_record_with_duplication_method_only_some_ids(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location'
+            settings = {
+                'attributeForDistinct': 'name',
+                'attributesToIndex': ['name', 'location'],
+            }
+
+        self.register(Example, ExampleIndex)
+        self.index = algolia_engine.get_adapter(Example)
+        self.index.set_settings()
+
+        ex = Example(uid=42, name='Algolia')
+        results = self.index.save_record(ex)
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data = self.index.raw_search('algolia', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 1)  # distinct works
+        # deleting
+        results = algolia_engine.delete_duplicated_records(ex, ['42-1', '42-2'])
+        for result in results:
+            self.index.wait_task(result['taskID'])
+
+        data = self.index.raw_search('algolia', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 1)  # yes
+        data = self.index.raw_search('berlin', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 1)  # yes
+        data = self.index.raw_search('paris', {'distinct': 1})
+        self.assertEqual(data['nbHits'], 0)  # no
+
+    def test_get_raw_record_with_duplication_method(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location'
+            settings = {
+                'attributeForDistinct': 'name',
+            }
+
+        ex = Example(uid=42, name='Algolia')
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        objs = self.index.get_raw_record(ex)
+        self.assertIsInstance(objs, types.GeneratorType)
+        objs = list(objs)
+        self.assertEqual(len(objs), 3)
+        self.assertEqual(objs, [
+            {
+                'objectID': '42-1',
+                'name': 'Algolia',
+                'location': 'Paris'
+            },
+            {
+                'objectID': '42-2',
+                'name': 'Algolia',
+                'location': 'San Francisco'
+            },
+            {
+                'objectID': '42-3',
+                'name': 'Algolia',
+                'location': 'Berlin'
+            },
+        ])
+
+    def test_get_raw_record_with_duplication_method_filtering(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location'
+            settings = {
+                'attributeForDistinct': 'name',
+            }
+
+        ex = Example(uid=42, name='Algolia')
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        objs = self.index.get_raw_record(ex, only_duplicated_ids=['42-1'])
+        self.assertIsInstance(objs, types.GeneratorType)
+        objs = list(objs)
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs, [
+            {
+                'objectID': '42-1',
+                'name': 'Algolia',
+                'location': 'Paris'
+            },
+        ])
+
+    def test_get_raw_record_with_duplication_method_wrong_return_type(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location_wrong_type'
+            settings = {
+                'attributeForDistinct': 'name',
+            }
+
+        ex = Example(uid=42, name='Algolia')
+        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        expected_msg = (
+            "<unbound method Example.duplication_get_records_per_location_wrong_type> "
+            "should return a list, tuple or generator."
+        )
+        with self.assertRaises(TypeError, msg=expected_msg):
+            self.index.get_raw_record(ex)
+
+    def test_wrong_duplication_method(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_locations'
+            settings = {
+                'attributeForDistinct': 'name',
+            }
+
+        expected_msg = (
+            "<unbound method Example.duplication_get_locations> doesnt accept a "
+            "`raw_record` or `only_duplicated_ids` parameter."
+        )
+        with self.assertRaises(AlgoliaIndexError, msg=expected_msg):
+            ExampleIndex(Example, self.client, settings.ALGOLIA)
+
+    def test_missing_attributeForDistinct(self):
+        class ExampleIndex(AlgoliaIndex):
+            fields = ('name', )
+            custom_objectID = 'uid'
+            duplication_method = 'duplication_get_records_per_location'
+
+        expected_msg = "Missing attributeForDistinct setting."
+        with self.assertRaises(AlgoliaIndexError, msg=expected_msg):
+            ExampleIndex(Example, self.client, settings.ALGOLIA)
 
     def test_should_index_method(self):
         class ExampleIndex(AlgoliaIndex):
