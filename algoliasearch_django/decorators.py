@@ -34,7 +34,7 @@ if ContextDecorator is None:
             return inner
 
 
-def register(model):
+def register(model, auto_indexing=None):
     """
     Register the given model class and wrapped AlgoliaIndex class with the Algolia engine:
 
@@ -49,7 +49,7 @@ def register(model):
         if not issubclass(index_class, AlgoliaIndex):
             raise ValueError('Wrapped class must subclass AlgoliaIndex.')
 
-        register(model, index_class)
+        register(model, index_class, auto_indexing)
 
         return index_class
     return _algolia_engine_wrapper

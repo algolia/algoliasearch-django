@@ -65,12 +65,14 @@ class AlgoliaEngine(object):
         index_obj = index_cls(model, self.client, self.__settings)
         self.__registered_models[model] = index_obj
 
-        if (isinstance(auto_indexing, bool) and
-                auto_indexing) or self.__auto_indexing:
+        enable_auto_indexing = auto_indexing if isinstance(auto_indexing, bool) else self.__auto_indexing
+
+        if enable_auto_indexing:
             # Connect to the signalling framework.
             post_save.connect(self.__post_save_receiver, model)
             pre_delete.connect(self.__pre_delete_receiver, model)
-            logger.info('REGISTER %s', model)
+
+        logger.info('REGISTER %s', model)
 
     def unregister(self, model):
         """
