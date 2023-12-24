@@ -27,10 +27,11 @@ get_adapter = algolia_engine.get_adapter
 get_adapter_from_instance = algolia_engine.get_adapter_from_instance
 
 save_record = algolia_engine.save_record
+save_records = algolia_engine.save_records
 delete_record = algolia_engine.delete_record
 update_records = algolia_engine.update_records
 raw_search = algolia_engine.raw_search
-clear_index = algolia_engine.clear_index # TODO: deprecate
+clear_index = algolia_engine.clear_index  # TODO: deprecate
 clear_objects = algolia_engine.clear_objects
 reindex_all = algolia_engine.reindex_all
 
@@ -44,7 +45,7 @@ class NullHandler(logging.Handler):
 
 
 def autodiscover():
-    autodiscover_modules('index')
+    autodiscover_modules("index")
 
 
 logging.getLogger(__name__.split('.')[0]).addHandler(NullHandler())

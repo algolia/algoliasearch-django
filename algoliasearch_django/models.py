@@ -316,6 +316,58 @@ class AlgoliaIndex(object):
                 logger.warning('%s FROM %s NOT SAVED: %s', obj['objectID'],
                                self.model, e)
 
+    def save_records(self, qs, batch_size=1000, **kwargs):
+        """Saves multiple records to the index in batches.
+
+        Parameters:
+        - qs (QuerySet): A set of records to be saved.
+        - batch_size (int): The size of each batch for saving records. Defaults to 1000.
+        - **kwargs: Additional keyword arguments.
+        """
+        self.__tmp_index.clear_objects()
+        logger.debug('CLEAR INDEX %s_tmp', self.index_name)
+
+        to_update_batch = []
+        to_delete_batch = []
+        for instance in qs:
+            if not self._should_index(instance):
+                # Should not index, but since we don't know the state of the
+                # instance, we need to send a DELETE request.
+                to_delete_batch.append(instance)
+                continue
+
+            to_update_batch.append(self.get_raw_record(instance))
+            if len(to_update_batch) >= batch_size:
+                self.__tmp_index.save_objects(to_update_batch)
+                logger.info(
+                    'SAVE %d OBJECTS TO %s_tmp', len(to_update_batch), self.index_name
+                )
+                to_update_batch = []
+
+        if len(to_update_batch) > 0:
+            self.__tmp_index.save_objects(to_update_batch)
+            logger.info(
+                'SAVE %d OBJECTS TO %s_tmp', len(to_update_batch), self.index_name
+            )
+
+        self.__client.move_index(self.tmp_index_name, self.index_name)
+        logger.info('MOVE INDEX %s_tmp TO %s', self.index_name, self.index_name)
+
+        if len(to_delete_batch) > 0:
+            self.delete_records(to_delete_batch)
+
+    def delete_records(self, objects):
+        """Delete multiple records."""
+        objectIDs = [self.objectID(instance) for instance in objects]
+        try:
+            self.__index.delete_objects(object_ids=objectIDs)
+            logger.info('DELETE %s FROM %s', objectIDs, self.model)
+        except AlgoliaException as e:
+            if DEBUG:
+                raise e
+            else:
+                logger.warning('%s FROM %s NOT DELETED: %s', objectIDs, self.model, e)
+
     def delete_record(self, instance):
         """Deletes the record."""
         objectID = self.objectID(instance)
