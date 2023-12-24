@@ -124,6 +124,15 @@ class AlgoliaEngine(object):
         adapter = self.get_adapter_from_instance(instance)
         adapter.save_record(instance, **kwargs)
 
+    def save_records(self, model, qs, **kwargs):
+        """
+        >>> from algoliasearch_django import update_records
+        >>> qs = MyModel.objects.filter()
+        >>> save_records(MyModel, qs)
+        """
+        adapter = self.get_adapter(model)
+        adapter.save_records(qs, **kwargs)
+
     def delete_record(self, instance):
         """Deletes the record."""
         adapter = self.get_adapter_from_instance(instance)
