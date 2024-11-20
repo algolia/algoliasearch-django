@@ -5,7 +5,7 @@ from functools import partial
 from itertools import chain
 import logging
 
-from algoliasearch.exceptions import AlgoliaException
+from algoliasearch.http.exceptions import AlgoliaException
 from django.db.models.query_utils import DeferredAttribute
 
 from .settings import DEBUG
