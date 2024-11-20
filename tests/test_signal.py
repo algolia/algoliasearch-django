@@ -1,7 +1,7 @@
 import time
 from mock import patch, call, ANY
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import get_adapter
@@ -14,7 +14,6 @@ from .models import Website
 
 
 class SignalTestCase(TestCase):
-
     @classmethod
     def tearDownClass(cls):
         get_adapter(Website).delete()
@@ -23,7 +22,7 @@ class SignalTestCase(TestCase):
         clear_index(Website)
 
     def test_save_signal(self):
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, "save_record") as mocked_save_record:
             websites = WebsiteFactory.create_batch(3)
 
         mocked_save_record.assert_has_calls(
@@ -35,7 +34,7 @@ class SignalTestCase(TestCase):
                     sender=ANY,
                     signal=ANY,
                     update_fields=None,
-                    using=ANY
+                    using=ANY,
                 )
                 for website in websites
             ]
@@ -44,31 +43,26 @@ class SignalTestCase(TestCase):
     def test_delete_signal(self):
         websites = WebsiteFactory.create_batch(3)
 
-        with patch.object(algolia_engine, 'delete_record') as mocked_delete_record:
+        with patch.object(algolia_engine, "delete_record") as mocked_delete_record:
             websites[0].delete()
             websites[1].delete()
 
-        mocked_delete_record.assert_has_calls(
-            [
-                call(websites[0]),
-                call(websites[1])
-            ]
-        )
+        mocked_delete_record.assert_has_calls([call(websites[0]), call(websites[1])])
 
     def test_update_records(self):
-        Website.objects.create(name='Algolia', url='https://www.algolia.com')
-        Website.objects.create(name='Google', url='https://www.google.com')
-        Website.objects.create(name='Facebook', url='https://www.facebook.com')
-        Website.objects.create(name='Facebook', url='https://www.facebook.fr')
-        Website.objects.create(name='Facebook', url='https://fb.com')
+        Website.objects.create(name="Algolia", url="https://www.algolia.com")
+        Website.objects.create(name="Google", url="https://www.google.com")
+        Website.objects.create(name="Facebook", url="https://www.facebook.com")
+        Website.objects.create(name="Facebook", url="https://www.facebook.fr")
+        Website.objects.create(name="Facebook", url="https://fb.com")
 
-        qs = Website.objects.filter(name='Facebook')
-        update_records(Website, qs, url='https://facebook.com')
+        qs = Website.objects.filter(name="Facebook")
+        update_records(Website, qs, url="https://facebook.com")
         time.sleep(10)
-        qs.update(url='https://facebook.com')
+        qs.update(url="https://facebook.com")
 
         time.sleep(10)
-        result = raw_search(Website, 'Facebook')
-        self.assertEqual(result['nbHits'], qs.count())
-        for res, url in zip(result['hits'], qs.values_list('url', flat=True)):
-            self.assertEqual(res['url'], url)
+        result = raw_search(Website, "Facebook")
+        self.assertEqual(result["nbHits"], qs.count())
+        for res, url in zip(result["hits"], qs.values_list("url", flat=True)):
+            self.assertEqual(res["url"], url)

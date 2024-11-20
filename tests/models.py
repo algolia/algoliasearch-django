@@ -19,7 +19,7 @@ class User(models.Model):
         return self._lat, self._lng
 
     def permissions(self):
-        return self._permissions.split(',')
+        return self._permissions.split(",")
 
 
 class Website(models.Model):
@@ -70,8 +70,5 @@ class Example(models.Model):
 
 
 class BlogPost(models.Model):
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField(default="")

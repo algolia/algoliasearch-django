@@ -26,8 +26,8 @@ class EngineTestCase(TestCase):
 
     def test_init_exception(self):
         algolia_settings = dict(settings.ALGOLIA)
-        del algolia_settings['APPLICATION_ID']
-        del algolia_settings['API_KEY']
+        del algolia_settings["APPLICATION_ID"]
+        del algolia_settings["API_KEY"]
 
         with self.settings(ALGOLIA=algolia_settings):
             with self.assertRaises(AlgoliaEngineError):
@@ -36,10 +36,10 @@ class EngineTestCase(TestCase):
     def test_user_agent(self):
         user_agent = UserAgent.get()
 
-        parts = re.split('\s*;\s*', user_agent)
+        parts = re.split("\s*;\s*", user_agent)
 
-        self.assertIn('Django (%s)' % django_version(), parts)
-        self.assertIn('Algolia for Django (%s)' % VERSION, parts)
+        self.assertIn("Django (%s)" % django_version(), parts)
+        self.assertIn("Algolia for Django (%s)" % VERSION, parts)
 
     def test_auto_discover_indexes(self):
         """Test that the `index` module was auto-discovered and the models registered"""
@@ -50,7 +50,7 @@ class EngineTestCase(TestCase):
                 User,  # Registered using the `register` decorator
                 Website,  # Registered using the `register` method
             ],
-            algolia_engine.get_registered_models()
+            algolia_engine.get_registered_models(),
         )
 
     def test_is_register(self):
@@ -60,8 +60,7 @@ class EngineTestCase(TestCase):
 
     def test_get_adapter(self):
         self.engine.register(Website)
-        self.assertEquals(AlgoliaIndex,
-                          self.engine.get_adapter(Website).__class__)
+        self.assertEquals(AlgoliaIndex, self.engine.get_adapter(Website).__class__)
 
     def test_get_adapter_exception(self):
         with self.assertRaises(RegistrationError):
@@ -71,8 +70,8 @@ class EngineTestCase(TestCase):
         self.engine.register(Website)
         instance = Website()
         self.assertEquals(
-            AlgoliaIndex,
-            self.engine.get_adapter_from_instance(instance).__class__)
+            AlgoliaIndex, self.engine.get_adapter_from_instance(instance).__class__
+        )
 
     def test_register(self):
         self.engine.register(Website)
@@ -92,8 +91,9 @@ class EngineTestCase(TestCase):
             pass
 
         self.engine.register(Website, WebsiteIndex)
-        self.assertEqual(WebsiteIndex.__name__,
-                         self.engine.get_adapter(Website).__class__.__name__)
+        self.assertEqual(
+            WebsiteIndex.__name__, self.engine.get_adapter(Website).__class__.__name__
+        )
 
     def test_register_with_custom_index_exception(self):
         class WebsiteIndex(object):

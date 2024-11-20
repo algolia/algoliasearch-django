@@ -7,3 +7,5 @@ tox
 twine
 factory_boy
 mock
+ruff>=0.7.4,<1.0
+pyright>=1.1.389,<2.0

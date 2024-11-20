@@ -26,11 +26,13 @@ if ContextDecorator is None:
         """
         A base class that enables a context manager to also be used as a decorator.
         """
+
         def __call__(self, func):
             @wraps(func, assigned=available_attrs(func))
             def inner(*args, **kwargs):
                 with self:
                     return func(*args, **kwargs)
+
             return inner
 
 
@@ -47,11 +49,12 @@ def register(model):
 
     def _algolia_engine_wrapper(index_class):
         if not issubclass(index_class, AlgoliaIndex):
-            raise ValueError('Wrapped class must subclass AlgoliaIndex.')
+            raise ValueError("Wrapped class must subclass AlgoliaIndex.")
 
         register(model, index_class)
 
         return index_class
+
     return _algolia_engine_wrapper
 
 
@@ -76,21 +79,17 @@ class disable_auto_indexing(ContextDecorator):
     def __enter__(self):
         for model in self.models:
             post_save.disconnect(
-                algolia_engine._AlgoliaEngine__post_save_receiver,
-                sender=model
+                algolia_engine._AlgoliaEngine__post_save_receiver, sender=model
             )
             pre_delete.disconnect(
-                algolia_engine._AlgoliaEngine__pre_delete_receiver,
-                sender=model
+                algolia_engine._AlgoliaEngine__pre_delete_receiver, sender=model
             )
 
     def __exit__(self, exc_type, exc_value, traceback):
         for model in self.models:
             post_save.connect(
-                algolia_engine._AlgoliaEngine__post_save_receiver,
-                sender=model
+                algolia_engine._AlgoliaEngine__post_save_receiver, sender=model
             )
             pre_delete.connect(
-                algolia_engine._AlgoliaEngine__pre_delete_receiver,
-                sender=model
+                algolia_engine._AlgoliaEngine__pre_delete_receiver, sender=model
             )

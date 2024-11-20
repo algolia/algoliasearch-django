@@ -30,13 +30,12 @@ class AlgoliaEngine(object):
         """Initializes the Algolia engine."""
 
         try:
-            app_id = settings['APPLICATION_ID']
-            api_key = settings['API_KEY']
+            app_id = settings["APPLICATION_ID"]
+            api_key = settings["API_KEY"]
         except KeyError:
-            raise AlgoliaEngineError(
-                'APPLICATION_ID and API_KEY must be defined.')
+            raise AlgoliaEngineError("APPLICATION_ID and API_KEY must be defined.")
 
-        self.__auto_indexing = settings.get('AUTO_INDEXING', True)
+        self.__auto_indexing = settings.get("AUTO_INDEXING", True)
         self.__settings = settings
 
         self.__registered_models = {}
@@ -56,21 +55,22 @@ class AlgoliaEngine(object):
         # Check for existing registration.
         if self.is_registered(model):
             raise RegistrationError(
-                '{} is already registered with Algolia engine'.format(model))
+                "{} is already registered with Algolia engine".format(model)
+            )
 
         # Perform the registration.
         if not issubclass(index_cls, AlgoliaIndex):
             raise RegistrationError(
-                '{} should be a subclass of AlgoliaIndex'.format(index_cls))
+                "{} should be a subclass of AlgoliaIndex".format(index_cls)
+            )
         index_obj = index_cls(model, self.client, self.__settings)
         self.__registered_models[model] = index_obj
 
-        if (isinstance(auto_indexing, bool) and
-                auto_indexing) or self.__auto_indexing:
+        if (isinstance(auto_indexing, bool) and auto_indexing) or self.__auto_indexing:
             # Connect to the signalling framework.
             post_save.connect(self.__post_save_receiver, model)
             pre_delete.connect(self.__pre_delete_receiver, model)
-            logger.info('REGISTER %s', model)
+            logger.info("REGISTER %s", model)
 
     def unregister(self, model):
         """
@@ -81,14 +81,15 @@ class AlgoliaEngine(object):
         """
         if not self.is_registered(model):
             raise RegistrationError(
-                '{} is not registered with Algolia engine'.format(model))
+                "{} is not registered with Algolia engine".format(model)
+            )
         # Perform the unregistration.
         del self.__registered_models[model]
 
         # Disconnect from the signalling framework.
         post_save.disconnect(self.__post_save_receiver, model)
         pre_delete.disconnect(self.__pre_delete_receiver, model)
-        logger.info('UNREGISTER %s', model)
+        logger.info("UNREGISTER %s", model)
 
     def get_registered_models(self):
         """
@@ -101,7 +102,8 @@ class AlgoliaEngine(object):
         """Returns the adapter associated with the given model."""
         if not self.is_registered(model):
             raise RegistrationError(
-                '{} is not registered with Algolia engine'.format(model))
+                "{} is not registered with Algolia engine".format(model)
+            )
 
         return self.__registered_models[model]
 
@@ -145,7 +147,7 @@ class AlgoliaEngine(object):
         adapter = self.get_adapter(model)
         adapter.update_records(qs, batch_size=batch_size, **kwargs)
 
-    def raw_search(self, model, query='', params=None):
+    def raw_search(self, model, query="", params=None):
         """Performs a search query and returns the parsed JSON."""
         if params is None:
             params = {}
@@ -183,12 +185,12 @@ class AlgoliaEngine(object):
 
     def __post_save_receiver(self, instance, **kwargs):
         """Signal handler for when a registered model has been saved."""
-        logger.debug('RECEIVE post_save FOR %s', instance.__class__)
+        logger.debug("RECEIVE post_save FOR %s", instance.__class__)
         self.save_record(instance, **kwargs)
 
     def __pre_delete_receiver(self, instance, **kwargs):
         """Signal handler for when a registered model has been deleted."""
-        logger.debug('RECEIVE pre_delete FOR %s', instance.__class__)
+        logger.debug("RECEIVE pre_delete FOR %s", instance.__class__)
         self.delete_record(instance)
 
 
