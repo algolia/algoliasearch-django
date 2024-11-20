@@ -2,4 +2,4 @@
 
 | Name            | Email               |
 |-----------------|---------------------|
-| Paul-Louis Nech | support@algolia.com |
+| Algolia         | support@algolia.com |
