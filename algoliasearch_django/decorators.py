@@ -1,9 +1,5 @@
-try:
-    # ContextDecorator was introduced in Python 3.2
-    from contextlib import ContextDecorator
-except ImportError:
-    ContextDecorator = None
-from functools import WRAPPER_ASSIGNMENTS, wraps
+from contextlib import ContextDecorator
+from functools import WRAPPER_ASSIGNMENTS
 
 from django.db.models.signals import post_save, pre_delete
 
@@ -17,23 +13,6 @@ def available_attrs(fn):
     under Python 2.
     """
     return WRAPPER_ASSIGNMENTS
-
-
-if ContextDecorator is None:
-    # ContextDecorator was introduced in Python 3.2
-    # See https://docs.python.org/3/library/contextlib.html#contextlib.ContextDecorator
-    class ContextDecorator:
-        """
-        A base class that enables a context manager to also be used as a decorator.
-        """
-
-        def __call__(self, func):
-            @wraps(func, assigned=available_attrs(func))
-            def inner(*args, **kwargs):
-                with self:
-                    return func(*args, **kwargs)
-
-            return inner
 
 
 def register(model):

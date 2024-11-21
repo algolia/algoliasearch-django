@@ -3,8 +3,7 @@ import logging
 
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
-from algoliasearch.search_client import SearchClient
-from algoliasearch.user_agent import UserAgent
+from algoliasearch.search.client import SearchClientSync
 
 from .models import AlgoliaIndex
 from .settings import SETTINGS
@@ -12,9 +11,6 @@ from .version import VERSION
 from django import get_version as django_version
 
 logger = logging.getLogger(__name__)
-
-UserAgent.add("Algolia for Django", VERSION)
-UserAgent.add("Django", django_version())
 
 
 class AlgoliaEngineError(Exception):
@@ -39,7 +35,10 @@ class AlgoliaEngine(object):
         self.__settings = settings
 
         self.__registered_models = {}
-        self.client = SearchClient.create(app_id, api_key)
+        self.client = SearchClientSync(app_id, api_key)
+        self.client._config.user_agent.add("Algolia for Django", VERSION).add(
+            "Django", django_version()
+        )
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""

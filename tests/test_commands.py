@@ -16,8 +16,8 @@ class CommandsTestCase(TestCase):
         user_index_name = get_adapter(User).index_name
         website_index_name = get_adapter(Website).index_name
 
-        algolia_engine.client.init_index(user_index_name).delete()
-        algolia_engine.client.init_index(website_index_name).delete()
+        algolia_engine.client.delete_index(user_index_name)
+        algolia_engine.client.delete_index(website_index_name)
 
     def setUp(self):
         # Create some records

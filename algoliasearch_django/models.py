@@ -6,6 +6,9 @@ from itertools import chain
 import logging
 
 from algoliasearch.http.exceptions import AlgoliaException
+from algoliasearch.search.models.operation_index_params import OperationIndexParams
+from algoliasearch.search.models.operation_type import OperationType
+from algoliasearch.search.models.search_params_object import SearchParamsObject
 from django.db.models.query_utils import DeferredAttribute
 
 from .settings import DEBUG
@@ -71,7 +74,7 @@ class AlgoliaIndex(object):
 
     def __init__(self, model, client, settings):
         """Initializes the index."""
-        self.__init_index(client, model, settings)
+        self.__init_index(model, settings)
 
         self.model = model
         self.__client = client
@@ -170,7 +173,7 @@ class AlgoliaIndex(object):
                         )
                     )
 
-    def __init_index(self, client, model, settings):
+    def __init_index(self, model, settings):
         if not self.index_name:
             self.index_name = model.__name__
 
@@ -188,9 +191,6 @@ class AlgoliaIndex(object):
             )
 
         self.tmp_index_name = tmp_index_name
-
-        self.__index = client.init_index(self.index_name)
-        self.__tmp_index = client.init_index(self.tmp_index_name)
 
     @staticmethod
     def _validate_geolocation(geolocation):
@@ -315,10 +315,14 @@ class AlgoliaIndex(object):
         try:
             if update_fields:
                 obj = self.get_raw_record(instance, update_fields=update_fields)
-                result = self.__index.partial_update_object(obj)
+                result = self.__client.partial_update_object(
+                    self.index_name, obj.get("objectID"), obj
+                )
             else:
                 obj = self.get_raw_record(instance)
-                result = self.__index.save_object(obj)
+                result = self.__client.save_object(
+                    self.index_name, obj.get("objectID"), obj
+                )
             logger.info("SAVE %s FROM %s", obj["objectID"], self.model)
             return result
         except AlgoliaException as e:
@@ -333,7 +337,7 @@ class AlgoliaIndex(object):
         """Deletes the record."""
         objectID = self.objectID(instance)
         try:
-            self.__index.delete_object(objectID)
+            self.__client.delete_object(self.index_name, objectID)
             logger.info("DELETE %s FROM %s", objectID, self.model)
         except AlgoliaException as e:
             if DEBUG:
@@ -369,19 +373,21 @@ class AlgoliaIndex(object):
             batch.append(dict(tmp))
 
             if len(batch) >= batch_size:
-                self.__index.partial_update_objects(batch)
+                self.__client.partial_update_objects(self.index_name, batch)
                 batch = []
 
         if len(batch) > 0:
-            self.__index.partial_update_objects(batch)
+            self.__client.partial_update_objects(self.index_name, batch)
 
     def raw_search(self, query="", params=None):
         """Performs a search query and returns the parsed JSON."""
         if params is None:
-            params = {}
+            params = SearchParamsObject()
+
+        params.query = query
 
         try:
-            return self.__index.search(query, params)
+            return self.__client.search_single_index(self.index_name, params)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -392,7 +398,7 @@ class AlgoliaIndex(object):
         """Returns the settings of the index."""
         try:
             logger.info("GET SETTINGS ON %s", self.index_name)
-            return self.__index.get_settings()
+            return self.__client.get_settings(self.index_name)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -405,7 +411,7 @@ class AlgoliaIndex(object):
             return
 
         try:
-            self.__index.set_settings(self.settings)
+            self.__client.set_settings(self.index_name, self.settings)
             logger.info("APPLY SETTINGS ON %s", self.index_name)
         except AlgoliaException as e:
             if DEBUG:
@@ -416,7 +422,7 @@ class AlgoliaIndex(object):
     def clear_objects(self):
         """Clears all objects of an index."""
         try:
-            self.__index.clear_objects()
+            self.__client.clear_objects(self.index_name)
             logger.info("CLEAR INDEX %s", self.index_name)
         except AlgoliaException as e:
             if DEBUG:
@@ -430,7 +436,7 @@ class AlgoliaIndex(object):
 
     def wait_task(self, task_id):
         try:
-            self.__index.wait_task(task_id)
+            self.__client.wait_for_task(self.index_name, task_id)
             logger.info("WAIT TASK %s", self.index_name)
         except AlgoliaException as e:
             if DEBUG:
@@ -439,9 +445,9 @@ class AlgoliaIndex(object):
                 logger.warning("%s NOT WAIT: %s", self.model, e)
 
     def delete(self):
-        self.__index.delete()
-        if self.__tmp_index:
-            self.__tmp_index.delete()
+        self.__client.delete_index(self.index_name)
+        if self.tmp_index_name:
+            self.__client.delete_index(self.tmp_index_name)
 
     def reindex_all(self, batch_size=1000):
         """
@@ -469,6 +475,11 @@ class AlgoliaIndex(object):
             else:
                 raise e  # Unexpected error while getting settings
         try:
+            should_keep_replicas = False
+            should_keep_slaves = False
+            replicas = None
+            slaves = None
+
             if self.settings:
                 replicas = self.settings.get("replicas", None)
                 slaves = self.settings.get("slaves", None)
@@ -483,22 +494,31 @@ class AlgoliaIndex(object):
                     self.settings["slaves"] = []
                     logger.debug("REMOVE SLAVES FROM SETTINGS")
 
-                self.__tmp_index.set_settings(self.settings).wait()
+                set_settings_response = self.__client.set_settings(
+                    self.tmp_index_name, self.settings
+                )
+                self.__client.wait_for_task(
+                    self.tmp_index_name, set_settings_response.task_id
+                )
                 logger.debug("APPLY SETTINGS ON %s_tmp", self.index_name)
+
             rules = []
-            synonyms = []
-            for r in self.__index.browse_rules():
-                rules.append(r)
-            for s in self.__index.browse_synonyms():
-                synonyms.append(s)
+            self.__client.browse_rules(
+                self.index_name, lambda _resp: rules.append(_resp)
+            )
             if len(rules):
                 logger.debug("Got rules for index %s: %s", self.index_name, rules)
                 should_keep_rules = True
+
+            synonyms = []
+            self.__client.browse_synonyms(
+                self.index_name, lambda _resp: synonyms.append(_resp)
+            )
             if len(synonyms):
                 logger.debug("Got synonyms for index %s: %s", self.index_name, rules)
                 should_keep_synonyms = True
 
-            self.__tmp_index.clear_objects()
+            self.__client.clear_objects(self.tmp_index_name)
             logger.debug("CLEAR INDEX %s_tmp", self.index_name)
 
             counts = 0
@@ -515,18 +535,23 @@ class AlgoliaIndex(object):
 
                 batch.append(self.get_raw_record(instance))
                 if len(batch) >= batch_size:
-                    self.__tmp_index.save_objects(batch)
+                    self.__client.save_objects(self.tmp_index_name, batch, True)
                     logger.info(
-                        "SAVE %d OBJECTS TO %s_tmp", len(batch), self.index_name
+                        "SAVE %d OBJECTS TO %s", len(batch), self.tmp_index_name
                     )
                     batch = []
                 counts += 1
             if len(batch) > 0:
-                self.__tmp_index.save_objects(batch)
-                logger.info("SAVE %d OBJECTS TO %s_tmp", len(batch), self.index_name)
+                self.__client.save_objects(self.tmp_index_name, batch, True)
+                logger.info("SAVE %d OBJECTS TO %s", len(batch), self.tmp_index_name)
 
-            self.__client.move_index(self.tmp_index_name, self.index_name)
-            logger.info("MOVE INDEX %s_tmp TO %s", self.index_name, self.index_name)
+            self.__client.operation_index(
+                self.tmp_index_name,
+                OperationIndexParams(
+                    operation=OperationType.MOVE, destination=self.index_name
+                ),
+            )
+            logger.info("MOVE INDEX %s TO %s", self.tmp_index_name, self.index_name)
 
             if self.settings:
                 if should_keep_replicas:
@@ -536,24 +561,30 @@ class AlgoliaIndex(object):
                     self.settings["slaves"] = slaves
                     logger.debug("RESTORE SLAVES")
                 if should_keep_replicas or should_keep_slaves:
-                    self.__index.set_settings(self.settings)
+                    self.__client.set_settings(self.index_name, self.settings)
                 if should_keep_rules:
-                    response = self.__index.save_rules(
-                        rules, {"forwardToReplicas": True}
+                    save_rules_response = self.__client.save_rules(
+                        self.index_name, rules, True
                     )
-                    response.wait()
+                    self.__client.wait_for_task(
+                        self.index_name, save_rules_response.task_id
+                    )
                     logger.info(
-                        "Saved rules for index %s with response: {}".format(response),
+                        "Saved rules for index %s with response: {}".format(
+                            save_rules_response
+                        ),
                         self.index_name,
                     )
                 if should_keep_synonyms:
-                    response = self.__index.save_synonyms(
-                        synonyms, {"forwardToReplicas": True}
+                    save_synonyms_response = self.__client.save_synonyms(
+                        self.index_name, synonyms, True
                     )
-                    response.wait()
+                    self.__client.wait_for_task(
+                        self.index_name, save_synonyms_response.task_id
+                    )
                     logger.info(
                         "Saved synonyms for index %s with response: {}".format(
-                            response
+                            save_synonyms_response
                         ),
                         self.index_name,
                     )
