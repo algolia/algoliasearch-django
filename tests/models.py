@@ -5,10 +5,10 @@ class User(models.Model):
     name = models.CharField(max_length=30)
     username = models.CharField(max_length=30, unique=True)
     bio = models.CharField(max_length=140, blank=True)
-    followers_count = models.BigIntegerField(default=0)
-    following_count = models.BigIntegerField(default=0)
-    _lat = models.FloatField(default=0)
-    _lng = models.FloatField(default=0)
+    followers_count = models.BigIntegerField(0)
+    following_count = models.BigIntegerField(0)
+    _lat = models.FloatField(0)
+    _lng = models.FloatField(0)
     _permissions = models.CharField(max_length=30, blank=True)
 
     @property
@@ -25,7 +25,7 @@ class User(models.Model):
 class Website(models.Model):
     name = models.CharField(max_length=100)
     url = models.URLField()
-    is_online = models.BooleanField(default=False)
+    is_online = models.BooleanField(False)
 
 
 class Example(models.Model):
@@ -34,7 +34,7 @@ class Example(models.Model):
     address = models.CharField(max_length=200)
     lat = models.FloatField()
     lng = models.FloatField()
-    is_admin = models.BooleanField(default=False)
+    is_admin = models.BooleanField(False)
     category = []
     locations = []
     index_me = True

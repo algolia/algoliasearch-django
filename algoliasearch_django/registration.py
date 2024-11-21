@@ -36,9 +36,8 @@ class AlgoliaEngine(object):
 
         self.__registered_models = {}
         self.client = SearchClientSync(app_id, api_key)
-        self.client._config.user_agent.add("Algolia for Django", VERSION).add(
-            "Django", django_version()
-        )
+        self.client.add_user_agent("Algolia for Django", VERSION)
+        self.client.add_user_agent("Django", django_version())
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""
