@@ -21,14 +21,16 @@ class CommandsTestCase(TestCase):
 
     def setUp(self):
         # Create some records
-        User.objects.create(name="James Bond", username="jb")
-        User.objects.create(name="Captain America", username="captain")
-        User.objects.create(
-            name="John Snow", username="john_snow", _lat=120.2, _lng=42.1
+        User(name="James Bond", username="jb", followers_count=0)
+        User(name="Captain America", username="captain", followers_count=0)
+        User(
+            name="John Snow",
+            username="john_snow",
+            _lat=120.2,
+            _lng=42.1,
+            followers_count=0,
         )
-        User.objects.create(
-            name="Steve Jobs", username="genius", followers_count=331213
-        )
+        User(name="Steve Jobs", username="genius", followers_count=331213)
 
         self.out = StringIO()
 

@@ -260,20 +260,23 @@ class AlgoliaIndex(object):
 
     def _should_really_index(self, instance):
         """Return True if according to should_index the object should be indexed."""
+        if self.should_index is None:
+            raise AlgoliaIndexError("{} should be defined.".format(self.should_index))
+
         if self._should_index_is_method:
             is_method = inspect.ismethod(self.should_index)
             try:
-                count_args = len(inspect.signature(self.should_index).parameters)
+                count_args = len(inspect.signature(self.should_index).parameters)  # pyright: ignore -- should_index_is_method
             except AttributeError:
                 # noinspection PyDeprecation
-                count_args = len(inspect.getargspec(self.should_index).args)
+                count_args = len(inspect.getfullargspec(self.should_index).args)
 
             if is_method or count_args == 1:
                 # bound method, call with instance
-                return self.should_index(instance)
+                return self.should_index(instance)  # pyright: ignore -- should_index_is_method
             else:
                 # unbound method, simply call without arguments
-                return self.should_index()
+                return self.should_index()  # pyright: ignore -- should_index_is_method
         else:
             # property/attribute/Field, evaluate as bool
             attr_type = type(self.should_index)
@@ -312,19 +315,19 @@ class AlgoliaIndex(object):
             self.delete_record(instance)
             return
 
+        obj = {}
         try:
             if update_fields:
                 obj = self.get_raw_record(instance, update_fields=update_fields)
-                result = self.__client.partial_update_object(
-                    self.index_name, obj.get("objectID"), obj
+                self.__client.partial_update_objects(
+                    index_name=self.index_name, objects=[obj], wait_for_tasks=True
                 )
             else:
                 obj = self.get_raw_record(instance)
-                result = self.__client.save_object(
-                    self.index_name, obj.get("objectID"), obj
+                self.__client.save_objects(
+                    index_name=self.index_name, objects=[obj], wait_for_tasks=True
                 )
             logger.info("SAVE %s FROM %s", obj["objectID"], self.model)
-            return result
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -337,7 +340,9 @@ class AlgoliaIndex(object):
         """Deletes the record."""
         objectID = self.objectID(instance)
         try:
-            self.__client.delete_object(self.index_name, objectID)
+            self.__client.delete_objects(
+                index_name=self.index_name, object_ids=[objectID], wait_for_tasks=True
+            )
             logger.info("DELETE %s FROM %s", objectID, self.model)
         except AlgoliaException as e:
             if DEBUG:
@@ -373,11 +378,15 @@ class AlgoliaIndex(object):
             batch.append(dict(tmp))
 
             if len(batch) >= batch_size:
-                self.__client.partial_update_objects(self.index_name, batch)
+                self.__client.partial_update_objects(
+                    index_name=self.index_name, objects=batch, wait_for_tasks=True
+                )
                 batch = []
 
         if len(batch) > 0:
-            self.__client.partial_update_objects(self.index_name, batch)
+            self.__client.partial_update_objects(
+                index_name=self.index_name, objects=batch, wait_for_tasks=True
+            )
 
     def raw_search(self, query="", params=None):
         """Performs a search query and returns the parsed JSON."""
@@ -387,7 +396,7 @@ class AlgoliaIndex(object):
         params.query = query
 
         try:
-            return self.__client.search_single_index(self.index_name, params)
+            return self.__client.search_single_index(self.index_name, params).to_dict()
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -398,7 +407,7 @@ class AlgoliaIndex(object):
         """Returns the settings of the index."""
         try:
             logger.info("GET SETTINGS ON %s", self.index_name)
-            return self.__client.get_settings(self.index_name)
+            return self.__client.get_settings(self.index_name).to_dict()
         except AlgoliaException as e:
             if DEBUG:
                 raise e
@@ -411,7 +420,8 @@ class AlgoliaIndex(object):
             return
 
         try:
-            self.__client.set_settings(self.index_name, self.settings)
+            _resp = self.__client.set_settings(self.index_name, self.settings)
+            self.__client.wait_for_task(self.index_name, _resp.task_id)
             logger.info("APPLY SETTINGS ON %s", self.index_name)
         except AlgoliaException as e:
             if DEBUG:
@@ -422,17 +432,14 @@ class AlgoliaIndex(object):
     def clear_objects(self):
         """Clears all objects of an index."""
         try:
-            self.__client.clear_objects(self.index_name)
+            _resp = self.__client.clear_objects(self.index_name)
+            self.__client.wait_for_task(self.index_name, _resp.task_id)
             logger.info("CLEAR INDEX %s", self.index_name)
         except AlgoliaException as e:
             if DEBUG:
                 raise e
             else:
                 logger.warning("%s NOT CLEARED: %s", self.model, e)
-
-    def clear_index(self):
-        # TODO: add deprecated warning
-        self.clear_objects()
 
     def wait_task(self, task_id):
         try:
@@ -445,9 +452,11 @@ class AlgoliaIndex(object):
                 logger.warning("%s NOT WAIT: %s", self.model, e)
 
     def delete(self):
-        self.__client.delete_index(self.index_name)
+        _resp = self.__client.delete_index(self.index_name)
+        self.__client.wait_for_task(self.index_name, _resp.task_id)
         if self.tmp_index_name:
-            self.__client.delete_index(self.tmp_index_name)
+            _resp = self.__client.delete_index(self.tmp_index_name)
+            self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
 
     def reindex_all(self, batch_size=1000):
         """
@@ -494,17 +503,13 @@ class AlgoliaIndex(object):
                     self.settings["slaves"] = []
                     logger.debug("REMOVE SLAVES FROM SETTINGS")
 
-                set_settings_response = self.__client.set_settings(
-                    self.tmp_index_name, self.settings
-                )
-                self.__client.wait_for_task(
-                    self.tmp_index_name, set_settings_response.task_id
-                )
+                _resp = self.__client.set_settings(self.tmp_index_name, self.settings)
+                self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
                 logger.debug("APPLY SETTINGS ON %s_tmp", self.index_name)
 
             rules = []
             self.__client.browse_rules(
-                self.index_name, lambda _resp: rules.append(_resp)
+                self.index_name, lambda _resp: rules.extend(_resp.hits)
             )
             if len(rules):
                 logger.debug("Got rules for index %s: %s", self.index_name, rules)
@@ -512,20 +517,21 @@ class AlgoliaIndex(object):
 
             synonyms = []
             self.__client.browse_synonyms(
-                self.index_name, lambda _resp: synonyms.append(_resp)
+                self.index_name, lambda _resp: synonyms.extend(_resp.hits)
             )
             if len(synonyms):
                 logger.debug("Got synonyms for index %s: %s", self.index_name, rules)
                 should_keep_synonyms = True
 
-            self.__client.clear_objects(self.tmp_index_name)
-            logger.debug("CLEAR INDEX %s_tmp", self.index_name)
+            _resp = self.__client.clear_objects(self.tmp_index_name)
+            self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
+            logger.debug("CLEAR INDEX %s", self.tmp_index_name)
 
             counts = 0
             batch = []
 
-            if hasattr(self, "get_queryset"):
-                qs = self.get_queryset()
+            if hasattr(self, "get_queryset") and callable(self.get_queryset):  # pyright: ignore
+                qs = self.get_queryset()  # pyright: ignore
             else:
                 qs = self.model.objects.all()
 
@@ -535,22 +541,29 @@ class AlgoliaIndex(object):
 
                 batch.append(self.get_raw_record(instance))
                 if len(batch) >= batch_size:
-                    self.__client.save_objects(self.tmp_index_name, batch, True)
+                    self.__client.save_objects(
+                        index_name=self.tmp_index_name,
+                        objects=batch,
+                        wait_for_tasks=True,
+                    )
                     logger.info(
                         "SAVE %d OBJECTS TO %s", len(batch), self.tmp_index_name
                     )
                     batch = []
                 counts += 1
             if len(batch) > 0:
-                self.__client.save_objects(self.tmp_index_name, batch, True)
+                self.__client.save_objects(
+                    index_name=self.tmp_index_name, objects=batch, wait_for_tasks=True
+                )
                 logger.info("SAVE %d OBJECTS TO %s", len(batch), self.tmp_index_name)
 
-            self.__client.operation_index(
+            _resp = self.__client.operation_index(
                 self.tmp_index_name,
                 OperationIndexParams(
                     operation=OperationType.MOVE, destination=self.index_name
                 ),
             )
+            self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
             logger.info("MOVE INDEX %s TO %s", self.tmp_index_name, self.index_name)
 
             if self.settings:
@@ -561,31 +574,20 @@ class AlgoliaIndex(object):
                     self.settings["slaves"] = slaves
                     logger.debug("RESTORE SLAVES")
                 if should_keep_replicas or should_keep_slaves:
-                    self.__client.set_settings(self.index_name, self.settings)
+                    _resp = self.__client.set_settings(self.index_name, self.settings)
+                    self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
                 if should_keep_rules:
-                    save_rules_response = self.__client.save_rules(
-                        self.index_name, rules, True
-                    )
-                    self.__client.wait_for_task(
-                        self.index_name, save_rules_response.task_id
-                    )
+                    _resp = self.__client.save_rules(self.index_name, rules, True)
+                    self.__client.wait_for_task(self.index_name, _resp.task_id)
                     logger.info(
-                        "Saved rules for index %s with response: {}".format(
-                            save_rules_response
-                        ),
+                        "Saved rules for index %s with response: {}".format(_resp),
                         self.index_name,
                     )
                 if should_keep_synonyms:
-                    save_synonyms_response = self.__client.save_synonyms(
-                        self.index_name, synonyms, True
-                    )
-                    self.__client.wait_for_task(
-                        self.index_name, save_synonyms_response.task_id
-                    )
+                    _resp = self.__client.save_synonyms(self.index_name, synonyms, True)
+                    self.__client.wait_for_task(self.index_name, _resp.task_id)
                     logger.info(
-                        "Saved synonyms for index %s with response: {}".format(
-                            save_synonyms_response
-                        ),
+                        "Saved synonyms for index %s with response: {}".format(_resp),
                         self.index_name,
                     )
             return counts

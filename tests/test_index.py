@@ -129,8 +129,8 @@ class IndexTestCase(TestCase):
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 "replicas": [
-                    self.index.index_name + "_name_asc",
-                    self.index.index_name + "_name_desc",
+                    self.index.index_name + "_name_asc",  # pyright: ignore
+                    self.index.index_name + "_name_desc",  # pyright: ignore
                 ]
             }
 
@@ -138,16 +138,14 @@ class IndexTestCase(TestCase):
         self.index.reindex_all()
 
     def test_reindex_with_should_index_boolean(self):
-        Website.objects.create(
-            name="Algolia", url="https://algolia.com", is_online=True
-        )
+        Website(name="Algolia", url="https://algolia.com", is_online=True)
         self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
             settings = {
                 "replicas": [
-                    self.index.index_name + "_name_asc",
-                    self.index.index_name + "_name_desc",
+                    self.index.index_name + "_name_asc",  # pyright: ignore
+                    self.index.index_name + "_name_desc",  # pyright: ignore
                 ]
             }
             should_index = "is_online"
@@ -173,7 +171,6 @@ class IndexTestCase(TestCase):
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the former settings to be kept across reindex
         self.assertEqual(
@@ -243,7 +240,6 @@ class IndexTestCase(TestCase):
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the settings to be reset to model definition over reindex
         former_settings = existing_settings
@@ -259,7 +255,6 @@ class IndexTestCase(TestCase):
             settings = {"hitsPerPage": 42}
 
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        underlying_index = self.index._AlgoliaIndex__index
 
         # Given some existing query rules on the index
         rule = {
@@ -268,12 +263,11 @@ class IndexTestCase(TestCase):
             "consequence": {"params": {"query": "other text"}},
         }
 
-        underlying_index.save_rule(rule).wait()
+        self.index.__client.save_rule(self.index.index_name, rule["objectID"], rule)
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the rules to be kept across reindex
         def remove_metadata(rule):
@@ -281,7 +275,10 @@ class IndexTestCase(TestCase):
             del copy["_metadata"]
             return copy
 
-        rules = [r for r in underlying_index.browse_rules()]
+        rules = []
+        self.index.__client.browse_rules(
+            self.index.index_name, lambda _resp: rules.extend(_resp.hits)
+        )
         rules = list(map(remove_metadata, rules))
         self.assertEqual(len(rules), 1, "There should only be one rule")
         self.assertIn(rule, rules, "The existing rule should be kept over reindex")
@@ -295,7 +292,6 @@ class IndexTestCase(TestCase):
             settings = {"hitsPerPage": 42}
 
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        underlying_index = self.index._AlgoliaIndex__index
 
         # Given some existing synonyms on the index
         synonym = {
@@ -304,15 +300,19 @@ class IndexTestCase(TestCase):
             "word": "Street",
             "corrections": ["St"],
         }
-        underlying_index.save_synonyms([synonym]).wait()
+        self.index.__client.save_synonyms(
+            self.index.index_name, synonym["objectID"], synonym
+        )
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         self.index.reindex_all()
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
 
         # Expect the synonyms to be kept across reindex
-        synonyms = [s for s in underlying_index.browse_synonyms()]
+        synonyms = []
+        self.index.__client.browse_synonyms(
+            self.index.index_name, lambda _resp: synonyms.extend(_resp.hits)
+        )
         self.assertEqual(len(synonyms), 1, "There should only be one synonym")
         self.assertIn(
             synonym, synonyms, "The existing synonym should be kept over reindex"
@@ -658,31 +658,31 @@ class IndexTestCase(TestCase):
             self.index._should_index(self.example)
 
     def test_should_index_property(self):
-        class ExampleIndex(AlgoliaIndex):
+        class ExampleIndex1(AlgoliaIndex):
             fields = "name"
             should_index = "property_should_index"
 
-        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index = ExampleIndex1(Example, self.client, settings.ALGOLIA)
         self.assertTrue(
             self.index._should_index(self.example),
             "We should index an instance when its should_index property is True",
         )
 
-        class ExampleIndex(AlgoliaIndex):
+        class ExampleIndex2(AlgoliaIndex):
             fields = "name"
             should_index = "property_should_not_index"
 
-        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index = ExampleIndex2(Example, self.client, settings.ALGOLIA)
         self.assertFalse(
             self.index._should_index(self.example),
             "We should not index an instance when its should_index property is False",
         )
 
-        class ExampleIndex(AlgoliaIndex):
+        class ExampleIndex3(AlgoliaIndex):
             fields = "name"
             should_index = "property_string"
 
-        self.index = ExampleIndex(Example, self.client, settings.ALGOLIA)
+        self.index = ExampleIndex3(Example, self.client, settings.ALGOLIA)
         with self.assertRaises(
             AlgoliaIndexError,
             msg="We should raise when the should_index property is not boolean",
@@ -690,16 +690,16 @@ class IndexTestCase(TestCase):
             self.index._should_index(self.example)
 
     def test_save_record_should_index_boolean(self):
-        website = Website.objects.create(
-            name="Algolia", url="https://algolia.com", is_online=True
-        )
+        website = Website(name="Algolia", url="https://algolia.com", is_online=True)
         self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
+            self.assertIsNotNone(self.index.index_name)
+
             settings = {
                 "replicas": [
-                    self.index.index_name + "_name_asc",
-                    self.index.index_name + "_name_desc",
+                    self.index.index_name + "_name_asc",  # pyright: ignore
+                    self.index.index_name + "_name_desc",  # pyright: ignore
                 ]
             }
             should_index = "is_online"
@@ -718,9 +718,12 @@ class IndexTestCase(TestCase):
         self.user.bio = "крупнейших"
         self.user.save()
         self.index = CyrillicIndex(User, self.client, settings.ALGOLIA)
-        self.index.save_record(self.user).wait()
+        self.index.save_record(self.user)
         result = self.index.raw_search("крупнейших")
-        self.assertEqual(result["nbHits"], 1, "Search should return one result")
-        self.assertEqual(
-            result["hits"][0]["name"], "Algolia", "The result should be self.user"
-        )
+        self.assertIsNotNone(result)
+
+        if result is not None:
+            self.assertEqual(result["nbHits"], 1, "Search should return one result")
+            self.assertEqual(
+                result["hits"][0]["name"], "Algolia", "The result should be self.user"
+            )

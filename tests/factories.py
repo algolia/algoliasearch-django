@@ -17,6 +17,8 @@ class ExampleFactory(factory.django.DjangoModelFactory):
 class UserFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: "User name-{}".format(n))
     username = factory.Sequence(lambda n: "User username-{}".format(n))
+    following_count = 0
+    followers_count = 0
 
     _lat = factory.Faker("latitude")
     _lng = factory.Faker("longitude")
@@ -28,6 +30,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 class WebsiteFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: "Website name-{}".format(n))
     url = factory.Faker("url")
+    is_online = False
 
     class Meta:
         model = Website

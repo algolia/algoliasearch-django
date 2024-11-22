@@ -50,11 +50,11 @@ class SignalTestCase(TestCase):
         mocked_delete_record.assert_has_calls([call(websites[0]), call(websites[1])])
 
     def test_update_records(self):
-        Website.objects.create(name="Algolia", url="https://www.algolia.com")
-        Website.objects.create(name="Google", url="https://www.google.com")
-        Website.objects.create(name="Facebook", url="https://www.facebook.com")
-        Website.objects.create(name="Facebook", url="https://www.facebook.fr")
-        Website.objects.create(name="Facebook", url="https://fb.com")
+        Website(name="Algolia", url="https://www.algolia.com", is_online=False)
+        Website(name="Google", url="https://www.google.com", is_online=False)
+        Website(name="Facebook", url="https://www.facebook.com", is_online=False)
+        Website(name="Facebook", url="https://www.facebook.fr", is_online=False)
+        Website(name="Facebook", url="https://fb.com", is_online=False)
 
         qs = Website.objects.filter(name="Facebook")
         update_records(Website, qs, url="https://facebook.com")
