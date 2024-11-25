@@ -86,12 +86,9 @@ class AlgoliaIndex(object):
         ):  # Only set settings if the actual index class does not define some
             self.settings = {}
 
-        try:
-            all_model_fields = [
-                f.name for f in model._meta.get_fields() if not f.is_relation
-            ]
-        except AttributeError:  # get_fields requires Django >= 1.8
-            all_model_fields = [f.name for f in model._meta.local_fields]
+        all_model_fields = [
+            f.name for f in model._meta.get_fields() if not f.is_relation
+        ]
 
         if isinstance(self.fields, str):
             self.fields = (self.fields,)
@@ -324,7 +321,6 @@ class AlgoliaIndex(object):
                 )
             else:
                 obj = self.get_raw_record(instance)
-                print(obj)
                 self.__client.save_objects(
                     index_name=self.index_name, objects=[obj], wait_for_tasks=True
                 )

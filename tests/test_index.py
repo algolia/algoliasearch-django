@@ -23,6 +23,7 @@ class IndexTestCase(TestCase):
             _lng=-42.24,
             _permissions="read,write,admin",
         )
+        self.website = Website(name="Algolia", url="https://algolia.com")
 
         self.contributor = User(
             name="Contributor",
@@ -675,12 +676,10 @@ class IndexTestCase(TestCase):
             self.index._should_index(self.example)
 
     def test_save_record_should_index_boolean(self):
-        website = Website(name="Algolia", url="https://algolia.com", is_online=True)
         self.index = AlgoliaIndex(Website, self.client, settings.ALGOLIA)
 
         class WebsiteIndex(AlgoliaIndex):
-            self.assertIsNotNone(self.index.index_name)
-
+            custom_objectID = "name"
             settings = {
                 "replicas": [
                     self.index.index_name + "_name_asc",  # pyright: ignore
@@ -689,8 +688,9 @@ class IndexTestCase(TestCase):
             }
             should_index = "is_online"
 
+        self.website.is_online = True
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
-        self.index.save_record(website)
+        self.index.save_record(self.website)
 
     def test_cyrillic(self):
         class CyrillicIndex(AlgoliaIndex):
