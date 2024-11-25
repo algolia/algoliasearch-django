@@ -31,7 +31,6 @@ save_record = algolia_engine.save_record
 delete_record = algolia_engine.delete_record
 update_records = algolia_engine.update_records
 raw_search = algolia_engine.raw_search
-clear_index = algolia_engine.clear_index  # TODO: deprecate
 clear_objects = algolia_engine.clear_objects
 reindex_all = algolia_engine.reindex_all
 

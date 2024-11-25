@@ -4,7 +4,7 @@ from django.core.management import call_command
 
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import get_adapter
-from algoliasearch_django import clear_index
+from algoliasearch_django import clear_objects
 
 from .models import Website
 from .models import User
@@ -35,8 +35,8 @@ class CommandsTestCase(TestCase):
         self.out = StringIO()
 
     def tearDown(self):
-        clear_index(Website)
-        clear_index(User)
+        clear_objects(Website)
+        clear_objects(User)
 
     def test_reindex(self):
         call_command("algolia_reindex", stdout=self.out)

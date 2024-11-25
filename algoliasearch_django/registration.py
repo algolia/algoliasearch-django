@@ -156,10 +156,6 @@ class AlgoliaEngine(object):
         adapter = self.get_adapter(model)
         adapter.clear_objects()
 
-    def clear_index(self, model):
-        # TODO: add deprecatd warning
-        self.clear_objects(model)
-
     def reindex_all(self, model, batch_size=1000):
         """
         Reindex all the records.

@@ -6,7 +6,7 @@ from django.test import TestCase
 from algoliasearch_django import algolia_engine
 from algoliasearch_django import get_adapter
 from algoliasearch_django import raw_search
-from algoliasearch_django import clear_index
+from algoliasearch_django import clear_objects
 from algoliasearch_django import update_records
 
 from .factories import WebsiteFactory
@@ -19,7 +19,7 @@ class SignalTestCase(TestCase):
         get_adapter(Website).delete()
 
     def tearDown(self):
-        clear_index(Website)
+        clear_objects(Website)
 
     def test_save_signal(self):
         with patch.object(algolia_engine, "save_record") as mocked_save_record:

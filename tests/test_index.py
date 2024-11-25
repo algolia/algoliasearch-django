@@ -1,9 +1,7 @@
 # coding=utf-8
-import time
 from django.conf import settings
 from django.test import TestCase
 
-import unittest
 
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django import algolia_engine
@@ -153,9 +151,6 @@ class IndexTestCase(TestCase):
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         self.index.reindex_all()
 
-    @unittest.skip(
-        reason="FIXME: it's a known issue that reindex all might not work properly"
-    )
     def test_reindex_no_settings(self):
         self.maxDiff = None
 
@@ -179,9 +174,6 @@ class IndexTestCase(TestCase):
             "An index whose model has no settings should keep its settings after reindex",
         )
 
-    @unittest.skip(
-        reason="FIXME: it's a known issue that reindex all might not work properly"
-    )
     def test_reindex_with_settings(self):
         import uuid
 
@@ -232,7 +224,7 @@ class IndexTestCase(TestCase):
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
 
         # Given some existing query rules on the index
-        # index.__index.save_rule()  # TODO: Check query rules are kept
+        self.index.__client.save_rule()
 
         # Given some existing settings on the index
         existing_settings = self.apply_some_settings(self.index)
@@ -246,9 +238,6 @@ class IndexTestCase(TestCase):
         former_settings["hitsPerPage"] = 15
         self.assertDictEqual(self.index.get_settings(), former_settings)
 
-    @unittest.skip(
-        reason="FIXME: it's a known issue that reindex all might not work properly"
-    )
     def test_reindex_with_rules(self):
         # Given an existing index defined with settings
         class WebsiteIndex(AlgoliaIndex):
@@ -283,9 +272,6 @@ class IndexTestCase(TestCase):
         self.assertEqual(len(rules), 1, "There should only be one rule")
         self.assertIn(rule, rules, "The existing rule should be kept over reindex")
 
-    @unittest.skip(
-        reason="FIXME: it's a known issue that reindex all might not work properly"
-    )
     def test_reindex_with_synonyms(self):
         # Given an existing index defined with settings
         class WebsiteIndex(AlgoliaIndex):
@@ -332,7 +318,6 @@ class IndexTestCase(TestCase):
         index.settings["hitsPerPage"] = 42
         index.reindex_all()
         index.settings["hitsPerPage"] = old_hpp
-        time.sleep(10)  # FIXME: Refactor reindex_all to return taskID
         index_settings = index.get_settings()
         # Expect the instance's settings to be applied at reindex
         self.assertEqual(
