@@ -54,7 +54,7 @@ class EngineTestCase(TestCase):
 
     def test_get_adapter(self):
         self.engine.register(Website)
-        self.assertEquals(AlgoliaIndex, self.engine.get_adapter(Website).__class__)
+        self.assertEqual(AlgoliaIndex, self.engine.get_adapter(Website).__class__)
 
     def test_get_adapter_exception(self):
         with self.assertRaises(RegistrationError):
@@ -63,7 +63,7 @@ class EngineTestCase(TestCase):
     def test_get_adapter_from_instance(self):
         self.engine.register(Website)
         instance = Website()
-        self.assertEquals(
+        self.assertEqual(
             AlgoliaIndex, self.engine.get_adapter_from_instance(instance).__class__
         )
 

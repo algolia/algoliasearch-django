@@ -252,7 +252,7 @@ class IndexTestCase(TestCase):
             "consequence": {"params": {"query": "other text"}},
         }
 
-        self.index.__client.save_rule(self.index.index_name, rule["objectID"], rule)
+        self.client.save_rule(self.index.index_name, rule["objectID"], rule)
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)

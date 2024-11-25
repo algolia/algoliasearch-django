@@ -324,6 +324,7 @@ class AlgoliaIndex(object):
                 )
             else:
                 obj = self.get_raw_record(instance)
+                print(obj)
                 self.__client.save_objects(
                     index_name=self.index_name, objects=[obj], wait_for_tasks=True
                 )
@@ -391,9 +392,9 @@ class AlgoliaIndex(object):
     def raw_search(self, query="", params=None):
         """Performs a search query and returns the parsed JSON."""
         if params is None:
-            params = SearchParamsObject()
+            params = SearchParamsObject().to_dict()
 
-        params.query = query
+        params["query"] = query
 
         try:
             return self.__client.search_single_index(self.index_name, params).to_dict()
