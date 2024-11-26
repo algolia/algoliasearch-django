@@ -559,7 +559,7 @@ class AlgoliaIndex(object):
                     logger.debug("RESTORE REPLICAS")
                 if should_keep_replicas:
                     _resp = self.__client.set_settings(self.index_name, self.settings)
-                    self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
+                    self.__client.wait_for_task(self.index_name, _resp.task_id)
                 if should_keep_rules:
                     _resp = self.__client.save_rules(self.index_name, rules, True)
                     self.__client.wait_for_task(self.index_name, _resp.task_id)

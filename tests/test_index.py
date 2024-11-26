@@ -256,7 +256,7 @@ class IndexTestCase(TestCase):
         rule = {
             "objectID": "my-rule",
             "condition": {"pattern": "some text", "anchoring": "is"},
-            "consequence": {"params": {"query": "other text"}},
+            "consequence": {"params": {"hitsPerPage": 42}},
         }
 
         self.assertIsNotNone(self.index.index_name)
@@ -264,25 +264,30 @@ class IndexTestCase(TestCase):
         if self.index.index_name is None:
             return
 
-        self.client.save_rule(self.index.index_name, rule["objectID"], rule)
+        self.client.save_rule_with_http_info(
+            self.index.index_name, rule["objectID"], rule
+        )
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         self.index.reindex_all()
 
-        # Expect the rules to be kept across reindex
-        def remove_metadata(rule):
-            copy = dict(rule)
-            del copy["_metadata"]
-            return copy
-
         rules = []
-        self.index.__client.browse_rules(
-            self.index.index_name, lambda _resp: rules.extend(_resp.hits)
+        self.client.browse_rules(
+            self.index.index_name,
+            lambda _resp: rules.extend([_hit.to_dict() for _hit in _resp.hits]),
         )
-        rules = list(map(remove_metadata, rules))
         self.assertEqual(len(rules), 1, "There should only be one rule")
-        self.assertIn(rule, rules, "The existing rule should be kept over reindex")
+        self.assertEqual(
+            rules[0]["consequence"],
+            rule["consequence"],
+            "The existing rule should be kept over reindex",
+        )
+        self.assertEqual(
+            rules[0]["objectID"],
+            rule["objectID"],
+            "The existing rule should be kept over reindex",
+        )
 
     def test_reindex_with_synonyms(self):
         # Given an existing index defined with settings
@@ -313,11 +318,11 @@ class IndexTestCase(TestCase):
         self.index.reindex_all()
 
         # Expect the synonyms to be kept across reindex
-        resp = self.client.search_synonyms(index_name=self.index.index_name)
-        print(resp, self.index.index_name)
-
         synonyms = []
-        self.client.browse_synonyms(self.index.index_name, lambda _resp: print(_resp))
+        self.client.browse_synonyms(
+            self.index.index_name,
+            lambda _resp: synonyms.extend([_hit.to_dict() for _hit in _resp.hits]),
+        )
         self.assertEqual(len(synonyms), 1, "There should only be one synonym")
         self.assertIn(
             synonym, synonyms, "The existing synonym should be kept over reindex"

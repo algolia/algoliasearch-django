@@ -53,14 +53,26 @@ class disable_auto_indexing(ContextDecorator):
         if model is not None:
             self.models = [model]
         else:
-            self.models = algolia_engine.get_registered_models()
+            self.models = algolia_engine._AlgoliaEngine__registered_models  # pyright: ignore
 
     def __enter__(self):
         for model in self.models:
-            post_save.disconnect(algolia_engine.__post_save_receiver, sender=model)
-            pre_delete.disconnect(algolia_engine.__pre_delete_receiver, sender=model)
+            post_save.disconnect(
+                algolia_engine._AlgoliaEngine__post_save_receiver,
+                sender=model,  # pyright: ignore
+            )
+            pre_delete.disconnect(
+                algolia_engine._AlgoliaEngine__pre_delete_receiver,
+                sender=model,  # pyright: ignore
+            )
 
     def __exit__(self, exc_type, exc_value, traceback):
         for model in self.models:
-            post_save.connect(algolia_engine.__post_save_receiver, sender=model)
-            pre_delete.connect(algolia_engine.__pre_delete_receiver, sender=model)
+            post_save.connect(
+                algolia_engine._AlgoliaEngine__post_save_receiver,
+                sender=model,  # pyright: ignore
+            )
+            pre_delete.connect(
+                algolia_engine._AlgoliaEngine__pre_delete_receiver,
+                sender=model,  # pyright: ignore
+            )

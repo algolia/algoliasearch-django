@@ -32,8 +32,10 @@ class EngineTestCase(TestCase):
 
     def test_user_agent(self):
         self.assertIn(
-            "Algolia for Django (%s); Django (%s)" % __version__ % __django__version__,
-            self.engine.client._config.user_agent.get(),
+            "Algolia for Django ({}); Django ({})".format(
+                __version__, __django__version__
+            ),
+            self.engine.client._config._user_agent.get(),
         )
 
     def test_auto_discover_indexes(self):
