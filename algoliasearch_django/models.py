@@ -400,7 +400,7 @@ class AlgoliaIndex(object):
             else:
                 logger.warning("ERROR DURING SEARCH ON %s: %s", self.index_name, e)
 
-    def get_settings(self):
+    def get_settings(self) -> dict | None:
         """Returns the settings of the index."""
         try:
             logger.info("GET SETTINGS ON %s", self.index_name)
@@ -482,23 +482,16 @@ class AlgoliaIndex(object):
                 raise e  # Unexpected error while getting settings
         try:
             should_keep_replicas = False
-            should_keep_slaves = False
             replicas = None
-            slaves = None
 
             if self.settings:
                 replicas = self.settings.get("replicas", None)
-                slaves = self.settings.get("slaves", None)
 
                 should_keep_replicas = replicas is not None
-                should_keep_slaves = slaves is not None
 
                 if should_keep_replicas:
                     self.settings["replicas"] = []
                     logger.debug("REMOVE REPLICAS FROM SETTINGS")
-                if should_keep_slaves:
-                    self.settings["slaves"] = []
-                    logger.debug("REMOVE SLAVES FROM SETTINGS")
 
                 _resp = self.__client.set_settings(self.tmp_index_name, self.settings)
                 self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
@@ -567,10 +560,7 @@ class AlgoliaIndex(object):
                 if should_keep_replicas:
                     self.settings["replicas"] = replicas
                     logger.debug("RESTORE REPLICAS")
-                if should_keep_slaves:
-                    self.settings["slaves"] = slaves
-                    logger.debug("RESTORE SLAVES")
-                if should_keep_replicas or should_keep_slaves:
+                if should_keep_replicas:
                     _resp = self.__client.set_settings(self.index_name, self.settings)
                     self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
                 if should_keep_rules:

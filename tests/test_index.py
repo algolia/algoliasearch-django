@@ -225,7 +225,7 @@ class IndexTestCase(TestCase):
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
 
         # Given some existing query rules on the index
-        self.index.__client.save_rule()
+        # index.__index.save_rule()  # TODO: Check query rules are kept
 
         # Given some existing settings on the index
         existing_settings = self.apply_some_settings(self.index)
@@ -237,7 +237,13 @@ class IndexTestCase(TestCase):
         # Expect the settings to be reset to model definition over reindex
         former_settings = existing_settings
         former_settings["hitsPerPage"] = 15
-        self.assertDictEqual(self.index.get_settings(), former_settings)
+
+        new_settings = self.index.get_settings()
+
+        self.assertIsNotNone(new_settings)
+
+        if new_settings is not None:
+            self.assertDictEqual(new_settings, former_settings)
 
     def test_reindex_with_rules(self):
         # Given an existing index defined with settings
@@ -252,6 +258,11 @@ class IndexTestCase(TestCase):
             "condition": {"pattern": "some text", "anchoring": "is"},
             "consequence": {"params": {"query": "other text"}},
         }
+
+        self.assertIsNotNone(self.index.index_name)
+
+        if self.index.index_name is None:
+            return
 
         self.client.save_rule(self.index.index_name, rule["objectID"], rule)
 
@@ -280,6 +291,11 @@ class IndexTestCase(TestCase):
 
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
 
+        self.assertIsNotNone(self.index.index_name)
+
+        if self.index.index_name is None:
+            return
+
         # Given some existing synonyms on the index
         synonym = {
             "objectID": "street",
@@ -287,25 +303,25 @@ class IndexTestCase(TestCase):
             "word": "Street",
             "corrections": ["St"],
         }
-        self.index.__client.save_synonyms(
-            self.index.index_name, synonym["objectID"], synonym
-        )
+        save_synonyms_response = self.client.save_synonyms(self.index.index_name, synonym_hit=[synonym])
+        self.client.wait_for_task(self.index.index_name, save_synonyms_response.task_id)
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)
         self.index.reindex_all()
 
         # Expect the synonyms to be kept across reindex
+        resp = self.client.search_synonyms(index_name=self.index.index_name)
+        print(resp, self.index.index_name)
+
         synonyms = []
-        self.index.__client.browse_synonyms(
-            self.index.index_name, lambda _resp: synonyms.extend(_resp.hits)
-        )
+        self.client.browse_synonyms(self.index.index_name, lambda _resp: print(_resp))
         self.assertEqual(len(synonyms), 1, "There should only be one synonym")
         self.assertIn(
             synonym, synonyms, "The existing synonym should be kept over reindex"
         )
 
-    def apply_some_settings(self, index):
+    def apply_some_settings(self, index) -> dict:
         """
         Applies a sample setting to the index.
 

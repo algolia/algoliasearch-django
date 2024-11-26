@@ -1,9 +1,10 @@
 import six
 
+from django import __version__ as __django__version__
 from django.conf import settings
 from django.test import TestCase
 
-from algoliasearch_django import algolia_engine
+from algoliasearch_django import algolia_engine, __version__
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django import AlgoliaEngine
 from algoliasearch_django.registration import AlgoliaEngineError
@@ -29,11 +30,11 @@ class EngineTestCase(TestCase):
             with self.assertRaises(AlgoliaEngineError):
                 AlgoliaEngine(settings=settings.ALGOLIA)
 
-    # def test_user_agent(self):
-    #     self.assertIn(
-    #         "Algolia for Django (%s); Django (%s)" % VERSION % django_version(),
-    #         self.engine.client._config.user_agent.get(),
-    #     )
+    def test_user_agent(self):
+        self.assertIn(
+            "Algolia for Django (%s); Django (%s)" % __version__ % __django__version__,
+            self.engine.client._config.user_agent.get(),
+        )
 
     def test_auto_discover_indexes(self):
         """Test that the `index` module was auto-discovered and the models registered"""
