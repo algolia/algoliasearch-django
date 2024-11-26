@@ -303,7 +303,9 @@ class IndexTestCase(TestCase):
             "word": "Street",
             "corrections": ["St"],
         }
-        save_synonyms_response = self.client.save_synonyms(self.index.index_name, synonym_hit=[synonym])
+        save_synonyms_response = self.client.save_synonyms(
+            self.index.index_name, synonym_hit=[synonym]
+        )
         self.client.wait_for_task(self.index.index_name, save_synonyms_response.task_id)
 
         # When reindexing with no settings on the instance

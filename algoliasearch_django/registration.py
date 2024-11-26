@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 import logging
 
+from django import __version__ as __django__version__
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
+from algoliasearch_django import __version__
 from algoliasearch.search.client import SearchClientSync
 
 from .models import AlgoliaIndex
@@ -34,8 +36,8 @@ class AlgoliaEngine(object):
 
         self.__registered_models = {}
         self.client = SearchClientSync(app_id, api_key)
-        self.client.add_user_agent("Algolia for Django", VERSION)
-        self.client.add_user_agent("Django", django_version())
+        self.client.add_user_agent("Algolia for Django", __version__)
+        self.client.add_user_agent("Django", __django__version__)
 
     def is_registered(self, model):
         """Checks whether the given models is registered with Algolia engine"""
