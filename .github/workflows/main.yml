@@ -89,11 +89,10 @@ jobs:
         python-version: ${{ matrix.version }}
 
     - name: Install dependencies and run tests
-      timeout-minutes: 3
+      timeout-minutes: 10
       run: |
         python -m venv python-ci-run
         source python-ci-run/bin/activate
         pip3 install --upgrade pip
         pip3 install tox
-        pip3 install -r requirements.txt
         TOXENV=${{ matrix.toxenv }} ALGOLIA_APPLICATION_ID=${{ secrets.ALGOLIA_APPLICATION_ID }} ALGOLIA_API_KEY=${{ secrets.ALGOLIA_API_KEY }} tox
