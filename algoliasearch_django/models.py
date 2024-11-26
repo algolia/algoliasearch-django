@@ -4,6 +4,7 @@ import inspect
 from functools import partial
 from itertools import chain
 import logging
+from typing import Callable, Iterable, Optional
 
 from algoliasearch.http.exceptions import AlgoliaException
 from algoliasearch.search.models.operation_index_params import OperationIndexParams
@@ -57,7 +58,7 @@ class AlgoliaIndex(object):
     tags = None
 
     # Use to specify the index to target on Algolia.
-    index_name = None
+    index_name: str | None = None
 
     # Use to specify the settings of the index.
     settings = None
@@ -72,9 +73,27 @@ class AlgoliaIndex(object):
     # Name of the attribute to check on instances if should_index is not a callable
     _should_index_is_method = False
 
+    get_queryset: Optional[Callable[[], Iterable]] = None
+
     def __init__(self, model, client, settings):
         """Initializes the index."""
-        self.__init_index(model, settings)
+        if not self.index_name:
+            self.index_name = model.__name__
+
+        tmp_index_name = "{index_name}_tmp".format(index_name=self.index_name)
+
+        if "INDEX_PREFIX" in settings:
+            self.index_name = settings["INDEX_PREFIX"] + "_" + self.index_name
+            tmp_index_name = "{index_prefix}_{tmp_index_name}".format(
+                tmp_index_name=tmp_index_name, index_prefix=settings["INDEX_PREFIX"]
+            )
+        if "INDEX_SUFFIX" in settings:
+            self.index_name += "_" + settings["INDEX_SUFFIX"]
+            tmp_index_name = "{tmp_index_name}_{index_suffix}".format(
+                tmp_index_name=tmp_index_name, index_suffix=settings["INDEX_SUFFIX"]
+            )
+
+        self.tmp_index_name = tmp_index_name
 
         self.model = model
         self.__client = client
@@ -170,25 +189,6 @@ class AlgoliaIndex(object):
                         )
                     )
 
-    def __init_index(self, model, settings):
-        if not self.index_name:
-            self.index_name = model.__name__
-
-        tmp_index_name = "{index_name}_tmp".format(index_name=self.index_name)
-
-        if "INDEX_PREFIX" in settings:
-            self.index_name = settings["INDEX_PREFIX"] + "_" + self.index_name
-            tmp_index_name = "{index_prefix}_{tmp_index_name}".format(
-                tmp_index_name=tmp_index_name, index_prefix=settings["INDEX_PREFIX"]
-            )
-        if "INDEX_SUFFIX" in settings:
-            self.index_name += "_" + settings["INDEX_SUFFIX"]
-            tmp_index_name = "{tmp_index_name}_{index_suffix}".format(
-                tmp_index_name=tmp_index_name, index_suffix=settings["INDEX_SUFFIX"]
-            )
-
-        self.tmp_index_name = tmp_index_name
-
     @staticmethod
     def _validate_geolocation(geolocation):
         """
@@ -239,7 +239,7 @@ class AlgoliaIndex(object):
                 if callable(self.tags):
                     tmp["_tags"] = self.tags(instance)
                 if not isinstance(tmp["_tags"], list):
-                    tmp["_tags"] = list(tmp["_tags"])
+                    tmp["_tags"] = list(tmp["_tags"])  # pyright: ignore
 
         logger.debug("BUILD %s FROM %s", tmp["objectID"], self.model)
         return tmp
@@ -374,12 +374,7 @@ class AlgoliaIndex(object):
             tmp["objectID"] = elt
             batch.append(dict(tmp))
 
-            if len(batch) >= batch_size:
-                self.__client.partial_update_objects(
-                    index_name=self.index_name, objects=batch, wait_for_tasks=True
-                )
-                batch = []
-
+        # TODO: pass batch_size to partial_update_objects
         if len(batch) > 0:
             self.__client.partial_update_objects(
                 index_name=self.index_name, objects=batch, wait_for_tasks=True
@@ -519,9 +514,10 @@ class AlgoliaIndex(object):
 
             counts = 0
             batch = []
+            qs = []
 
-            if hasattr(self, "get_queryset") and callable(self.get_queryset):  # pyright: ignore
-                qs = self.get_queryset()  # pyright: ignore
+            if hasattr(self, "get_queryset") and callable(self.get_queryset):
+                qs = self.get_queryset()
             else:
                 qs = self.model.objects.all()
 
@@ -550,7 +546,8 @@ class AlgoliaIndex(object):
             _resp = self.__client.operation_index(
                 self.tmp_index_name,
                 OperationIndexParams(
-                    operation=OperationType.MOVE, destination=self.index_name
+                    operation=OperationType.MOVE,
+                    destination=self.index_name,  # pyright: ignore
                 ),
             )
             self.__client.wait_for_task(self.tmp_index_name, _resp.task_id)
