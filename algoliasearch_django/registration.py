@@ -4,7 +4,7 @@ import logging
 from django import __version__ as __django__version__
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
-from algoliasearch_django import __version__
+from algoliasearch_django.version import VERSION as __version__
 from algoliasearch.search.client import SearchClientSync
 
 from .models import AlgoliaIndex
