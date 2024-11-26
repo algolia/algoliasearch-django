@@ -58,7 +58,7 @@ class AlgoliaIndex(object):
     tags = None
 
     # Use to specify the index to target on Algolia.
-    index_name: str | None = None
+    index_name: Optional[str] = None
 
     # Use to specify the settings of the index.
     settings = None
@@ -395,7 +395,7 @@ class AlgoliaIndex(object):
             else:
                 logger.warning("ERROR DURING SEARCH ON %s: %s", self.index_name, e)
 
-    def get_settings(self) -> dict | None:
+    def get_settings(self) -> Optional[dict]:
         """Returns the settings of the index."""
         try:
             logger.info("GET SETTINGS ON %s", self.index_name)
