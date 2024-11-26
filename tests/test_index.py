@@ -264,9 +264,8 @@ class IndexTestCase(TestCase):
         if self.index.index_name is None:
             return
 
-        self.client.save_rule_with_http_info(
-            self.index.index_name, rule["objectID"], rule
-        )
+        _resp = self.client.save_rule(self.index.index_name, rule["objectID"], rule)
+        self.client.wait_for_task(self.index.index_name, _resp.task_id)
 
         # When reindexing with no settings on the instance
         self.index = WebsiteIndex(Website, self.client, settings.ALGOLIA)

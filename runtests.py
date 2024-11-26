@@ -12,7 +12,7 @@ def main():
     os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
     django.setup()
     TestRunner = get_runner(settings)
-    test_runner = TestRunner(failfase=True)
+    test_runner = TestRunner(failfast=True)
     # kept here to run a single test
     # failures = test_runner.run_tests(
     #     [
