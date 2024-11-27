@@ -58,21 +58,21 @@ class disable_auto_indexing(ContextDecorator):
     def __enter__(self):
         for model in self.models:
             post_save.disconnect(
-                algolia_engine._AlgoliaEngine__post_save_receiver,
-                sender=model,  # pyright: ignore
+                algolia_engine._AlgoliaEngine__post_save_receiver,  # pyright: ignore
+                sender=model,
             )
             pre_delete.disconnect(
-                algolia_engine._AlgoliaEngine__pre_delete_receiver,
-                sender=model,  # pyright: ignore
+                algolia_engine._AlgoliaEngine__pre_delete_receiver,  # pyright: ignore
+                sender=model,
             )
 
     def __exit__(self, exc_type, exc_value, traceback):
         for model in self.models:
             post_save.connect(
-                algolia_engine._AlgoliaEngine__post_save_receiver,
-                sender=model,  # pyright: ignore
+                algolia_engine._AlgoliaEngine__post_save_receiver,  # pyright: ignore
+                sender=model,
             )
             pre_delete.connect(
-                algolia_engine._AlgoliaEngine__pre_delete_receiver,
-                sender=model,  # pyright: ignore
+                algolia_engine._AlgoliaEngine__pre_delete_receiver,  # pyright: ignore
+                sender=model,
             )
