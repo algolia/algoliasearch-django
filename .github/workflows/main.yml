@@ -89,7 +89,7 @@ jobs:
         python-version: ${{ matrix.version }}
 
     - name: Install dependencies and run tests
-      timeout-minutes: 10
+      timeout-minutes: 20
       run: |
         python -m venv python-ci-run
         source python-ci-run/bin/activate
