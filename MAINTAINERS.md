@@ -1,5 +1,5 @@
 ## `algolia/algoliasearch-django` maintainers
 
-| Name            | Email               |
-|-----------------|---------------------|
-| Algolia         | support@algolia.com |
+| Name            | Email                  |
+|-----------------|------------------------|
+| Algolia         | https://alg.li/support |

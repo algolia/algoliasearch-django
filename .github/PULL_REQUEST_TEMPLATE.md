@@ -1,6 +1,6 @@
 ## 🧭 What and Why
 
-🎟 JIRA Ticket:
+🎟 Related Issue:
 
 ### Changes included:
 
