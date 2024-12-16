@@ -374,10 +374,9 @@ class AlgoliaIndex(object):
             tmp["objectID"] = elt
             batch.append(dict(tmp))
 
-        # TODO: pass batch_size to partial_update_objects
         if len(batch) > 0:
             self.__client.partial_update_objects(
-                index_name=self.index_name, objects=batch, wait_for_tasks=True
+                index_name=self.index_name, objects=batch, wait_for_tasks=True, batch_size=batch_size,
             )
 
     def raw_search(self, query="", params=None):
