@@ -1,6 +1,5 @@
 Django>=4.0
-# algoliasearch>=4.0,<5.0
-algoliasearch @ git+https://github.com/algolia/algoliasearch-client-python@main
+algoliasearch>=4.0,<5.0
 # dev dependencies
 factory_boy>=3.0,<4.0
 mock>=5.0,<6.0
