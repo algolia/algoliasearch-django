@@ -36,6 +36,12 @@ def get_model_attr(name):
     return partial(_getattr, name=name)
 
 
+def sanitize(hit):
+    if "_highlightResult" in hit:
+        hit.pop("_highlightResult")
+    return hit
+
+
 class AlgoliaIndexError(Exception):
     """Something went wrong with an Algolia Index."""
 
@@ -493,7 +499,8 @@ class AlgoliaIndex(object):
 
             rules = []
             self.__client.browse_rules(
-                self.index_name, lambda _resp: rules.extend(_resp.hits)
+                self.index_name,
+                lambda _resp: rules.extend([sanitize(_hit.to_dict()) for _hit in _resp.hits]),
             )
             if len(rules):
                 logger.debug("Got rules for index %s: %s", self.index_name, rules)
@@ -501,7 +508,8 @@ class AlgoliaIndex(object):
 
             synonyms = []
             self.__client.browse_synonyms(
-                self.index_name, lambda _resp: synonyms.extend(_resp.hits)
+                self.index_name,
+                lambda _resp: synonyms.extend([sanitize(_hit.to_dict()) for _hit in _resp.hits]),
             )
             if len(synonyms):
                 logger.debug("Got synonyms for index %s: %s", self.index_name, rules)

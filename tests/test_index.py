@@ -10,6 +10,12 @@ from algoliasearch_django.models import AlgoliaIndexError
 from .models import User, Website, Example
 
 
+def sanitize(hit):
+    if "_highlightResult" in hit:
+        hit.pop("_highlightResult")
+    return hit
+
+
 class IndexTestCase(TestCase):
     def setUp(self):
         self.client = algolia_engine.client
@@ -320,7 +326,7 @@ class IndexTestCase(TestCase):
         synonyms = []
         self.client.browse_synonyms(
             self.index.index_name,
-            lambda _resp: synonyms.extend([_hit.to_dict() for _hit in _resp.hits]),
+            lambda _resp: synonyms.extend([sanitize(_hit.to_dict()) for _hit in _resp.hits]),
         )
         self.assertEqual(len(synonyms), 1, "There should only be one synonym")
         self.assertIn(

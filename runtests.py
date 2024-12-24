@@ -16,7 +16,7 @@ def main():
     # kept here to run a single test
     # failures = test_runner.run_tests(
     #     [
-    #         "tests.test_index.IndexTestCase.test_reindex_with_rules"
+    #         "tests.test_index.IndexTestCase"
     #     ]
     # )
     failures = test_runner.run_tests(["tests"])
