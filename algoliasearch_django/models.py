@@ -36,6 +36,13 @@ def get_model_attr(name):
     return partial(_getattr, name=name)
 
 
+def aggregator(aggregated, resp):
+    for hit in resp.hits:
+        if "_highlightResult" in hit:
+            hit.pop("_highlightResult")
+        aggregated.append(hit)
+
+
 class AlgoliaIndexError(Exception):
     """Something went wrong with an Algolia Index."""
 
@@ -492,17 +499,13 @@ class AlgoliaIndex(object):
                 logger.debug("APPLY SETTINGS ON %s_tmp", self.index_name)
 
             rules = []
-            self.__client.browse_rules(
-                self.index_name, lambda _resp: rules.extend(_resp.hits)
-            )
+            self.__client.browse_rules(self.index_name, lambda _resp: aggregator(rules, _resp))
             if len(rules):
                 logger.debug("Got rules for index %s: %s", self.index_name, rules)
                 should_keep_rules = True
 
             synonyms = []
-            self.__client.browse_synonyms(
-                self.index_name, lambda _resp: synonyms.extend(_resp.hits)
-            )
+            self.__client.browse_synonyms(self.index_name, lambda _resp: aggregator(synonyms, _resp))
             if len(synonyms):
                 logger.debug("Got synonyms for index %s: %s", self.index_name, rules)
                 should_keep_synonyms = True
