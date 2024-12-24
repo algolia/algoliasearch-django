@@ -5,6 +5,7 @@ http://www.algolia.com
 
 from django.utils.module_loading import autodiscover_modules
 
+import logging
 from . import models
 from . import registration
 from . import settings
@@ -30,12 +31,8 @@ save_record = algolia_engine.save_record
 delete_record = algolia_engine.delete_record
 update_records = algolia_engine.update_records
 raw_search = algolia_engine.raw_search
-clear_index = algolia_engine.clear_index # TODO: deprecate
 clear_objects = algolia_engine.clear_objects
 reindex_all = algolia_engine.reindex_all
-
-# Default log handler
-import logging
 
 
 class NullHandler(logging.Handler):
@@ -44,9 +41,9 @@ class NullHandler(logging.Handler):
 
 
 def autodiscover():
-    autodiscover_modules('index')
+    autodiscover_modules("index")
 
 
-logging.getLogger(__name__.split('.')[0]).addHandler(NullHandler())
+logging.getLogger(__name__.split(".")[0]).addHandler(NullHandler())
 
-default_app_config = 'algoliasearch_django.apps.AlgoliaConfig'
+default_app_config = "algoliasearch_django.apps.AlgoliaConfig"

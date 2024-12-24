@@ -1,5 +1,5 @@
 ## `algolia/algoliasearch-django` maintainers
 
-| Name            | Email               |
-|-----------------|---------------------|
-| Paul-Louis Nech | support@algolia.com |
+| Name            | Email                  |
+|-----------------|------------------------|
+| Algolia         | https://alg.li/support |

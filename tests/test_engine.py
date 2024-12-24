@@ -1,13 +1,10 @@
 import six
-import re
 
+from django import __version__ as __django__version__
 from django.conf import settings
 from django.test import TestCase
 
-from algoliasearch.user_agent import UserAgent
-from django import get_version as django_version
-from algoliasearch_django.version import VERSION
-from algoliasearch_django import algolia_engine
+from algoliasearch_django import algolia_engine, __version__
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django import AlgoliaEngine
 from algoliasearch_django.registration import AlgoliaEngineError
@@ -26,20 +23,20 @@ class EngineTestCase(TestCase):
 
     def test_init_exception(self):
         algolia_settings = dict(settings.ALGOLIA)
-        del algolia_settings['APPLICATION_ID']
-        del algolia_settings['API_KEY']
+        del algolia_settings["APPLICATION_ID"]
+        del algolia_settings["API_KEY"]
 
         with self.settings(ALGOLIA=algolia_settings):
             with self.assertRaises(AlgoliaEngineError):
                 AlgoliaEngine(settings=settings.ALGOLIA)
 
     def test_user_agent(self):
-        user_agent = UserAgent.get()
-
-        parts = re.split('\s*;\s*', user_agent)
-
-        self.assertIn('Django (%s)' % django_version(), parts)
-        self.assertIn('Algolia for Django (%s)' % VERSION, parts)
+        self.assertIn(
+            "Algolia for Django ({}); Django ({})".format(
+                __version__, __django__version__
+            ),
+            self.engine.client._config._user_agent.get(),
+        )
 
     def test_auto_discover_indexes(self):
         """Test that the `index` module was auto-discovered and the models registered"""
@@ -50,7 +47,7 @@ class EngineTestCase(TestCase):
                 User,  # Registered using the `register` decorator
                 Website,  # Registered using the `register` method
             ],
-            algolia_engine.get_registered_models()
+            algolia_engine.get_registered_models(),
         )
 
     def test_is_register(self):
@@ -60,8 +57,7 @@ class EngineTestCase(TestCase):
 
     def test_get_adapter(self):
         self.engine.register(Website)
-        self.assertEquals(AlgoliaIndex,
-                          self.engine.get_adapter(Website).__class__)
+        self.assertEqual(AlgoliaIndex, self.engine.get_adapter(Website).__class__)
 
     def test_get_adapter_exception(self):
         with self.assertRaises(RegistrationError):
@@ -70,9 +66,9 @@ class EngineTestCase(TestCase):
     def test_get_adapter_from_instance(self):
         self.engine.register(Website)
         instance = Website()
-        self.assertEquals(
-            AlgoliaIndex,
-            self.engine.get_adapter_from_instance(instance).__class__)
+        self.assertEqual(
+            AlgoliaIndex, self.engine.get_adapter_from_instance(instance).__class__
+        )
 
     def test_register(self):
         self.engine.register(Website)
@@ -92,8 +88,9 @@ class EngineTestCase(TestCase):
             pass
 
         self.engine.register(Website, WebsiteIndex)
-        self.assertEqual(WebsiteIndex.__name__,
-                         self.engine.get_adapter(Website).__class__.__name__)
+        self.assertEqual(
+            WebsiteIndex.__name__, self.engine.get_adapter(Website).__class__.__name__
+        )
 
     def test_register_with_custom_index_exception(self):
         class WebsiteIndex(object):

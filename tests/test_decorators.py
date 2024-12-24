@@ -1,8 +1,4 @@
-from mock import (
-    ANY,
-    call,
-    patch
-)
+from mock import ANY, call, patch
 
 from django.test import TestCase
 
@@ -26,28 +22,31 @@ class DecoratorsTestCase(TestCase):
             WebsiteFactory()
             UserFactory()
 
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, "save_record") as mocked_save_record:
             decorated_operation()
 
         # The decorated method should have prevented the indexing operations
         mocked_save_record.assert_not_called()
 
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, "save_record") as mocked_save_record:
             non_decorated_operation()
 
         # The non-decorated method is not preventing the indexing operations
         # (the signal was correctly re-connected for both of the models)
-        mocked_save_record.assert_has_calls([
-            call(
-                ANY,
-                created=True,
-                raw=False,
-                sender=ANY,
-                signal=ANY,
-                update_fields=None,
-                using=ANY
-            )
-        ] * 2)
+        mocked_save_record.assert_has_calls(
+            [
+                call(
+                    ANY,
+                    created=True,
+                    raw=False,
+                    sender=ANY,
+                    signal=ANY,
+                    update_fields=None,
+                    using=ANY,
+                )
+            ]
+            * 2
+        )
 
     def test_disable_auto_indexing_as_decorator_for_model(self):
         """Test that the `disable_auto_indexing` should work as a decorator for a specific model"""
@@ -61,7 +60,7 @@ class DecoratorsTestCase(TestCase):
             WebsiteFactory()
             UserFactory()
 
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, "save_record") as mocked_save_record:
             decorated_operation()
 
         # The decorated method should have prevented the indexing operation for the `User` model
@@ -73,36 +72,39 @@ class DecoratorsTestCase(TestCase):
             sender=ANY,
             signal=ANY,
             update_fields=None,
-            using=ANY
+            using=ANY,
         )
 
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, "save_record") as mocked_save_record:
             non_decorated_operation()
 
         # The non-decorated method is not preventing the indexing operations
         # (the signal was correctly re-connected for both of the models)
-        mocked_save_record.assert_has_calls([
-            call(
-                ANY,
-                created=True,
-                raw=False,
-                sender=ANY,
-                signal=ANY,
-                update_fields=None,
-                using=ANY
-            )
-        ] * 2)
+        mocked_save_record.assert_has_calls(
+            [
+                call(
+                    ANY,
+                    created=True,
+                    raw=False,
+                    sender=ANY,
+                    signal=ANY,
+                    update_fields=None,
+                    using=ANY,
+                )
+            ]
+            * 2
+        )
 
     def test_disable_auto_indexing_as_context_manager(self):
         """Test that the `disable_auto_indexing` should work as a context manager"""
 
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, "save_record") as mocked_save_record:
             with disable_auto_indexing():
                 WebsiteFactory()
 
         mocked_save_record.assert_not_called()
 
-        with patch.object(algolia_engine, 'save_record') as mocked_save_record:
+        with patch.object(algolia_engine, "save_record") as mocked_save_record:
             WebsiteFactory()
 
         mocked_save_record.assert_called_once()
