@@ -96,3 +96,39 @@ jobs:
         pip3 install --upgrade pip
         pip3 install tox
         TOXENV=${{ matrix.toxenv }} ALGOLIA_APPLICATION_ID=${{ secrets.ALGOLIA_APPLICATION_ID }} ALGOLIA_API_KEY=${{ secrets.ALGOLIA_API_KEY }} tox
+
+  release:
+    name: Publish
+    runs-on: ubuntu-22.04
+    environment:
+      name: pypi
+      url: https://pypi.org/p/algoliasearch-django
+    permissions:
+      id-token: write
+    needs:
+      - build
+    if: |
+      always() &&
+      startsWith(github.event.head_commit.message, 'chore: release')
+      !contains(needs.*.result, 'cancelled') &&
+      !contains(needs.*.result, 'failure') &&
+      github.ref == 'refs/heads/master'
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.13
+
+    - name: Install dependencies and release
+      timeout-minutes: 20
+      run: |
+        python -m venv python-ci-run
+        source python-ci-run/bin/activate
+        pip3 install --upgrade pip
+        pip3 install tox
+        tox release
+
+    - name: Publish algoliasearch package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
