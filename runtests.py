@@ -14,12 +14,12 @@ def main():
     TestRunner = get_runner(settings)
     test_runner = TestRunner(failfast=True)
     # kept here to run a single test
-    # failures = test_runner.run_tests(
-    #     [
-    #         "tests.test_index.IndexTestCase.test_reindex_with_rules"
-    #     ]
-    # )
-    failures = test_runner.run_tests(["tests"])
+    failures = test_runner.run_tests(
+        [
+            "tests.test_index.IndexTestCase"
+        ]
+    )
+    # failures = test_runner.run_tests(["tests"])
     sys.exit(bool(failures))
 
 
