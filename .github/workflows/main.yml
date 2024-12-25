@@ -119,15 +119,11 @@ jobs:
       with:
         python-version: 3.13
 
-    - name: deps
+    - name: deps and build
       run: |
-        python -m venv python-ci-run
-        source python-ci-run/bin/activate
         pip3 install --upgrade pip
         python -m pip install -U build
-
-    - name: build
-      run: python -m build
+        python -m build
 
     - name: Publish algoliasearch package to PyPI
       if: |
