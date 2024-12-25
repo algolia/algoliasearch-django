@@ -109,10 +109,8 @@ jobs:
       - build
     if: |
       always() &&
-      startsWith(github.event.head_commit.message, 'chore: release') &&
       !contains(needs.*.result, 'cancelled') &&
-      !contains(needs.*.result, 'failure') &&
-      github.ref == 'refs/heads/master'
+      !contains(needs.*.result, 'failure')
     steps:
     - uses: actions/checkout@v4
 
@@ -132,4 +130,7 @@ jobs:
       run: python -m build
 
     - name: Publish algoliasearch package to PyPI
+      if: |
+        github.ref == 'refs/heads/master' &&
+        startsWith(github.event.head_commit.message, 'chore: release')
       uses: pypa/gh-action-pypi-publish@release/v1
