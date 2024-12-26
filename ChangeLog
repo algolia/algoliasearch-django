@@ -1,6 +1,11 @@
 
 CHANGELOG
 
+2024-12-26 4.0.0
+  * [MAJOR] drop support for python <3.8 [#336](https://github.com/algolia/algoliasearch-django/pull/336)
+  * [MAJOR] drop support for django <4.0 [#336](https://github.com/algolia/algoliasearch-django/pull/336)
+  * [MAJOR] remove method `clear_index` in favor of `clear_objects` [#336](https://github.com/algolia/algoliasearch-django/pull/336)
+
 2023-04-27 3.0.0
   * [MAJOR] drop python 2.7, update tox and CI run env  (#331)
   * [FEAT] Add support for Python 3.9, 3.10 and 3.11 (#329)
