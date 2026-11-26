@@ -79,6 +79,45 @@ jobs:
           - version: "3.13"
             toxenv: py313-django51
             os: ubuntu-22.04
+          # django 5.2
+          - version: "3.10"
+            toxenv: py310-django52
+            os: ubuntu-22.04
+          - version: "3.11"
+            toxenv: py311-django52
+            os: ubuntu-22.04
+          - version: "3.12"
+            toxenv: py312-django52
+            os: ubuntu-22.04
+          - version: "3.13"
+            toxenv: py313-django52
+            os: ubuntu-22.04
+          - version: "3.14"
+            toxenv: py314-django52
+            os: ubuntu-22.04
+          # django 6.0
+          - version: "3.12"
+            toxenv: py312-django60
+            os: ubuntu-22.04
+          - version: "3.13"
+            toxenv: py313-django60
+            os: ubuntu-22.04
+          - version: "3.14"
+            toxenv: py314-django60
+            os: ubuntu-22.04
+          # django 6.1
+          - version: "3.12"
+            toxenv: py312-django61
+            os: ubuntu-22.04
+          - version: "3.13"
+            toxenv: py313-django61
+            os: ubuntu-22.04
+          - version: "3.14"
+            toxenv: py314-django61
+            os: ubuntu-22.04
+          - version: "3.15"
+            toxenv: py315-django61
+            os: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3
