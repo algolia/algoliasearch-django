@@ -33,7 +33,7 @@ setup(
     version="4.0.0",
     license="MIT License",
     packages=find_packages(exclude=["tests"]),
-    install_requires=["django>=4.0"],
+    install_requires=["django>=4.0", "algoliasearch>=4.0,<5.0"],
     description="Algolia Search integration for Django",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -65,6 +65,8 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
         "Topic :: Internet :: WWW/HTTP",
     ],
 )
